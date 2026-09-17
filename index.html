@@ -639,14 +639,29 @@ tbody tr:hover{background:var(--bg-soft);}
       <h2>Crear cuenta de estudiante</h2>
       <p style="font-size:13.5px;">Tu cuenta queda activa de inmediato. Tendrás acceso limitado hasta que un docente te asigne a un grupo de proyecto.</p>
       <form onsubmit="event.preventDefault(); registrarEstudiante();">
-        <label>Nombres y apellidos</label>
-        <input class="input" id="reg-nombre" placeholder="Ej: Camila Andrea Gómez" required>
-        <label>Correo institucional</label>
-        <input class="input" type="email" id="reg-correo" placeholder="nombre.apellido@americana.edu.co" required>
-        <label>Contraseña</label>
-        <input class="input" type="password" id="reg-pass" placeholder="••••••••" required>
-        <label>Institución educativa de práctica</label>
-        <input class="input" id="reg-institucion" placeholder="Ej: I.E. Distrital La Luz">
+        <div class="grid-2">
+          <div><label>Nombres</label><input class="input" id="reg-nombre" placeholder="Ej: Camila Andrea" required></div>
+          <div><label>Apellidos</label><input class="input" id="reg-apellido" placeholder="Ej: Gómez Ruiz" required></div>
+        </div>
+        <div class="grid-2" style="margin-top:14px;">
+          <div><label>Tipo de documento</label>
+            <select class="sel" id="reg-tipo-doc">
+              <option value="CC">CC — Cédula de ciudadanía</option>
+              <option value="TI">TI — Tarjeta de identidad</option>
+              <option value="CE">CE — Cédula de extranjería</option>
+              <option value="PTT">PTT — Permiso por Protección Temporal</option>
+            </select>
+          </div>
+          <div><label>Número de documento</label><input class="input" id="reg-num-doc" placeholder="Ej: 1002345678" required></div>
+        </div>
+        <div class="grid-2" style="margin-top:14px;">
+          <div><label>Celular</label><input class="input" type="tel" id="reg-celular" placeholder="Ej: 3001234567" required></div>
+          <div><label>Correo electrónico</label><input class="input" type="email" id="reg-correo" placeholder="nombre.apellido@americana.edu.co" required></div>
+        </div>
+        <div class="grid-2" style="margin-top:14px;">
+          <div><label>Usuario (login)</label><input class="input" id="reg-usuario" placeholder="Ej: camila.gomez" required></div>
+          <div><label>Contraseña</label><input class="input" type="password" id="reg-pass" placeholder="••••••••" required></div>
+        </div>
         <button class="btn btn-primary" style="width:100%;margin-top:22px;" type="submit">Crear cuenta <svg class="icon" style="width:15px;height:15px;stroke:#171034"><use href="#i-arrow"/></svg></button>
       </form>
       <p style="font-size:12px;text-align:center;margin-top:16px;"><a onclick="go('login')" style="cursor:pointer;text-decoration:underline;">Ya tengo cuenta — ingresar</a></p>
@@ -2411,7 +2426,9 @@ function driveGo(name){
 
 /* ---- registro de estudiante (cuenta activa, limitada hasta asignación a grupo) ---- */
 function registrarEstudiante(){
-  var nombre = document.getElementById('reg-nombre').value.trim() || 'Nuevo estudiante';
+  var nombres = document.getElementById('reg-nombre').value.trim();
+  var apellidos = document.getElementById('reg-apellido').value.trim();
+  var nombre = (nombres + ' ' + apellidos).trim() || 'Nuevo estudiante';
   document.getElementById('reg-ok-nombre').textContent = nombre;
   go('registro-ok');
 }
