@@ -211,7 +211,7 @@ footer.site-footer{border-top:1px solid var(--border-soft);padding:26px 0 40px;f
 /* ===== Launch collage — resumen + acceso directo a módulos, en cards ===== */
 .launch-collage{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin:2px 0 32px;}
 .launch-collage.lc-5{grid-template-columns:repeat(5,1fr);}
-.launch-card{position:relative;display:block;width:100%;border:1px solid var(--border-soft);border-radius:24px;overflow:hidden;cursor:pointer;aspect-ratio:4/3;background:var(--bg-soft);box-shadow:0 10px 24px rgba(38,30,70,0.10);transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s;text-align:left;font:inherit;}
+.launch-card{position:relative;display:block;width:100%;border:1px solid var(--border-soft);border-radius:24px;overflow:hidden;cursor:pointer;aspect-ratio:3/4;background:var(--bg-soft);box-shadow:0 10px 24px rgba(38,30,70,0.10);transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s;text-align:left;font:inherit;}
 .launch-card:nth-child(odd){transform:rotate(-1.6deg) translateY(3px);}
 .launch-card:nth-child(even){transform:rotate(1.6deg) translateY(-3px);}
 .launch-card:hover,.launch-card:focus-visible{transform:translateY(-8px) rotate(0deg) scale(1.015);box-shadow:0 26px 46px rgba(38,30,70,0.20);z-index:3;outline:none;}
@@ -241,7 +241,7 @@ footer.site-footer{border-top:1px solid var(--border-soft);padding:26px 0 40px;f
 
 /* ===== Stats rail — el resumen numérico vive fuera de las cards, en anillos ===== */
 .stats-rail{display:flex;gap:4px;align-items:stretch;margin:0 0 32px;padding:18px 10px;border-radius:20px;background:linear-gradient(100deg,rgba(142,127,240,0.07),rgba(238,127,229,0.05) 45%,rgba(197,240,127,0.06));border:1px solid var(--border-soft);flex-wrap:wrap;}
-.rail-stat{display:flex;align-items:center;gap:13px;flex:1;min-width:170px;padding:6px 20px;position:relative;}
+.rail-stat{display:flex;align-items:center;gap:13px;flex:1;min-width:200px;padding:6px 20px;position:relative;}
 .rail-stat+.rail-stat::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:1px;background:var(--border-soft);}
 .rail-ring{position:relative;width:50px;height:50px;border-radius:50%;flex-shrink:0;background:conic-gradient(var(--rc) calc(var(--pct)*3.6deg), rgba(25,22,40,0.08) 0deg);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(38,30,70,0.08);}
 .rail-ring::before{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--bg);}
@@ -805,23 +805,23 @@ tbody tr:hover{background:var(--bg-soft);}
           <div class="stats-rail">
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:100;--rc:var(--lila-ink)"><span class="rv">100%</span></div>
-              <div class="rail-txt"><b>Completa</b><span>27/27 campos diligenciados</span></div>
+              <div class="rail-txt"><b>Caracterización</b><span>Completa · 27 de 27 campos diligenciados</span></div>
             </div>
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:55;--rc:var(--lila-ink)"><span class="rv">55%</span></div>
-              <div class="rail-txt"><b>En curso</b><span>1 propuesta elegida · borrador</span></div>
+              <div class="rail-txt"><b>Árbol y Proyecto de Aula</b><span>En curso · propuesta ya elegida, proyecto aún en borrador</span></div>
             </div>
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:100;--rc:var(--yellow-ink)"><span class="rv">24/7</span></div>
-              <div class="rail-txt"><b>Disponible</b><span>128 recursos · sistema externo</span></div>
+              <div class="rail-txt"><b>Biblioteca Virtual</b><span>Disponible en todo momento · 128 recursos en el catálogo externo</span></div>
             </div>
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:0;--rc:var(--pink-ink)"><span class="rv">0%</span></div>
-              <div class="rail-txt"><b>Sin iniciar</b><span>0 documentos generados</span></div>
+              <div class="rail-txt"><b>Simulador de Situaciones</b><span>Sin iniciar · aún no generas un documento de solución</span></div>
             </div>
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:0;--rc:var(--green-ink)"><span class="rv">0%</span></div>
-              <div class="rail-txt"><b>Sin iniciar</b><span>0 evidencias cargadas</span></div>
+              <div class="rail-txt"><b>Aula Viva de Experiencia</b><span>Sin iniciar · aún no cargas evidencias del proyecto</span></div>
             </div>
           </div>
         </div>
@@ -855,19 +855,19 @@ tbody tr:hover{background:var(--bg-soft);}
           <div class="stats-rail">
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:100;--rc:var(--pink-ink)"><span class="rv">4</span></div>
-              <div class="rail-txt"><b>Árboles pendientes</b><span>9 aceptados · 2 en ajuste</span></div>
+              <div class="rail-txt"><b>Árboles por revisar</b><span>4 grupos esperando tu revisión · 9 ya aceptados y 2 en ajuste</span></div>
             </div>
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:100;--rc:var(--lila-ink)"><span class="rv">15</span></div>
-              <div class="rail-txt"><b>Grupos activos</b><span>cohorte 2026-1</span></div>
+              <div class="rail-txt"><b>Grupos y Formatos</b><span>15 grupos de proyecto activos en la cohorte 2026-1</span></div>
             </div>
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:100;--rc:var(--lila-ink)"><span class="rv">3</span></div>
-              <div class="rail-txt"><b>Cortes del periodo</b><span>2026-1 vigente</span></div>
+              <div class="rail-txt"><b>Periodos y Cortes</b><span>3 cortes definidos en el periodo 2026-1, actualmente vigente</span></div>
             </div>
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:100;--rc:var(--yellow-ink)"><span class="rv">3</span></div>
-              <div class="rail-txt"><b>Actividades</b><span>parametrizadas por corte</span></div>
+              <div class="rail-txt"><b>Parametrización de Actividades</b><span>3 actividades con fechas configuradas para este periodo</span></div>
             </div>
           </div>
 
@@ -918,23 +918,23 @@ tbody tr:hover{background:var(--bg-soft);}
           <div class="stats-rail">
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:100;--rc:var(--lila-ink)"><span class="rv">6</span></div>
-              <div class="rail-txt"><b>Usuarios</b><span>estudiantes, docentes y admin</span></div>
+              <div class="rail-txt"><b>Usuarios</b><span>6 cuentas registradas entre estudiantes, docentes y admin</span></div>
             </div>
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:100;--rc:var(--pink-ink)"><span class="rv">3</span></div>
-              <div class="rail-txt"><b>Roles</b><span>catálogo de permisos</span></div>
+              <div class="rail-txt"><b>Roles y Permisos</b><span>3 roles definidos, cada uno con su propio catálogo de permisos</span></div>
             </div>
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:100;--rc:var(--lila-ink)"><span class="rv">2</span></div>
-              <div class="rail-txt"><b>Periodos</b><span>2026-1 activo · 3 cortes</span></div>
+              <div class="rail-txt"><b>Periodos y Cortes</b><span>2 periodos configurados · 2026-1 activo con 3 cortes</span></div>
             </div>
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:100;--rc:var(--green-ink)"><span class="rv">15</span></div>
-              <div class="rail-txt"><b>Grupos activos</b><span>47 estudiantes · 3 docentes</span></div>
+              <div class="rail-txt"><b>Grupos de proyecto</b><span>15 grupos activos · 47 estudiantes con 3 docentes</span></div>
             </div>
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:100;--rc:var(--yellow-ink)"><span class="rv">128</span></div>
-              <div class="rail-txt"><b>Recursos</b><span>catálogo disponible</span></div>
+              <div class="rail-txt"><b>Biblioteca Virtual</b><span>128 recursos disponibles en el catálogo del Momento 2</span></div>
             </div>
           </div>
         </div>
