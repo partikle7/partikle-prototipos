@@ -155,8 +155,8 @@ footer.site-footer{border-top:1px solid var(--border-soft);padding:26px 0 40px;f
 .login-form-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;background:var(--bg);}
 .login-box{width:100%;max-width:420px;}
 .login-box h2{font-size:26px;margin-bottom:6px;}
-.role-select-3{display:flex;gap:6px;margin:22px 0;background:var(--bg-soft);padding:5px;border-radius:100px;border:1px solid var(--border-soft);}
-.role-opt{flex:1;text-align:center;padding:9px 4px;border-radius:100px;font-size:12.5px;font-weight:700;color:var(--muted);}
+.role-select-3{display:flex;gap:4px;margin:22px 0;background:var(--bg-soft);padding:4px;border-radius:14px;border:1px solid var(--border-soft);}
+.role-opt{flex:1;text-align:center;padding:9px 2px;border-radius:10px;font-size:11.5px;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .role-opt.active{background:var(--purple);color:#171034;}
 .login-box label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin:16px 0 7px;text-transform:uppercase;letter-spacing:.04em;}
 
@@ -707,10 +707,6 @@ tbody tr:hover{background:var(--bg-soft);}
     <button class="nav-item" data-role="coordinador,admin" data-panel="admin-periodos" onclick="setPanel('admin-periodos')"><svg class="icon"><use href="#i-clock"/></svg> Periodos y Cortes</button>
     <button class="nav-item" data-role="coordinador,admin" data-panel="profesor-actividades" onclick="setPanel('profesor-actividades'); initActividadesPanel();"><svg class="icon"><use href="#i-layers"/></svg> Parametrización de Actividades</button>
 
-    <div class="nav-group" data-role="admin">Administración</div>
-    <button class="nav-item" data-role="admin" data-panel="admin-roles" onclick="setPanel('admin-roles')"><svg class="icon"><use href="#i-shield"/></svg> Roles y Permisos</button>
-    <button class="nav-item" data-role="admin" data-panel="admin-biblioteca" onclick="setPanel('admin-biblioteca')"><svg class="icon"><use href="#i-book"/></svg> Biblioteca Virtual</button>
-
     <div class="sidebar-footer">
       <div class="role-switch-side">
         <button id="rs-estudiante" class="active" onclick="setRole('estudiante')">Estudiante</button>
@@ -890,16 +886,11 @@ tbody tr:hover{background:var(--bg-soft);}
         <!-- vista admin -->
         <div id="inicio-admin" class="hidden">
           <h3 style="font-size:15px;margin-bottom:14px;color:var(--muted);">Resumen de la plataforma — toca una card para administrar</h3>
-          <div class="launch-collage lc-5">
+          <div class="launch-collage">
             <button type="button" class="launch-card c-lila" onclick="setPanel('admin-usuarios')">
               <div class="lc-shard"></div>
               <div class="lc-icon-wrap" style="color:var(--lila-ink)"><svg class="icon"><use href="#i-users"/></svg></div>
               <div class="lc-badge"><span class="lc-mom" style="color:var(--lila-ink)">Cuentas</span><span class="lc-title">Usuarios</span></div>
-            </button>
-            <button type="button" class="launch-card c-pink" onclick="setPanel('admin-roles')">
-              <div class="lc-shard"></div>
-              <div class="lc-icon-wrap" style="color:var(--pink-ink)"><svg class="icon"><use href="#i-shield"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--pink-ink)">Seguridad</span><span class="lc-title">Roles y Permisos</span></div>
             </button>
             <button type="button" class="launch-card c-blue" onclick="setPanel('admin-periodos')">
               <div class="lc-shard"></div>
@@ -911,11 +902,6 @@ tbody tr:hover{background:var(--bg-soft);}
               <div class="lc-icon-wrap" style="color:var(--green-ink)"><svg class="icon"><use href="#i-users"/></svg></div>
               <div class="lc-badge"><span class="lc-mom" style="color:var(--green-ink)">Proyectos</span><span class="lc-title">Grupos de proyecto</span></div>
             </button>
-            <button type="button" class="launch-card c-yellow" onclick="setPanel('admin-biblioteca')">
-              <div class="lc-shard"></div>
-              <div class="lc-icon-wrap" style="color:var(--yellow-ink)"><svg class="icon"><use href="#i-book"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--yellow-ink)">Momento 2</span><span class="lc-title">Biblioteca Virtual</span></div>
-            </button>
           </div>
 
           <div class="stats-rail">
@@ -924,20 +910,12 @@ tbody tr:hover{background:var(--bg-soft);}
               <div class="rail-txt"><b>Usuarios</b><span>6 cuentas registradas entre estudiantes, docentes y admin</span></div>
             </div>
             <div class="rail-stat">
-              <div class="rail-ring" style="--pct:100;--rc:var(--pink-ink)"><span class="rv">3</span></div>
-              <div class="rail-txt"><b>Roles y Permisos</b><span>3 roles definidos, cada uno con su propio catálogo de permisos</span></div>
-            </div>
-            <div class="rail-stat">
               <div class="rail-ring" style="--pct:100;--rc:var(--lila-ink)"><span class="rv">2</span></div>
               <div class="rail-txt"><b>Periodos y Cortes</b><span>2 periodos configurados · 2026-1 activo con 3 cortes</span></div>
             </div>
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:100;--rc:var(--green-ink)"><span class="rv">15</span></div>
               <div class="rail-txt"><b>Grupos de proyecto</b><span>15 grupos activos · 47 estudiantes con 3 docentes</span></div>
-            </div>
-            <div class="rail-stat">
-              <div class="rail-ring" style="--pct:100;--rc:var(--yellow-ink)"><span class="rv">128</span></div>
-              <div class="rail-txt"><b>Biblioteca Virtual</b><span>128 recursos disponibles en el catálogo del Momento 2</span></div>
             </div>
           </div>
         </div>
@@ -1956,54 +1934,6 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
         </div>
       </div>
 
-      <!-- ============ ADMIN: roles y permisos ============ -->
-      <div class="panel" id="panel-admin-roles">
-        <div class="panel-head"><div><h2>Roles y Permisos</h2><p>ROLE define los roles del sistema, PERMISSION el catálogo de permisos, y ROLE_PERMISSION qué permisos tiene cada rol.</p></div></div>
-
-        <div class="sec-tabs-wrap">
-          <div class="sec-tabs">
-            <button class="sec-tab active" data-rp-rol="admin" onclick="setRolPermTab(this,'admin')">Admin</button>
-            <button class="sec-tab" data-rp-rol="docente" onclick="setRolPermTab(this,'docente')">Docente</button>
-            <button class="sec-tab" data-rp-rol="estudiante" onclick="setRolPermTab(this,'estudiante')">Estudiante</button>
-          </div>
-        </div>
-
-        <div class="card" style="margin-top:18px;padding:24px;">
-          <h3 style="font-size:15px;margin-bottom:2px;" id="rp-rol-titulo">Permisos del rol: Admin</h3>
-          <p class="mono-note" style="margin-bottom:16px;" id="rp-rol-code">code: admin</p>
-          <div id="rp-permisos-lista"></div>
-          <div style="text-align:right;margin-top:18px;"><button class="btn btn-primary btn-sm" onclick="guardarPermisosRol()">Guardar cambios de permisos</button></div>
-        </div>
-
-        <div class="panel-head" style="margin:30px 0 14px;">
-          <div><h3 style="font-size:15px;color:var(--muted);">Catálogo de permisos (PERMISSION)</h3></div>
-          <button class="btn btn-primary btn-sm" onclick="abrirModalPermiso()"><svg class="icon" style="width:14px;height:14px;stroke:#171034"><use href="#i-plus"/></svg> Nuevo permiso</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Código</th><th>Nombre</th></tr></thead>
-            <tbody id="tabla-permisos"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Modal: nuevo permiso -->
-      <div class="modal-overlay hidden" id="modal-permiso" onclick="if(event.target===this) cerrarModalPermiso()">
-        <div class="modal-box">
-          <button class="modal-close" onclick="cerrarModalPermiso()"><svg class="icon" style="width:15px;height:15px"><use href="#i-x"/></svg></button>
-          <div class="modal-form">
-            <h3>Nuevo permiso</h3>
-            <p class="sub">Se agrega al catálogo (PERMISSION); luego actívalo por rol desde las pestañas de arriba.</p>
-            <label class="field-label">Código</label>
-            <input class="input" id="mp-codigo" placeholder="Ej: aula-viva.manage">
-            <div class="divider"></div>
-            <label class="field-label">Nombre</label>
-            <input class="input" id="mp-nombre" placeholder="Ej: Gestionar Aula Viva de Experiencia">
-            <div style="text-align:right;margin-top:20px;"><button class="btn btn-primary" onclick="crearPermiso()">Crear permiso</button></div>
-          </div>
-        </div>
-      </div>
-
       <!-- ============ ADMIN: periodos y cortes ============ -->
       <div class="panel" id="panel-admin-periodos">
         <div class="panel-head"><div><h2>Periodos y Cortes</h2><p>Cada periodo agrupa uno o varios cortes de evaluación. Los cortes determinan hasta cuándo puede ir la fecha límite de cada actividad en la Parametrización de Actividades.</p></div><button class="btn btn-primary btn-sm" data-role="admin" onclick="abrirModalPeriodo()"><svg class="icon" style="width:14px;height:14px;stroke:#171034"><use href="#i-plus"/></svg> Nuevo periodo</button></div>
@@ -2178,22 +2108,6 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
         </div>
       </div>
 
-      <!-- ============ ADMIN: biblioteca ============ -->
-      <div class="panel" id="panel-admin-biblioteca">
-        <div class="panel-head"><div><h2>Biblioteca Virtual — Catálogo</h2><p>Recursos y fuentes disponibles para el Momento 2.</p></div><button class="btn btn-primary btn-sm"><svg class="icon" style="width:14px;height:14px;stroke:#171034"><use href="#i-plus"/></svg> Agregar recurso</button></div>
-        <div class="validate-note" style="margin-bottom:18px;">⚠ Pendiente de validar con el cliente: si la Biblioteca Virtual es un sistema propio de DiversIA (este catálogo) o una integración a un sistema institucional externo ya existente.</div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Recurso</th><th>Tipo</th><th>Enfoque relacionado</th><th>Estado</th></tr></thead>
-            <tbody>
-              <tr><td>Participación infantil y agencia (Hart, 1992)</td><td><span class="pill info">Artículo</span></td><td>Inclusión</td><td><span class="pill on">Publicado</span></td></tr>
-              <tr><td>Educación emocional en la primera infancia</td><td><span class="pill info">Libro</span></td><td>Socioafectivo</td><td><span class="pill on">Publicado</span></td></tr>
-              <tr><td>Interculturalidad en el aula de transición</td><td><span class="pill" style="background:rgba(160,191,231,.25);color:var(--blue-ink)">Guía</span></td><td>Intercultural</td><td><span class="pill warn">Borrador</span></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
     </main>
   </div>
 </div>
@@ -2264,10 +2178,8 @@ var panelTitles = {
   'profesor-revision':'Revisión de árbol',
   'profesor-actividades':'Parametrización de Actividades',
   'admin-usuarios':'Usuarios',
-  'admin-roles':'Roles y Permisos',
   'admin-periodos':'Periodos y Cortes',
   'admin-grupos':'Grupos de proyecto',
-  'admin-biblioteca':'Biblioteca Virtual — Catálogo',
   'staff-aula-viva':'Aula Viva de los grupos',
   'staff-reporte':'Reporte de avance'
 };
@@ -2850,75 +2762,6 @@ function confirmarEliminarUsuario(){
   toast('Usuario eliminado: ' + nombre);
 }
 
-/* ---- admin: roles y permisos (ROLE / PERMISSION / ROLE_PERMISSION) ---- */
-var ROLES_META = {
-  admin: {name:'Admin', code:'admin'},
-  docente: {name:'Docente', code:'teacher'},
-  estudiante: {name:'Estudiante', code:'student'}
-};
-var PERMISOS_CATALOGO = [
-  {code:'usuarios.manage', name:'Gestionar usuarios'},
-  {code:'roles.manage', name:'Gestionar roles y permisos'},
-  {code:'periodos.manage', name:'Gestionar periodos y cortes'},
-  {code:'grupos.manage', name:'Gestionar grupos de proyecto'},
-  {code:'grupos.view', name:'Ver grupos de proyecto (solo lectura)'},
-  {code:'caracterizacion.edit', name:'Diligenciar caracterización'},
-  {code:'arbol.edit', name:'Diligenciar árbol de problematización'},
-  {code:'arbol.review', name:'Revisar y aceptar/retroalimentar árbol'},
-  {code:'proyecto.edit', name:'Diligenciar Proyecto Pedagógico de Aula'},
-  {code:'simulador.use', name:'Usar Simulador de Situaciones'},
-  {code:'aula-viva.manage', name:'Gestionar Aula Viva de Experiencia'},
-  {code:'biblioteca.manage', name:'Administrar Biblioteca Virtual'}
-];
-var rolePermissions = {
-  admin: ['usuarios.manage','roles.manage','periodos.manage','grupos.view','biblioteca.manage'],
-  docente: ['grupos.manage','arbol.review','grupos.view'],
-  estudiante: ['caracterizacion.edit','arbol.edit','proyecto.edit','simulador.use','aula-viva.manage']
-};
-var rpRolActivo = 'admin';
-function setRolPermTab(btn, rol){
-  document.querySelectorAll('.sec-tabs [data-rp-rol]').forEach(function(b){ b.classList.toggle('active', b===btn); });
-  rpRolActivo = rol;
-  document.getElementById('rp-rol-titulo').textContent = 'Permisos del rol: ' + ROLES_META[rol].name;
-  document.getElementById('rp-rol-code').textContent = 'code: ' + ROLES_META[rol].code;
-  renderPermisosLista();
-}
-function renderPermisosLista(){
-  var box = document.getElementById('rp-permisos-lista');
-  var activos = rolePermissions[rpRolActivo] || [];
-  box.innerHTML = PERMISOS_CATALOGO.map(function(p){
-    var checked = activos.indexOf(p.code) !== -1 ? 'checked' : '';
-    return '<label class="check-pill"><input type="checkbox" ' + checked + ' onchange="togglePermisoRol(this,\'' + p.code + '\')"> ' + p.name + ' <span class="mono-note" style="text-transform:none;font-weight:500;margin-left:4px;">(' + p.code + ')</span></label>';
-  }).join('');
-}
-function togglePermisoRol(chk, code){
-  var list = rolePermissions[rpRolActivo];
-  var idx = list.indexOf(code);
-  if(chk.checked && idx === -1) list.push(code);
-  if(!chk.checked && idx !== -1) list.splice(idx, 1);
-}
-function guardarPermisosRol(){
-  toast('Permisos del rol ' + ROLES_META[rpRolActivo].name + ' actualizados');
-}
-function renderPermisosCatalogo(){
-  document.getElementById('tabla-permisos').innerHTML = PERMISOS_CATALOGO.map(function(p){
-    return '<tr><td class="mono-note" style="text-transform:none;">' + p.code + '</td><td>' + p.name + '</td></tr>';
-  }).join('');
-}
-function abrirModalPermiso(){ document.getElementById('modal-permiso').classList.remove('hidden'); }
-function cerrarModalPermiso(){ document.getElementById('modal-permiso').classList.add('hidden'); }
-function crearPermiso(){
-  var codigo = document.getElementById('mp-codigo').value.trim();
-  var nombre = document.getElementById('mp-nombre').value.trim();
-  if(!codigo || !nombre){ toast('Completa el código y el nombre del permiso'); return; }
-  PERMISOS_CATALOGO.push({code:codigo, name:nombre});
-  renderPermisosCatalogo();
-  renderPermisosLista();
-  cerrarModalPermiso();
-  document.getElementById('mp-codigo').value=''; document.getElementById('mp-nombre').value='';
-  toast('Permiso "' + nombre + '" creado — ya puedes activarlo por rol');
-}
-
 /* ---- admin: periodos y cortes (PERIOD / COURT) ---- */
 var periodos = [
   {code:'PER-2026-1', period:'2026-1', open:'2026-01-20', close:'2026-06-30', cortes:[
@@ -2988,20 +2831,29 @@ function agregarCorte(){
      - cada actividad puede quedar en un corte distinto dentro del mismo periodo
 */
 var ACTIVIDADES_CATALOGO = [
+  {code:'ACT-GRUPOS', type_activity:'Creación de grupos y asignación de integrantes', description_activity:'Creación de grupos de proyecto por parte del docente y asignación o reasignación de integrantes.', icon:'i-users', bg:'rgba(160,191,231,.30)', color:'var(--blue-ink)'},
   {code:'ACT-CARAC', type_activity:'Caracterización', description_activity:'Diligenciamiento de la caracterización de institución y aula.', icon:'i-file', bg:'rgba(174,127,240,.18)', color:'var(--lila-ink)'},
   {code:'ACT-ARBOL', type_activity:'Árbol de Problematización', description_activity:'Construcción y envío del árbol de problematización para revisión del docente.', icon:'i-tree', bg:'rgba(197,240,127,.30)', color:'var(--green-ink)'},
-  {code:'ACT-PPA', type_activity:'Proyecto Pedagógico de Aula', description_activity:'Diligenciamiento del borrador del Proyecto Pedagógico de Aula por el grupo.', icon:'i-layers', bg:'rgba(238,127,229,.18)', color:'var(--pink-ink)'}
+  {code:'ACT-PPA', type_activity:'Proyecto Pedagógico de Aula', description_activity:'Diligenciamiento del borrador del Proyecto Pedagógico de Aula y envío para revisión del agente.', icon:'i-layers', bg:'rgba(238,127,229,.18)', color:'var(--pink-ink)'},
+  {code:'ACT-SIMULADOR', type_activity:'Simulador de Situaciones Pedagógicas', description_activity:'Acceso y diligenciamiento del Simulador de Situaciones Pedagógicas.', icon:'i-sparkle', bg:'rgba(238,197,88,.25)', color:'var(--yellow-ink)'},
+  {code:'ACT-EVIDENCIAS', type_activity:'Aula viva de experiencias', description_activity:'Cargue del producto del proyecto y de las evidencias del proceso en Aula Viva.', icon:'i-upload', bg:'rgba(142,127,240,.20)', color:'var(--purple-ink)'}
 ];
 var activityDeadlines = {
   'PER-2026-1': {
+    'ACT-GRUPOS': {court_id:'PER-2026-1-C1', open:'2026-01-20', close:'2026-02-05'},
     'ACT-CARAC': {court_id:'PER-2026-1-C1', open:'2026-02-01', close:'2026-03-15'},
     'ACT-ARBOL': {court_id:'PER-2026-1-C1', open:'2026-02-15', close:'2026-03-15'},
-    'ACT-PPA':   {court_id:'PER-2026-1-C2', open:'2026-03-16', close:'2026-05-10'}
+    'ACT-PPA':   {court_id:'PER-2026-1-C2', open:'2026-03-16', close:'2026-05-10'},
+    'ACT-SIMULADOR': {court_id:'PER-2026-1-C2', open:'2026-03-16', close:'2026-05-10'},
+    'ACT-EVIDENCIAS': {court_id:'PER-2026-1-C3', open:'2026-05-11', close:'2026-06-30'}
   },
   'PER-2025-2': {
+    'ACT-GRUPOS': {court_id:'PER-2025-2-C1', open:'2025-07-20', close:'2025-08-05'},
     'ACT-CARAC': {court_id:'PER-2025-2-C1', open:'2025-07-20', close:'2025-09-15'},
     'ACT-ARBOL': {court_id:'PER-2025-2-C1', open:'2025-08-01', close:'2025-09-15'},
-    'ACT-PPA':   {court_id:'PER-2025-2-C2', open:'2025-09-16', close:'2025-12-15'}
+    'ACT-PPA':   {court_id:'PER-2025-2-C2', open:'2025-09-16', close:'2025-12-15'},
+    'ACT-SIMULADOR': {court_id:'PER-2025-2-C2', open:'2025-09-16', close:'2025-12-15'},
+    'ACT-EVIDENCIAS': {court_id:'PER-2025-2-C2', open:'2025-09-16', close:'2025-12-15'}
   }
 };
 var actividadesPeriodoActivo = null;
@@ -3283,8 +3135,6 @@ function profesorRetroalimentar(){
 checkArbol();
 renderArbolStatus();
 initExperiencias();
-renderPermisosLista();
-renderPermisosCatalogo();
 renderPeriodos();
 initActividadesPanel();
 renderVotacion();
