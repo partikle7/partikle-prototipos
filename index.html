@@ -1829,17 +1829,17 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
       <!-- ============ ADMIN: usuarios ============ -->
       <div class="panel" id="panel-admin-usuarios">
         <div class="panel-head"><div><h2>Usuarios</h2><p>El admin crea todas las cuentas. Las cuentas quedan activas de inmediato; el estudiante queda limitado hasta que un docente lo asigne a un grupo. El admin puede bloquear manualmente cualquier cuenta desde aquí.</p></div><button class="btn btn-primary btn-sm" onclick="abrirModalUsuario()"><svg class="icon" style="width:14px;height:14px;stroke:#171034"><use href="#i-plus"/></svg> Nuevo usuario</button></div>
-        <div class="filter-row"><input class="input" placeholder="Buscar por nombre o correo…"><button class="btn btn-ghost btn-sm">Filtrar por rol</button></div>
-        <div class="table-wrap">
+        <div class="filter-row"><input class="input" placeholder="Buscar por nombre, usuario o correo…"><button class="btn btn-ghost btn-sm">Filtrar por rol</button></div>
+        <div class="table-wrap" style="overflow-x:auto;">
           <table>
-            <thead><tr><th>Nombre</th><th>Rol</th><th>Institución</th><th>Grupo</th><th>Estado de cuenta</th><th></th></tr></thead>
+            <thead><tr><th>Nombre completo</th><th>Usuario (login)</th><th>Documento</th><th>Correo electrónico</th><th>Celular</th><th>Rol</th><th>Último acceso</th><th>Estado de cuenta</th><th></th></tr></thead>
             <tbody id="tabla-admin-usuarios">
-              <tr><td>Valentina Rojas</td><td><span class="pill info">Estudiante</span></td><td>I.E. Distrital La Luz</td><td>Grupo 3</td><td><div class="switch-row"><label class="switch"><input type="checkbox" checked onchange="toggleCuentaBloqueada(this,'Valentina Rojas')"><span class="slider"></span></label><span class="st-lbl">Activo</span></div></td><td><button class="btn btn-danger-ghost btn-sm" onclick="abrirModalEliminarUsuario(this,'Valentina Rojas')"><svg class="icon" style="width:13px;height:13px"><use href="#i-x"/></svg> Eliminar</button></td></tr>
-              <tr><td>Juan David Peña</td><td><span class="pill info">Estudiante</span></td><td>I.E. Distrital La Luz</td><td>Grupo 3</td><td><div class="switch-row"><label class="switch"><input type="checkbox" checked onchange="toggleCuentaBloqueada(this,'Juan David Peña')"><span class="slider"></span></label><span class="st-lbl">Activo</span></div></td><td><button class="btn btn-danger-ghost btn-sm" onclick="abrirModalEliminarUsuario(this,'Juan David Peña')"><svg class="icon" style="width:13px;height:13px"><use href="#i-x"/></svg> Eliminar</button></td></tr>
-              <tr><td>María Alejandra Ruiz</td><td><span class="pill info">Estudiante</span></td><td>I.E. Distrital La Luz</td><td>Grupo 3</td><td><div class="switch-row"><label class="switch"><input type="checkbox" checked onchange="toggleCuentaBloqueada(this,'María Alejandra Ruiz')"><span class="slider"></span></label><span class="st-lbl">Activo</span></div></td><td><button class="btn btn-danger-ghost btn-sm" onclick="abrirModalEliminarUsuario(this,'María Alejandra Ruiz')"><svg class="icon" style="width:13px;height:13px"><use href="#i-x"/></svg> Eliminar</button></td></tr>
-              <tr><td>Camila Andrea Gómez</td><td><span class="pill info">Estudiante</span></td><td>Jardín Infantil Semillas</td><td>Sin asignar</td><td><div class="switch-row"><label class="switch"><input type="checkbox" checked onchange="toggleCuentaBloqueada(this,'Camila Andrea Gómez')"><span class="slider"></span></label><span class="st-lbl">Activo</span></div></td><td><button class="btn btn-danger-ghost btn-sm" onclick="abrirModalEliminarUsuario(this,'Camila Andrea Gómez')"><svg class="icon" style="width:13px;height:13px"><use href="#i-x"/></svg> Eliminar</button></td></tr>
-              <tr><td>Prof. Andrés Molina</td><td><span class="pill" style="background:rgba(160,191,231,.25);color:var(--blue-ink)">Profesor</span></td><td>Corporación Americana</td><td>3 grupos asignados</td><td><div class="switch-row"><label class="switch"><input type="checkbox" checked onchange="toggleCuentaBloqueada(this,'Prof. Andrés Molina')"><span class="slider"></span></label><span class="st-lbl">Activo</span></div></td><td><button class="btn btn-danger-ghost btn-sm" onclick="abrirModalEliminarUsuario(this,'Prof. Andrés Molina')"><svg class="icon" style="width:13px;height:13px"><use href="#i-x"/></svg> Eliminar</button></td></tr>
-              <tr><td>Laura Torres</td><td><span class="pill" style="background:rgba(238,127,229,.2);color:var(--pink-ink)">Admin</span></td><td>Corporación Americana</td><td>—</td><td><div class="switch-row"><label class="switch"><input type="checkbox" checked onchange="toggleCuentaBloqueada(this,'Laura Torres')"><span class="slider"></span></label><span class="st-lbl">Activo</span></div></td><td><button class="btn btn-danger-ghost btn-sm" onclick="abrirModalEliminarUsuario(this,'Laura Torres')"><svg class="icon" style="width:13px;height:13px"><use href="#i-x"/></svg> Eliminar</button></td></tr>
+              <tr><td>Valentina Rojas</td><td class="mono-note" style="text-transform:none;">valentina.rojas</td><td class="mono-note" style="text-transform:none;">CC 1002345678</td><td class="mono-note" style="text-transform:none;">valentina.rojas@americana.edu.co</td><td class="mono-note" style="text-transform:none;">300 123 4567</td><td><span class="pill info">Estudiante</span></td><td class="mono-note">Hoy, 08:12 a.m.</td><td><div class="switch-row"><label class="switch"><input type="checkbox" checked onchange="toggleCuentaBloqueada(this,'Valentina Rojas')"><span class="slider"></span></label><span class="st-lbl">Activo</span></div></td><td><button class="btn btn-danger-ghost btn-sm" onclick="abrirModalEliminarUsuario(this,'Valentina Rojas')"><svg class="icon" style="width:13px;height:13px"><use href="#i-x"/></svg> Eliminar</button></td></tr>
+              <tr><td>Juan David Peña</td><td class="mono-note" style="text-transform:none;">juan.pena</td><td class="mono-note" style="text-transform:none;">CC 1003456789</td><td class="mono-note" style="text-transform:none;">juan.pena@americana.edu.co</td><td class="mono-note" style="text-transform:none;">301 234 5678</td><td><span class="pill info">Estudiante</span></td><td class="mono-note">Hoy, 07:58 a.m.</td><td><div class="switch-row"><label class="switch"><input type="checkbox" checked onchange="toggleCuentaBloqueada(this,'Juan David Peña')"><span class="slider"></span></label><span class="st-lbl">Activo</span></div></td><td><button class="btn btn-danger-ghost btn-sm" onclick="abrirModalEliminarUsuario(this,'Juan David Peña')"><svg class="icon" style="width:13px;height:13px"><use href="#i-x"/></svg> Eliminar</button></td></tr>
+              <tr><td>María Alejandra Ruiz</td><td class="mono-note" style="text-transform:none;">maria.ruiz</td><td class="mono-note" style="text-transform:none;">TI 1098765432</td><td class="mono-note" style="text-transform:none;">maria.ruiz@americana.edu.co</td><td class="mono-note" style="text-transform:none;">302 345 6789</td><td><span class="pill info">Estudiante</span></td><td class="mono-note">Ayer, 6:40 p.m.</td><td><div class="switch-row"><label class="switch"><input type="checkbox" checked onchange="toggleCuentaBloqueada(this,'María Alejandra Ruiz')"><span class="slider"></span></label><span class="st-lbl">Activo</span></div></td><td><button class="btn btn-danger-ghost btn-sm" onclick="abrirModalEliminarUsuario(this,'María Alejandra Ruiz')"><svg class="icon" style="width:13px;height:13px"><use href="#i-x"/></svg> Eliminar</button></td></tr>
+              <tr><td>Camila Andrea Gómez</td><td class="mono-note" style="text-transform:none;">camila.gomez</td><td class="mono-note" style="text-transform:none;">CC 1004567890</td><td class="mono-note" style="text-transform:none;">camila.gomez@americana.edu.co</td><td class="mono-note" style="text-transform:none;">303 456 7890</td><td><span class="pill info">Estudiante</span></td><td class="mono-note">Sin acceso registrado</td><td><div class="switch-row"><label class="switch"><input type="checkbox" checked onchange="toggleCuentaBloqueada(this,'Camila Andrea Gómez')"><span class="slider"></span></label><span class="st-lbl">Activo</span></div></td><td><button class="btn btn-danger-ghost btn-sm" onclick="abrirModalEliminarUsuario(this,'Camila Andrea Gómez')"><svg class="icon" style="width:13px;height:13px"><use href="#i-x"/></svg> Eliminar</button></td></tr>
+              <tr><td>Prof. Andrés Molina</td><td class="mono-note" style="text-transform:none;">andres.molina</td><td class="mono-note" style="text-transform:none;">CC 79345612</td><td class="mono-note" style="text-transform:none;">andres.molina@americana.edu.co</td><td class="mono-note" style="text-transform:none;">310 123 4567</td><td><span class="pill" style="background:rgba(160,191,231,.25);color:var(--blue-ink)">Profesor</span></td><td class="mono-note">Hoy, 09:05 a.m.</td><td><div class="switch-row"><label class="switch"><input type="checkbox" checked onchange="toggleCuentaBloqueada(this,'Prof. Andrés Molina')"><span class="slider"></span></label><span class="st-lbl">Activo</span></div></td><td><button class="btn btn-danger-ghost btn-sm" onclick="abrirModalEliminarUsuario(this,'Prof. Andrés Molina')"><svg class="icon" style="width:13px;height:13px"><use href="#i-x"/></svg> Eliminar</button></td></tr>
+              <tr><td>Laura Torres</td><td class="mono-note" style="text-transform:none;">laura.torres</td><td class="mono-note" style="text-transform:none;">CC 52456789</td><td class="mono-note" style="text-transform:none;">laura.torres@americana.edu.co</td><td class="mono-note" style="text-transform:none;">315 987 6543</td><td><span class="pill" style="background:rgba(238,127,229,.2);color:var(--pink-ink)">Admin</span></td><td class="mono-note">Hoy, 07:30 a.m.</td><td><div class="switch-row"><label class="switch"><input type="checkbox" checked onchange="toggleCuentaBloqueada(this,'Laura Torres')"><span class="slider"></span></label><span class="st-lbl">Activo</span></div></td><td><button class="btn btn-danger-ghost btn-sm" onclick="abrirModalEliminarUsuario(this,'Laura Torres')"><svg class="icon" style="width:13px;height:13px"><use href="#i-x"/></svg> Eliminar</button></td></tr>
             </tbody>
           </table>
         </div>
@@ -1851,13 +1851,7 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
           <button class="modal-close" onclick="cerrarModalUsuario()"><svg class="icon" style="width:15px;height:15px"><use href="#i-x"/></svg></button>
           <div class="modal-form">
             <h3>Nuevo usuario</h3>
-            <p class="sub">Todas las cuentas se crean activas. Las de estudiante quedan con acceso limitado hasta ser asignadas a un grupo.</p>
-            <label class="field-label">Nombre completo</label>
-            <input class="input" id="mu-nombre" placeholder="Ej: Camila Andrea Gómez">
-            <div class="divider"></div>
-            <label class="field-label">Correo institucional</label>
-            <input class="input" type="email" id="mu-correo" placeholder="nombre.apellido@americana.edu.co">
-            <div class="divider"></div>
+            <p class="sub">Mismos campos del formulario de registro (USER + PROFILE), más el rol que le asigna el admin. Todas las cuentas se crean activas; las de estudiante quedan con acceso limitado hasta ser asignadas a un grupo.</p>
             <label class="field-label">Rol</label>
             <select class="sel" id="mu-rol" onchange="actualizarEstadoUsuarioModal()">
               <option value="Estudiante">Estudiante</option>
@@ -1865,8 +1859,32 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
               <option value="Admin">Admin</option>
             </select>
             <div class="divider"></div>
-            <label class="field-label">Institución</label>
-            <input class="input" id="mu-institucion" placeholder="Ej: I.E. Distrital La Luz" value="Corporación Americana">
+            <div class="grid-2">
+              <div><label class="field-label">Nombres</label><input class="input" id="mu-nombre" placeholder="Ej: Camila Andrea"></div>
+              <div><label class="field-label">Apellidos</label><input class="input" id="mu-apellido" placeholder="Ej: Gómez Ruiz"></div>
+            </div>
+            <div class="divider"></div>
+            <div class="grid-2">
+              <div><label class="field-label">Tipo de documento</label>
+                <select class="sel" id="mu-tipo-doc">
+                  <option value="CC">CC — Cédula de ciudadanía</option>
+                  <option value="TI">TI — Tarjeta de identidad</option>
+                  <option value="CE">CE — Cédula de extranjería</option>
+                  <option value="PTT">PTT — Permiso por Protección Temporal</option>
+                </select>
+              </div>
+              <div><label class="field-label">Número de documento</label><input class="input" id="mu-num-doc" placeholder="Ej: 1002345678"></div>
+            </div>
+            <div class="divider"></div>
+            <div class="grid-2">
+              <div><label class="field-label">Celular</label><input class="input" type="tel" id="mu-celular" placeholder="Ej: 3001234567"></div>
+              <div><label class="field-label">Correo electrónico</label><input class="input" type="email" id="mu-correo" placeholder="nombre.apellido@americana.edu.co"></div>
+            </div>
+            <div class="divider"></div>
+            <div class="grid-2">
+              <div><label class="field-label">Usuario (login)</label><input class="input" id="mu-usuario" placeholder="Ej: camila.gomez"></div>
+              <div><label class="field-label">Contraseña</label><input class="input" type="password" id="mu-pass" placeholder="••••••••"></div>
+            </div>
             <p class="mono-note" id="mu-estado-hint" style="margin-top:12px;">Este usuario se creará con estado <b>Activo</b>.</p>
             <div style="text-align:right;margin-top:16px;"><button class="btn btn-primary" onclick="crearUsuario()">Crear usuario</button></div>
           </div>
@@ -2621,20 +2639,34 @@ function actualizarEstadoUsuarioModal(){
   }
 }
 function crearUsuario(){
-  var nombre = document.getElementById('mu-nombre').value.trim();
+  var nombres = document.getElementById('mu-nombre').value.trim();
+  var apellidos = document.getElementById('mu-apellido').value.trim();
+  var tipoDoc = document.getElementById('mu-tipo-doc').value;
+  var numDoc = document.getElementById('mu-num-doc').value.trim();
+  var celular = document.getElementById('mu-celular').value.trim();
   var correo = document.getElementById('mu-correo').value.trim();
+  var usuario = document.getElementById('mu-usuario').value.trim();
+  var pass = document.getElementById('mu-pass').value;
   var rol = document.getElementById('mu-rol').value;
-  var institucion = document.getElementById('mu-institucion').value.trim() || '—';
-  if(!nombre || !correo){ toast('Completa nombre y correo'); return; }
-  var pillClass = rol==='Estudiante' ? 'pill info' : (rol==='Profesor' ? 'pill' : 'pill');
+  if(!nombres || !apellidos || !numDoc || !celular || !correo || !usuario || !pass){ toast('Completa todos los campos del formulario'); return; }
+  var nombreCompleto = (rol==='Profesor' ? 'Prof. ' : '') + nombres + ' ' + apellidos;
   var pillStyle = rol==='Profesor' ? 'style="background:rgba(160,191,231,.25);color:var(--blue-ink)"' : (rol==='Admin' ? 'style="background:rgba(238,127,229,.2);color:var(--pink-ink)"' : '');
-  var estadoHtml = '<div class="switch-row"><label class="switch"><input type="checkbox" checked onchange="toggleCuentaBloqueada(this,\'' + nombre + '\')"><span class="slider"></span></label><span class="st-lbl">Activo</span></div>';
-  var accionHtml = '<button class="btn btn-danger-ghost btn-sm" onclick="abrirModalEliminarUsuario(this,\'' + nombre + '\')"><svg class="icon" style="width:13px;height:13px"><use href="#i-x"/></svg> Eliminar</button>';
+  var pillClass = rol==='Estudiante' ? 'pill info' : 'pill';
+  var estadoHtml = '<div class="switch-row"><label class="switch"><input type="checkbox" checked onchange="toggleCuentaBloqueada(this,\'' + nombreCompleto + '\')"><span class="slider"></span></label><span class="st-lbl">Activo</span></div>';
+  var accionHtml = '<button class="btn btn-danger-ghost btn-sm" onclick="abrirModalEliminarUsuario(this,\'' + nombreCompleto + '\')"><svg class="icon" style="width:13px;height:13px"><use href="#i-x"/></svg> Eliminar</button>';
   var row = document.createElement('tr');
-  row.innerHTML = '<td>' + nombre + '</td><td><span class="' + pillClass + '" ' + pillStyle + '>' + rol + '</span></td><td>' + institucion + '</td><td>' + (rol==='Estudiante' ? 'Sin asignar' : '—') + '</td><td>' + estadoHtml + '</td><td>' + accionHtml + '</td>';
+  row.innerHTML = '<td>' + escaparHtml(nombreCompleto) + '</td>'
+    + '<td class="mono-note" style="text-transform:none;">' + escaparHtml(usuario) + '</td>'
+    + '<td class="mono-note" style="text-transform:none;">' + escaparHtml(tipoDoc) + ' ' + escaparHtml(numDoc) + '</td>'
+    + '<td class="mono-note" style="text-transform:none;">' + escaparHtml(correo) + '</td>'
+    + '<td class="mono-note" style="text-transform:none;">' + escaparHtml(celular) + '</td>'
+    + '<td><span class="' + pillClass + '" ' + pillStyle + '>' + rol + '</span></td>'
+    + '<td class="mono-note">Sin acceso registrado</td>'
+    + '<td>' + estadoHtml + '</td>'
+    + '<td>' + accionHtml + '</td>';
   document.getElementById('tabla-admin-usuarios').prepend(row);
   cerrarModalUsuario();
-  ['mu-nombre','mu-correo'].forEach(function(id){ document.getElementById(id).value=''; });
+  ['mu-nombre','mu-apellido','mu-num-doc','mu-celular','mu-correo','mu-usuario','mu-pass'].forEach(function(id){ document.getElementById(id).value=''; });
   toast('Usuario creado' + (rol==='Estudiante' ? ' — activo, limitado hasta que un docente lo asigne a un grupo' : ' — activo'));
 }
 
