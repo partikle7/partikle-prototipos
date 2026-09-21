@@ -1298,11 +1298,14 @@ tbody tr:hover{background:var(--bg-soft);}
                   <svg class="icon" style="width:26px;height:26px;stroke:var(--lila-ink)"><use href="#i-sparkle"/></svg>
                   <h3 style="font-size:16px;">Generar propuestas de proyecto</h3>
                   <p>El GPT generará una "propuesta de proyecto" por cada situación del árbol, con la misma estructura de 9 campos. El grupo elegirá una sola — no se combinan elementos de ambas.</p>
-                  <button class="btn btn-primary" onclick="generarVentanas()">Generar 2 propuestas con IA</button>
+                  <button class="btn btn-primary" id="btn-generar-propuestas" onclick="generarVentanas()">Generar propuestas con IA</button>
+                  <p class="mono-note" id="gen-propuestas-status" style="margin-top:10px;min-height:15px;"></p>
+                  <div class="validate-note hidden" id="gen-propuestas-error" style="text-align:left;max-width:540px;margin-top:4px;"></div>
                 </div>
 
-                <div class="ventanas-result show" id="ventanas-result">
-                  <div class="grid-2">
+                <div class="ventanas-result" id="ventanas-result">
+                  <div class="feedback-comment hidden" id="ventanas-instrucciones" style="margin-bottom:18px;font-style:normal;"></div>
+                  <div class="grid-2" id="ventanas-grid">
                     <div class="card ventana-card" id="ventana-1" style="border-color:rgba(174,127,240,.4)">
                       <h4><span class="pill" style="background:rgba(174,127,240,.2);color:var(--lila-ink)">Propuesta 1 — Situación 1</span></h4>
                       <div class="ventana-field"><div class="k">Nombre tentativo</div><div class="v">"Aprendemos juntos": participación diversa en el aula</div></div>
@@ -2197,12 +2200,184 @@ function renderPropuestasLock(){
   document.getElementById('tag-m3').classList.toggle('hidden', false);
 }
 
-/* ---- propuestas ---- */
+/* ---- propuestas: integración real con el agente n8n (Momento 1 / Paso 1) ---- */
+var DIVERSIA_MOMENTO1_ENDPOINT = 'https://n8n.americana.edu.co/webhook/momento1';
+var DIVERSIA_MOMENTO1_API_KEY = '10612e2c4ccf25280607d4118a682ce3346c6520fa206855573a23220c8d4b93';
+
+var CAMPOS_INSTITUTION = ['inst_name','inst_location','inst_nature','inst_education_levels','inst_environment_characteristics','inst_socioeconomic_conditions','inst_relevant_context_issues','inst_student_count','inst_age_groups_served','inst_cultural_ethnic_diversity','inst_disability_population_presence','inst_vulnerability_situations','inst_pedagogical_approach','inst_infrastructure','inst_didactic_resources','inst_ict_access','inst_human_talent','inst_family_participation','inst_institutional_articulation','inst_community_projects_networks'];
+var CAMPOS_CLASSROOM = ['class_name_grade','class_student_count','class_age_range','class_group_diversity','class_special_educational_needs','class_gender_dynamics','class_predominant_learning_styles','class_peer_relationships','class_teacher_student_relationship','class_coexistence_norms_agreements','class_daily_routine','class_methodological_strategies','class_didactic_materials','class_technological_resources','class_learning_spaces','class_pedagogical_adaptations','class_diversity_attention_strategies','class_participation_level','class_collaborative_work','class_emotional_socioaffective_expression','class_teacher_in_training_functions','class_autonomy_level','class_support_type_received','class_implemented_strategies','class_relevant_observed_aspects'];
+
+function leerCamposPorOrden(scopeEl, nombres){
+  var out = {};
+  if(!scopeEl) return out;
+  var els = scopeEl.querySelectorAll('input.input, textarea.ta');
+  nombres.forEach(function(nombre, i){
+    var el = els[i];
+    out[nombre] = el ? el.value.trim() : '';
+  });
+  return out;
+}
+function numeroDesdeTexto(txt){
+  var m = String(txt == null ? '' : txt).replace(/\./g,'').match(/\d+/);
+  return m ? parseInt(m[0],10) : txt;
+}
+function construirInstitutionPayload(){
+  var scope = document.querySelector('.subtab-pane[data-carac-tab="institucion"]');
+  var campos = leerCamposPorOrden(scope, CAMPOS_INSTITUTION);
+  campos.inst_student_count = numeroDesdeTexto(campos.inst_student_count);
+  return Object.assign({id:1, group_id:101}, campos);
+}
+function construirClassroomPayload(){
+  var scope = document.querySelector('.subtab-pane[data-carac-tab="aula"]');
+  var campos = leerCamposPorOrden(scope, CAMPOS_CLASSROOM);
+  campos.class_student_count = numeroDesdeTexto(campos.class_student_count);
+  return Object.assign({id:1, institution_id:1, group_id:101}, campos);
+}
+function construirProblemTreePayload(){
+  var problemaTextarea = document.querySelector('.problema-card textarea.arbol-input');
+  var situacionBlocks = document.querySelectorAll('.situacion-block');
+  var situations = [];
+  situacionBlocks.forEach(function(block, sIdx){
+    var desc = block.querySelector(':scope > textarea.arbol-input');
+    var efectoCards = block.querySelectorAll('.efecto-card');
+    var branches = [];
+    efectoCards.forEach(function(card, bIdx){
+      var inputs = card.querySelectorAll('input.arbol-input');
+      var select = card.querySelector('select.arbol-enfoque');
+      branches.push({
+        branch_number: bIdx + 1,
+        effect: inputs[0] ? inputs[0].value.trim() : '',
+        cause: inputs[1] ? inputs[1].value.trim() : '',
+        differentiating_approach: select ? select.value : ''
+      });
+    });
+    situations.push({
+      situation_number: sIdx + 1,
+      description: desc ? desc.value.trim() : '',
+      branches: branches
+    });
+  });
+  return {
+    problematization_question: problemaTextarea ? problemaTextarea.value.trim() : '',
+    situations: situations
+  };
+}
+function construirPayloadMomento1(){
+  return {
+    characterization: {
+      institution: construirInstitutionPayload(),
+      classroom: construirClassroomPayload()
+    },
+    problem_tree: construirProblemTreePayload()
+  };
+}
+
 function generarVentanas(){
-  document.getElementById('gen-cta-propuestas').classList.add('hidden');
-  votosPropuesta = {};
-  renderVotacion();
-  toast('2 propuestas generadas — el grupo debe votar por una');
+  var btn = document.getElementById('btn-generar-propuestas');
+  var statusEl = document.getElementById('gen-propuestas-status');
+  var errorEl = document.getElementById('gen-propuestas-error');
+  var payload;
+  try{
+    payload = construirPayloadMomento1();
+  } catch(buildErr){
+    console.error('[DiversIA · Momento 1] error armando el payload:', buildErr);
+    errorEl.classList.remove('hidden');
+    errorEl.textContent = 'No se pudo armar la información del árbol/caracterización para enviar al agente: ' + buildErr.message;
+    return;
+  }
+
+  btn.disabled = true;
+  statusEl.textContent = 'Enviando Caracterización + Árbol de Problematización al agente…';
+  errorEl.classList.add('hidden');
+  errorEl.textContent = '';
+
+  console.log('[DiversIA · Momento 1] payload enviado al agente:', payload);
+
+  fetch(DIVERSIA_MOMENTO1_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': DIVERSIA_MOMENTO1_API_KEY
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(function(res){
+    if(!res.ok){
+      return res.text().then(function(txt){
+        throw new Error('El agente respondió con estado ' + res.status + (txt ? (': ' + txt) : ''));
+      });
+    }
+    return res.json();
+  })
+  .then(function(data){
+    console.log('[DiversIA · Momento 1] respuesta del agente:', data);
+    if(!data || !Array.isArray(data.proposals) || !data.proposals.length){
+      throw new Error('La respuesta del agente no trae el campo "proposals" esperado.');
+    }
+    renderPropuestasDesdeAgente(data);
+    btn.disabled = false;
+    statusEl.textContent = '';
+    document.getElementById('gen-cta-propuestas').classList.add('hidden');
+    votosPropuesta = {};
+    renderVotacion();
+    toast(data.proposals.length + ' propuestas generadas por el agente — el grupo debe votar por una');
+  })
+  .catch(function(err){
+    console.error('[DiversIA · Momento 1] error llamando al agente:', err);
+    btn.disabled = false;
+    statusEl.textContent = '';
+    errorEl.classList.remove('hidden');
+    errorEl.textContent = 'No se pudo generar las propuestas: ' + err.message + '. Abre la consola del navegador (F12) para ver el detalle y vuelve a intentarlo.';
+    toast('Error al conectar con el agente — revisa la consola');
+  });
+}
+
+var VENTANA_CAMPOS = [
+  ['tentative_name','Nombre tentativo'],
+  ['problem_statement','Problemática'],
+  ['general_and_specific_objectives','Objetivo general y específicos'],
+  ['beneficiary_population','Población beneficiaria'],
+  ['approaches_involved','Enfoques involucrados'],
+  ['pedagogical_strategies','Estrategias pedagógicas'],
+  ['expected_impact','Impacto esperado'],
+  ['feasibility','Viabilidad'],
+  ['innovation_potential','Potencial de innovación']
+];
+var VENTANA_COLORS = [
+  {border:'rgba(174,127,240,.4)', pillBg:'rgba(174,127,240,.2)', pillColor:'var(--lila-ink)'},
+  {border:'rgba(238,127,229,.4)', pillBg:'rgba(238,127,229,.2)', pillColor:'var(--pink-ink)'}
+];
+function escaparHtml(str){
+  return String(str == null ? '' : str).replace(/[&<>"']/g, function(ch){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+  });
+}
+function campoVentana(label, value){
+  return '<div class="ventana-field"><div class="k">' + escaparHtml(label) + '</div><div class="v">' + escaparHtml(value || '—') + '</div></div>';
+}
+function renderPropuestasDesdeAgente(data){
+  var grid = document.getElementById('ventanas-grid');
+  var instruccionesEl = document.getElementById('ventanas-instrucciones');
+  if(data.instructions_for_student){
+    instruccionesEl.textContent = data.instructions_for_student;
+    instruccionesEl.classList.remove('hidden');
+  } else {
+    instruccionesEl.classList.add('hidden');
+  }
+  grid.innerHTML = data.proposals.map(function(p, i){
+    var n = i + 1;
+    var color = VENTANA_COLORS[i % VENTANA_COLORS.length];
+    var situacionRef = p.situation_reference || n;
+    var camposHtml = VENTANA_CAMPOS.map(function(par){
+      return campoVentana(par[1], p[par[0]]);
+    }).join('');
+    return '<div class="card ventana-card" id="ventana-' + n + '" style="border-color:' + color.border + '">'
+      + '<h4><span class="pill" style="background:' + color.pillBg + ';color:' + color.pillColor + '">Propuesta ' + n + ' — Situación ' + escaparHtml(situacionRef) + '</span></h4>'
+      + camposHtml
+      + '<div class="choose-row"><button class="btn btn-ghost btn-sm" id="btn-votar-' + n + '" onclick="votarPropuesta(' + n + ')">Votar por esta propuesta</button></div>'
+      + '</div>';
+  }).join('');
+  document.getElementById('ventanas-result').classList.add('show');
 }
 
 /* ---- votación grupal de la propuesta: todos los integrantes deben coincidir ---- */
