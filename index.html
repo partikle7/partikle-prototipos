@@ -1742,7 +1742,7 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
 
         <div class="panel-head" style="margin-bottom:14px;">
           <div><h3 style="font-size:15px;color:var(--muted);">Grupos de proyecto</h3></div>
-          <button class="btn btn-primary btn-sm" onclick="abrirModalGrupo()"><svg class="icon" style="width:14px;height:14px;stroke:#171034"><use href="#i-plus"/></svg> Nuevo grupo</button>
+          <button class="btn btn-primary btn-sm" onclick="abrirModalGrupo('tabla-grupos-profesor')"><svg class="icon" style="width:14px;height:14px;stroke:#171034"><use href="#i-plus"/></svg> Nuevo grupo</button>
         </div>
         <div class="table-wrap" style="margin-bottom:30px;">
           <table>
@@ -1767,7 +1767,7 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
             <label class="field-label">Nombre del grupo</label>
             <input class="input" id="mg-nombre" placeholder="Ej: Grupo 11 — Huellas de Colores">
             <div class="divider"></div>
-            <label class="field-label">Institución educativa</label>
+            <label class="field-label">Institución educativa donde se realizan las prácticas</label>
             <input class="input" id="mg-institucion" placeholder="Ej: I.E. Distrital La Luz">
             <div class="divider"></div>
             <div class="grid-2" style="gap:16px;">
@@ -1799,8 +1799,9 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
               </div>
             </div>
             <div class="divider"></div>
-            <label class="field-label">Máximo de integrantes</label>
-            <input class="input" type="number" id="mg-max" value="3" min="2" max="6" onchange="actualizarMaxIntegrantes()">
+            <label class="field-label" style="display:flex;align-items:center;gap:8px;">Máximo de integrantes <span class="lock-badge"><svg class="icon" style="width:10px;height:10px"><use href="#i-lock"/></svg> Fijo</span></label>
+            <div class="field-help">Este valor es fijo en el sistema — todos los grupos de proyecto se conforman con 3 integrantes.</div>
+            <input class="input" type="number" id="mg-max" value="3" min="3" max="3" disabled>
             <div class="divider"></div>
             <label class="field-label">Integrantes</label>
             <div class="member-search-wrap">
@@ -2015,15 +2016,15 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
 
       <!-- ============ ADMIN: grupos (solo lectura) ============ -->
       <div class="panel" id="panel-admin-grupos">
-        <div class="panel-head"><div><h2>Grupos de proyecto</h2><p>Conformación de grupos y su avance por los 4 momentos — vista de solo lectura. La creación de grupos y asignación de integrantes la gestiona cada docente desde su panel de Grupos y Formatos.</p></div></div>
+        <div class="panel-head"><div><h2>Grupos de proyecto</h2><p>El admin puede conformar grupos y asignar integrantes con la misma gestión que tiene el docente desde su panel de Grupos y Formatos.</p></div><button class="btn btn-primary btn-sm" onclick="abrirModalGrupo('tabla-grupos-admin')"><svg class="icon" style="width:14px;height:14px;stroke:#171034"><use href="#i-plus"/></svg> Nuevo grupo</button></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Grupo</th><th>Integrantes</th><th>Institución</th><th>Momento actual</th><th>Árbol</th></tr></thead>
-            <tbody>
-              <tr><td>Grupo 3 — Semilleros de Cambio</td><td>3</td><td>I.E. Distrital La Luz</td><td>M2 · Biblioteca Virtual</td><td><span class="pill on">Aceptado</span></td></tr>
-              <tr><td>Grupo 5 — Voces del Aula</td><td>4</td><td>Jardín Infantil Semillas</td><td>M1 · Árbol</td><td><span class="pill warn">Pendiente</span></td></tr>
-              <tr><td>Grupo 7 — Mundo Diverso</td><td>3</td><td>I.E. Nueva Esperanza</td><td>M1 · Árbol</td><td><span class="pill danger">En ajuste</span></td></tr>
-              <tr><td>Grupo 9 — Raíces y Alas</td><td>4</td><td>I.E. Distrital La Luz</td><td>M1 · Árbol</td><td><span class="pill warn">Pendiente</span></td></tr>
+            <thead><tr><th>Código</th><th>Grupo</th><th>Tipo de práctica</th><th>Periodo</th><th>Integrantes</th><th>Vigencia</th><th></th></tr></thead>
+            <tbody id="tabla-grupos-admin">
+              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-003</td><td>Grupo 3 — Semilleros de Cambio</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>Valentina Rojas, Juan David Peña, María Alejandra Ruiz</td><td>01 feb – 30 jun 2026</td><td><button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 3')">Editar</button></td></tr>
+              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-005</td><td>Grupo 5 — Voces del Aula</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>4 integrantes</td><td>01 feb – 30 jun 2026</td><td><button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 5')">Editar</button></td></tr>
+              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-007</td><td>Grupo 7 — Mundo Diverso</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>3 integrantes</td><td>01 feb – 30 jun 2026</td><td><button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 7')">Editar</button></td></tr>
+              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-009</td><td>Grupo 9 — Raíces y Alas</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>4 integrantes</td><td>01 feb – 30 jun 2026</td><td><button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 9')">Editar</button></td></tr>
             </tbody>
           </table>
         </div>
@@ -2961,7 +2962,9 @@ var estudiantesDisponibles = [
   {nombre:'Daniel Zapata', correo:'daniel.zapata@americana.edu.co', institucion:'I.E. Distrital La Luz'}
 ];
 var mgIntegrantesSeleccionados = [];
-function abrirModalGrupo(){
+var mgTablaDestino = 'tabla-grupos-profesor';
+function abrirModalGrupo(tablaDestino){
+  mgTablaDestino = tablaDestino || 'tabla-grupos-profesor';
   document.getElementById('modal-grupo').classList.remove('hidden');
   mgIntegrantesSeleccionados = [];
   renderChipsIntegrantes();
@@ -3024,7 +3027,7 @@ function crearGrupo(){
   if(mgIntegrantesSeleccionados.length < 2){ toast('Selecciona mínimo 2 integrantes'); return; }
   var row = document.createElement('tr');
   row.innerHTML = '<td class="mono-note" style="text-transform:none;">' + codigo + '</td><td>' + nombre + '</td><td>' + tipoPractica + '</td><td>' + periodo + '</td><td>' + mgIntegrantesSeleccionados.join(', ') + '</td><td>' + formatearFechaCorta(apertura) + ' – ' + formatearFechaCorta(cierre) + '</td><td><button class="btn btn-ghost btn-sm" onclick="toast(\'Editar integrantes de ' + nombre + '\')">Editar</button></td>';
-  document.getElementById('tabla-grupos-profesor').appendChild(row);
+  document.getElementById(mgTablaDestino || 'tabla-grupos-profesor').appendChild(row);
   cerrarModalGrupo();
   ['mg-codigo','mg-nombre','mg-institucion'].forEach(function(id){ document.getElementById(id).value=''; });
   mgIntegrantesSeleccionados = [];
