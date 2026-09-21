@@ -537,6 +537,7 @@ tbody tr:hover{background:var(--bg-soft);}
 <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
 <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></symbol>
 <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
 </defs>
 </svg>
 
@@ -612,6 +613,7 @@ tbody tr:hover{background:var(--bg-soft);}
       <div class="role-select-3">
         <button class="role-opt active" id="role-opt-estudiante" onclick="setLoginRole('estudiante')">Estudiante</button>
         <button class="role-opt" id="role-opt-profesor" onclick="setLoginRole('profesor')">Profesor</button>
+        <button class="role-opt" id="role-opt-coordinador" onclick="setLoginRole('coordinador')">Coordinador</button>
         <button class="role-opt" id="role-opt-admin" onclick="setLoginRole('admin')">Admin</button>
       </div>
       <form onsubmit="event.preventDefault(); enterApp();">
@@ -687,32 +689,33 @@ tbody tr:hover{background:var(--bg-soft);}
     <div class="logo-row"><img src="data:image/png;base64,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" alt="DiversIA" style="height:20px"/></div>
 
     <div class="nav-group">Panel</div>
-    <button class="nav-item" data-role="estudiante,profesor,admin" data-panel="panel-inicio" onclick="setPanel('panel-inicio')"><svg class="icon"><use href="#i-home"/></svg> Panel principal</button>
+    <button class="nav-item" data-role="estudiante,profesor,coordinador,admin" data-panel="panel-inicio" onclick="setPanel('panel-inicio')"><svg class="icon"><use href="#i-home"/></svg> Panel principal</button>
 
     <div class="nav-group" data-role="estudiante">Mi proyecto de aula</div>
     <button class="nav-item" data-role="estudiante" data-panel="grupo" onclick="setPanel('grupo')"><svg class="icon"><use href="#i-users"/></svg> Grupo de proyecto</button>
     <button class="nav-item" data-role="estudiante" data-panel="caracterizacion" onclick="setPanel('caracterizacion')"><svg class="icon"><use href="#i-file"/></svg> Caracterización</button>
-    <button class="nav-item" data-role="estudiante" data-panel="proyecto-aula" onclick="setPanel('proyecto-aula')"><svg class="icon"><use href="#i-tree"/></svg> Árbol y Proyecto de Aula</button>
+    <button class="nav-item" data-role="estudiante" data-panel="proyecto-aula" onclick="setPanel('proyecto-aula')"><svg class="icon"><use href="#i-tree"/></svg> Una mirada al aula</button>
     <button class="nav-item" data-role="estudiante" data-panel="simulador" onclick="setPanel('simulador')"><svg class="icon"><use href="#i-chat"/></svg> Simulador de Situaciones <span class="tag" id="tag-m3">recom.</span></button>
     <button class="nav-item" data-role="estudiante" data-panel="aula-viva" onclick="setPanel('aula-viva')"><svg class="icon"><use href="#i-folder"/></svg> Aula Viva <span class="tag" id="tag-m4">recom.</span></button>
 
-    <div class="nav-group" data-role="profesor">Supervisión</div>
-    <button class="nav-item" data-role="profesor" data-panel="profesor-cola" onclick="setPanel('profesor-cola')"><svg class="icon"><use href="#i-shield"/></svg> Árboles por revisar</button>
-    <button class="nav-item" data-role="profesor" data-panel="profesor-grupos" onclick="setPanel('profesor-grupos')"><svg class="icon"><use href="#i-users"/></svg> Grupos y Formatos</button>
-    <button class="nav-item" data-role="profesor" data-panel="admin-periodos" onclick="setPanel('admin-periodos')"><svg class="icon"><use href="#i-clock"/></svg> Periodos y Cortes</button>
-    <button class="nav-item" data-role="profesor" data-panel="profesor-actividades" onclick="setPanel('profesor-actividades'); initActividadesPanel();"><svg class="icon"><use href="#i-layers"/></svg> Parametrización de Actividades</button>
+    <div class="nav-group" data-role="profesor,coordinador,admin">Gestión académica</div>
+    <button class="nav-item" data-role="profesor,coordinador,admin" data-panel="profesor-cola" onclick="setPanel('profesor-cola')"><svg class="icon"><use href="#i-shield"/></svg> Árboles por revisar</button>
+    <button class="nav-item" data-role="profesor,coordinador,admin" data-panel="admin-grupos" onclick="setPanel('admin-grupos')"><svg class="icon"><use href="#i-users"/></svg> Grupos de proyecto</button>
+    <button class="nav-item" data-role="profesor,coordinador,admin" data-panel="staff-aula-viva" onclick="setPanel('staff-aula-viva')"><svg class="icon"><use href="#i-folder"/></svg> Aula Viva de los grupos</button>
+    <button class="nav-item" data-role="profesor,coordinador,admin" data-panel="staff-reporte" onclick="setPanel('staff-reporte')"><svg class="icon"><use href="#i-chart"/></svg> Reporte de avance</button>
+    <button class="nav-item" data-role="coordinador,admin" data-panel="admin-usuarios" onclick="setPanel('admin-usuarios')"><svg class="icon"><use href="#i-users"/></svg> Usuarios</button>
+    <button class="nav-item" data-role="coordinador,admin" data-panel="admin-periodos" onclick="setPanel('admin-periodos')"><svg class="icon"><use href="#i-clock"/></svg> Periodos y Cortes</button>
+    <button class="nav-item" data-role="coordinador,admin" data-panel="profesor-actividades" onclick="setPanel('profesor-actividades'); initActividadesPanel();"><svg class="icon"><use href="#i-layers"/></svg> Parametrización de Actividades</button>
 
     <div class="nav-group" data-role="admin">Administración</div>
-    <button class="nav-item" data-role="admin" data-panel="admin-usuarios" onclick="setPanel('admin-usuarios')"><svg class="icon"><use href="#i-users"/></svg> Usuarios</button>
     <button class="nav-item" data-role="admin" data-panel="admin-roles" onclick="setPanel('admin-roles')"><svg class="icon"><use href="#i-shield"/></svg> Roles y Permisos</button>
-    <button class="nav-item" data-role="admin" data-panel="admin-periodos" onclick="setPanel('admin-periodos')"><svg class="icon"><use href="#i-clock"/></svg> Periodos y Cortes</button>
-    <button class="nav-item" data-role="admin" data-panel="admin-grupos" onclick="setPanel('admin-grupos')"><svg class="icon"><use href="#i-users"/></svg> Grupos de proyecto</button>
     <button class="nav-item" data-role="admin" data-panel="admin-biblioteca" onclick="setPanel('admin-biblioteca')"><svg class="icon"><use href="#i-book"/></svg> Biblioteca Virtual</button>
 
     <div class="sidebar-footer">
       <div class="role-switch-side">
         <button id="rs-estudiante" class="active" onclick="setRole('estudiante')">Estudiante</button>
         <button id="rs-profesor" onclick="setRole('profesor')">Profesor</button>
+        <button id="rs-coordinador" onclick="setRole('coordinador')">Coordinador</button>
         <button id="rs-admin" onclick="setRole('admin')">Admin</button>
       </div>
       <div class="user-chip">
@@ -763,7 +766,7 @@ tbody tr:hover{background:var(--bg-soft);}
                 <h2 style="font-size:20px;">Grupo 3 — Semilleros de Cambio</h2>
                 <p style="font-size:13px;">I.E. Distrital La Luz · Transición A · Cohorte 2026-1</p>
               </div>
-              <button class="btn btn-ghost btn-sm" onclick="setPanel('proyecto-aula')">Continuar el Árbol y Proyecto de Aula</button>
+              <button class="btn btn-ghost btn-sm" onclick="setPanel('proyecto-aula')">Continuar Una mirada al aula</button>
             </div>
             <div class="members">
               <div class="member-chip"><span class="av">VR</span> Valentina Rojas</div>
@@ -783,7 +786,7 @@ tbody tr:hover{background:var(--bg-soft);}
             <button type="button" class="launch-card c-blue st-current" onclick="setPanel('proyecto-aula')">
               <div class="lc-shard"></div>
               <div class="lc-icon-wrap" style="color:var(--lila-ink)"><svg class="icon"><use href="#i-tree"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--lila-ink)">Momento 1 · Problematización</span><span class="lc-title">Árbol y Proyecto de Aula</span></div>
+              <div class="lc-badge"><span class="lc-mom" style="color:var(--lila-ink)">Momento 1 · Problematización</span><span class="lc-title">Una mirada al aula</span></div>
             </button>
             <button type="button" class="launch-card c-yellow" onclick="toggleBiblioteca()">
               <div class="lc-shard"></div>
@@ -809,7 +812,7 @@ tbody tr:hover{background:var(--bg-soft);}
             </div>
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:55;--rc:var(--lila-ink)"><span class="rv">55%</span></div>
-              <div class="rail-txt"><b>Árbol y Proyecto de Aula</b><span>En curso · propuesta ya elegida, proyecto aún en borrador</span></div>
+              <div class="rail-txt"><b>Una mirada al aula</b><span>En curso · propuesta ya elegida, proyecto aún en borrador</span></div>
             </div>
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:100;--rc:var(--yellow-ink)"><span class="rv">24/7</span></div>
@@ -835,20 +838,20 @@ tbody tr:hover{background:var(--bg-soft);}
               <div class="lc-icon-wrap" style="color:var(--pink-ink)"><svg class="icon"><use href="#i-shield"/></svg></div>
               <div class="lc-badge"><span class="lc-mom" style="color:var(--pink-ink)">Supervisión</span><span class="lc-title">Árboles por revisar</span></div>
             </button>
-            <button type="button" class="launch-card c-lila" onclick="setPanel('profesor-grupos')">
+            <button type="button" class="launch-card c-lila" onclick="setPanel('admin-grupos')">
               <div class="lc-shard"></div>
               <div class="lc-icon-wrap" style="color:var(--lila-ink)"><svg class="icon"><use href="#i-users"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--lila-ink)">Grupos</span><span class="lc-title">Grupos y Formatos</span></div>
+              <div class="lc-badge"><span class="lc-mom" style="color:var(--lila-ink)">Grupos</span><span class="lc-title">Grupos de proyecto</span></div>
             </button>
-            <button type="button" class="launch-card c-blue" onclick="setPanel('admin-periodos')">
+            <button type="button" class="launch-card c-blue" onclick="setPanel('staff-aula-viva')">
               <div class="lc-shard"></div>
-              <div class="lc-icon-wrap" style="color:var(--lila-ink)"><svg class="icon"><use href="#i-clock"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--lila-ink)">Calendario</span><span class="lc-title">Periodos y Cortes</span></div>
+              <div class="lc-icon-wrap" style="color:var(--blue-ink)"><svg class="icon"><use href="#i-folder"/></svg></div>
+              <div class="lc-badge"><span class="lc-mom" style="color:var(--blue-ink)">Aula Viva</span><span class="lc-title">Aula Viva de los grupos</span></div>
             </button>
-            <button type="button" class="launch-card c-yellow" onclick="setPanel('profesor-actividades'); initActividadesPanel();">
+            <button type="button" class="launch-card c-yellow" onclick="setPanel('staff-reporte')">
               <div class="lc-shard"></div>
-              <div class="lc-icon-wrap" style="color:var(--yellow-ink)"><svg class="icon"><use href="#i-layers"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--yellow-ink)">Parametrización</span><span class="lc-title">Actividades por periodo</span></div>
+              <div class="lc-icon-wrap" style="color:var(--yellow-ink)"><svg class="icon"><use href="#i-chart"/></svg></div>
+              <div class="lc-badge"><span class="lc-mom" style="color:var(--yellow-ink)">Seguimiento</span><span class="lc-title">Reporte de avance</span></div>
             </button>
           </div>
 
@@ -859,15 +862,15 @@ tbody tr:hover{background:var(--bg-soft);}
             </div>
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:100;--rc:var(--lila-ink)"><span class="rv">15</span></div>
-              <div class="rail-txt"><b>Grupos y Formatos</b><span>15 grupos de proyecto activos en la cohorte 2026-1</span></div>
+              <div class="rail-txt"><b>Grupos de proyecto</b><span>15 grupos de proyecto activos en la cohorte 2026-1</span></div>
             </div>
             <div class="rail-stat">
-              <div class="rail-ring" style="--pct:100;--rc:var(--lila-ink)"><span class="rv">3</span></div>
-              <div class="rail-txt"><b>Periodos y Cortes</b><span>3 cortes definidos en el periodo 2026-1, actualmente vigente</span></div>
+              <div class="rail-ring" style="--pct:12;--rc:var(--blue-ink)"><span class="rv">12%</span></div>
+              <div class="rail-txt"><b>Aula Viva de los grupos</b><span>Avance promedio de cargue de documentos, producto y evidencias</span></div>
             </div>
             <div class="rail-stat">
-              <div class="rail-ring" style="--pct:100;--rc:var(--yellow-ink)"><span class="rv">3</span></div>
-              <div class="rail-txt"><b>Parametrización de Actividades</b><span>3 actividades con fechas configuradas para este periodo</span></div>
+              <div class="rail-ring" style="--pct:100;--rc:var(--yellow-ink)"><span class="rv">4</span></div>
+              <div class="rail-txt"><b>Reporte de avance</b><span>4 grupos con seguimiento disponible en tiempo real</span></div>
             </div>
           </div>
 
@@ -938,6 +941,67 @@ tbody tr:hover{background:var(--bg-soft);}
             </div>
           </div>
         </div>
+
+        <!-- vista coordinador -->
+        <div id="inicio-coordinador" class="hidden">
+          <h3 style="font-size:15px;margin-bottom:14px;color:var(--muted);">Tu resumen de coordinación — toca una card para entrar al módulo</h3>
+          <div class="launch-collage">
+            <button type="button" class="launch-card c-lila" onclick="setPanel('admin-usuarios')">
+              <div class="lc-shard"></div>
+              <div class="lc-icon-wrap" style="color:var(--lila-ink)"><svg class="icon"><use href="#i-users"/></svg></div>
+              <div class="lc-badge"><span class="lc-mom" style="color:var(--lila-ink)">Cuentas</span><span class="lc-title">Gestión de usuarios</span></div>
+            </button>
+            <button type="button" class="launch-card c-green" onclick="setPanel('admin-grupos')">
+              <div class="lc-shard"></div>
+              <div class="lc-icon-wrap" style="color:var(--green-ink)"><svg class="icon"><use href="#i-users"/></svg></div>
+              <div class="lc-badge"><span class="lc-mom" style="color:var(--green-ink)">Proyectos</span><span class="lc-title">Gestión de grupos de proyectos</span></div>
+            </button>
+            <button type="button" class="launch-card c-blue" onclick="setPanel('admin-periodos')">
+              <div class="lc-shard"></div>
+              <div class="lc-icon-wrap" style="color:var(--blue-ink)"><svg class="icon"><use href="#i-clock"/></svg></div>
+              <div class="lc-badge"><span class="lc-mom" style="color:var(--blue-ink)">Calendario</span><span class="lc-title">Gestión de periodos y cortes</span></div>
+            </button>
+            <button type="button" class="launch-card c-yellow" onclick="setPanel('profesor-actividades'); initActividadesPanel();">
+              <div class="lc-shard"></div>
+              <div class="lc-icon-wrap" style="color:var(--yellow-ink)"><svg class="icon"><use href="#i-layers"/></svg></div>
+              <div class="lc-badge"><span class="lc-mom" style="color:var(--yellow-ink)">Parametrización</span><span class="lc-title">Parametrización de actividades</span></div>
+            </button>
+            <button type="button" class="launch-card c-pink st-current" onclick="setPanel('profesor-cola')">
+              <div class="lc-shard"></div>
+              <div class="lc-icon-wrap" style="color:var(--pink-ink)"><svg class="icon"><use href="#i-shield"/></svg></div>
+              <div class="lc-badge"><span class="lc-mom" style="color:var(--pink-ink)">Supervisión</span><span class="lc-title">Árboles por revisar</span></div>
+            </button>
+            <button type="button" class="launch-card c-blue" onclick="setPanel('staff-aula-viva')">
+              <div class="lc-shard"></div>
+              <div class="lc-icon-wrap" style="color:var(--blue-ink)"><svg class="icon"><use href="#i-folder"/></svg></div>
+              <div class="lc-badge"><span class="lc-mom" style="color:var(--blue-ink)">Aula Viva</span><span class="lc-title">Aula Viva de los grupos</span></div>
+            </button>
+            <button type="button" class="launch-card c-green" onclick="setPanel('staff-reporte')">
+              <div class="lc-shard"></div>
+              <div class="lc-icon-wrap" style="color:var(--green2-ink)"><svg class="icon"><use href="#i-chart"/></svg></div>
+              <div class="lc-badge"><span class="lc-mom" style="color:var(--green2-ink)">Seguimiento</span><span class="lc-title">Reporte de avance de cada grupo</span></div>
+            </button>
+          </div>
+
+          <div class="stats-rail">
+            <div class="rail-stat">
+              <div class="rail-ring" style="--pct:100;--rc:var(--lila-ink)"><span class="rv">6</span></div>
+              <div class="rail-txt"><b>Usuarios</b><span>6 cuentas registradas entre estudiantes, docentes y admin</span></div>
+            </div>
+            <div class="rail-stat">
+              <div class="rail-ring" style="--pct:100;--rc:var(--green-ink)"><span class="rv">15</span></div>
+              <div class="rail-txt"><b>Grupos de proyecto</b><span>15 grupos activos · 47 estudiantes con 3 docentes</span></div>
+            </div>
+            <div class="rail-stat">
+              <div class="rail-ring" style="--pct:100;--rc:var(--pink-ink)"><span class="rv">4</span></div>
+              <div class="rail-txt"><b>Árboles por revisar</b><span>4 grupos esperando revisión docente · 9 ya aceptados</span></div>
+            </div>
+            <div class="rail-stat">
+              <div class="rail-ring" style="--pct:12;--rc:var(--blue-ink)"><span class="rv">12%</span></div>
+              <div class="rail-txt"><b>Aula Viva de los grupos</b><span>Avance promedio de cargue de documentos, producto y evidencias</span></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- ============ GRUPO DE PROYECTO ============ -->
@@ -952,7 +1016,7 @@ tbody tr:hover{background:var(--bg-soft);}
             <div class="member-chip"><span class="av">JD</span> Juan David Peña</div>
             <div class="member-chip"><span class="av">MA</span> María Alejandra Ruiz</div>
           </div>
-          <p class="mono-note" style="margin-top:10px;">La conformación de grupos y la asignación de integrantes la gestiona tu docente desde su panel de Grupos y Formatos.</p>
+          <p class="mono-note" style="margin-top:10px;">La conformación de grupos y la asignación de integrantes la gestiona tu docente desde el módulo de Grupos de proyecto.</p>
           <div class="divider"></div>
           <label class="field-label">Institución educativa</label>
           <input class="input" value="I.E. Distrital La Luz">
@@ -1141,7 +1205,7 @@ tbody tr:hover{background:var(--bg-soft);}
       <!-- ============ ÁRBOL Y PROYECTO DE AULA (módulo único) ============ -->
       <div class="panel" id="panel-proyecto-aula">
         <div class="panel-head">
-          <div><h2>Árbol y Proyecto de Aula</h2><p>Del árbol de problematización al Formato de Proyecto Pedagógico de Aula. El profesor valida el árbol y la Caracterización debe estar completa antes de generar propuestas.</p></div>
+          <div><h2>Una mirada al aula</h2><p>Del árbol de problematización al Formato de Proyecto Pedagógico de Aula. El profesor valida el árbol y la Caracterización debe estar completa antes de generar propuestas.</p></div>
           <span class="pill on" id="m1-topstatus">Aceptado por el profesor</span>
         </div>
 
@@ -1736,31 +1800,13 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
         </div>
       </div>
 
-      <!-- ============ PROFESOR: estudiantes y grupos ============ -->
-      <div class="panel" id="panel-profesor-grupos">
-        <div class="panel-head"><div><h2>Grupos de proyecto</h2><p>Tus estudiantes ya tienen acceso activo — están limitados hasta que los asignes a un grupo de proyecto (máximo de integrantes configurable, por defecto 3).</p></div></div>
-
-        <div class="panel-head" style="margin-bottom:14px;">
-          <div><h3 style="font-size:15px;color:var(--muted);">Grupos de proyecto</h3></div>
-          <button class="btn btn-primary btn-sm" onclick="abrirModalGrupo('tabla-grupos-profesor')"><svg class="icon" style="width:14px;height:14px;stroke:#171034"><use href="#i-plus"/></svg> Nuevo grupo</button>
-        </div>
-        <div class="table-wrap" style="margin-bottom:30px;">
-          <table>
-            <thead><tr><th>Código</th><th>Grupo</th><th>Tipo de práctica</th><th>Periodo</th><th>Integrantes</th><th>Vigencia</th><th></th></tr></thead>
-            <tbody id="tabla-grupos-profesor">
-              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-003</td><td>Grupo 3 — Semilleros de Cambio</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>Valentina Rojas, Juan David Peña, María Alejandra Ruiz</td><td>01 feb – 30 jun 2026</td><td><button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 3')">Editar</button></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
       <!-- Modal: nuevo grupo (docente) -->
       <div class="modal-overlay hidden" id="modal-grupo" onclick="if(event.target===this) cerrarModalGrupo()">
         <div class="modal-box">
           <button class="modal-close" onclick="cerrarModalGrupo()"><svg class="icon" style="width:15px;height:15px"><use href="#i-x"/></svg></button>
           <div class="modal-form">
             <h3>Nuevo grupo de proyecto</h3>
-            <p class="sub">El docente conforma el grupo, define su vigencia y asigna sus integrantes.</p>
+            <p class="sub">Define la vigencia del grupo y asigna sus integrantes.</p>
             <label class="field-label">Código de grupo</label>
             <input class="input" id="mg-codigo" placeholder="Ej: GRP-2026-1-011">
             <div class="divider"></div>
@@ -2016,7 +2062,7 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
 
       <!-- ============ ADMIN: grupos (solo lectura) ============ -->
       <div class="panel" id="panel-admin-grupos">
-        <div class="panel-head"><div><h2>Grupos de proyecto</h2><p>El admin puede conformar grupos y asignar integrantes con la misma gestión que tiene el docente desde su panel de Grupos y Formatos.</p></div><button class="btn btn-primary btn-sm" onclick="abrirModalGrupo('tabla-grupos-admin')"><svg class="icon" style="width:14px;height:14px;stroke:#171034"><use href="#i-plus"/></svg> Nuevo grupo</button></div>
+        <div class="panel-head"><div><h2>Grupos de proyecto</h2><p>Conformación de grupos y asignación de integrantes — disponible para docentes, coordinación y administración por igual.</p></div><button class="btn btn-primary btn-sm" onclick="abrirModalGrupo('tabla-grupos-admin')"><svg class="icon" style="width:14px;height:14px;stroke:#171034"><use href="#i-plus"/></svg> Nuevo grupo</button></div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Código</th><th>Grupo</th><th>Tipo de práctica</th><th>Periodo</th><th>Integrantes</th><th>Vigencia</th><th></th></tr></thead>
@@ -2025,6 +2071,108 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
               <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-005</td><td>Grupo 5 — Voces del Aula</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>4 integrantes</td><td>01 feb – 30 jun 2026</td><td><button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 5')">Editar</button></td></tr>
               <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-007</td><td>Grupo 7 — Mundo Diverso</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>3 integrantes</td><td>01 feb – 30 jun 2026</td><td><button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 7')">Editar</button></td></tr>
               <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-009</td><td>Grupo 9 — Raíces y Alas</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>4 integrantes</td><td>01 feb – 30 jun 2026</td><td><button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 9')">Editar</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============ GESTIÓN ACADÉMICA: aula viva de los grupos (solo lectura, docente/coordinador/admin) ============ -->
+      <div class="panel" id="panel-staff-aula-viva">
+        <div class="panel-head"><div><h2>Aula Viva de los grupos</h2><p>Repositorio de cada grupo en modo de solo lectura: documentos del proyecto, producto final y evidencias del proceso.</p></div></div>
+        <div class="filter-row"><input class="input" placeholder="Buscar por grupo o institución…"></div>
+        <div class="table-wrap" style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Grupo</th><th>Institución</th><th>Documentos</th><th>Producto del proyecto</th><th>Evidencias</th><th>Avance de cargue</th><th></th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Grupo 3 — Semilleros de Cambio</td><td>I.E. Distrital La Luz</td>
+                <td class="mono-note">3/5 completos</td><td><span class="pill on">Cargado</span></td><td class="mono-note">2 archivos</td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:40%;background:var(--yellow-ink)"></span></div><span class="mono-note">40%</span></div></td>
+                <td><button class="btn btn-ghost btn-sm" onclick="verRepositorioGrupo('g3')">Ver repositorio</button></td>
+              </tr>
+              <tr>
+                <td>Grupo 5 — Voces del Aula</td><td>Jardín Infantil Semillas</td>
+                <td class="mono-note">2/5 completos</td><td><span class="pill off">Pendiente</span></td><td class="mono-note">0 archivos</td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:0%;background:var(--pink-ink)"></span></div><span class="mono-note">0%</span></div></td>
+                <td><button class="btn btn-ghost btn-sm" onclick="verRepositorioGrupo('g5')">Ver repositorio</button></td>
+              </tr>
+              <tr>
+                <td>Grupo 7 — Mundo Diverso</td><td>I.E. Nueva Esperanza</td>
+                <td class="mono-note">2/5 completos</td><td><span class="pill off">Pendiente</span></td><td class="mono-note">0 archivos</td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:0%;background:var(--pink-ink)"></span></div><span class="mono-note">0%</span></div></td>
+                <td><button class="btn btn-ghost btn-sm" onclick="verRepositorioGrupo('g7')">Ver repositorio</button></td>
+              </tr>
+              <tr>
+                <td>Grupo 9 — Raíces y Alas</td><td>I.E. Distrital La Luz</td>
+                <td class="mono-note">2/5 completos</td><td><span class="pill off">Pendiente</span></td><td class="mono-note">1 archivo</td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:10%;background:var(--pink-ink)"></span></div><span class="mono-note">10%</span></div></td>
+                <td><button class="btn btn-ghost btn-sm" onclick="verRepositorioGrupo('g9')">Ver repositorio</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Modal: ver repositorio de un grupo (solo lectura) -->
+      <div class="modal-overlay hidden" id="modal-ver-repositorio" onclick="if(event.target===this) cerrarRepositorioGrupo()">
+        <div class="modal-box">
+          <button class="modal-close" onclick="cerrarRepositorioGrupo()"><svg class="icon" style="width:15px;height:15px"><use href="#i-x"/></svg></button>
+          <div class="modal-form">
+            <h3 id="vr-titulo">Repositorio del grupo</h3>
+            <p class="sub" id="vr-sub">—</p>
+            <div class="drive-section-title" style="margin-top:16px;">Documentos del proyecto</div>
+            <div class="repo-timeline" id="vr-documentos"></div>
+            <div class="drive-section-title">Producto del proyecto</div>
+            <div class="repo-timeline" id="vr-producto"></div>
+            <div class="drive-section-title">Evidencias del proceso</div>
+            <div class="repo-timeline" id="vr-evidencias"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ GESTIÓN ACADÉMICA: reporte de avance por grupo ============ -->
+      <div class="panel" id="panel-staff-reporte">
+        <div class="panel-head"><div><h2>Reporte de avance</h2><p>Seguimiento del progreso de cada grupo por formato, paso del módulo Una mirada al aula, uso del simulador y cargue de Aula Viva.</p></div></div>
+        <div class="table-wrap" style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Grupo</th><th>Caracterización</th><th>Árbol de Problematización</th><th>Paso en Una mirada al aula</th><th>Proyecto Pedagógico de Aula</th><th>Usos del Simulador</th><th>Aula Viva</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Grupo 3 — Semilleros de Cambio</td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:100%;background:var(--green2-ink)"></span></div><span class="mono-note">100%</span></div></td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:100%;background:var(--green2-ink)"></span></div><span class="mono-note">100%</span></div></td>
+                <td><span class="pill warn">Diligenciando el Proyecto Pedagógico</span></td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:65%;background:var(--yellow-ink)"></span></div><span class="mono-note">65%</span></div></td>
+                <td class="mono-note">2 veces</td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:40%;background:var(--yellow-ink)"></span></div><span class="mono-note">40%</span></div></td>
+              </tr>
+              <tr>
+                <td>Grupo 5 — Voces del Aula</td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:100%;background:var(--green2-ink)"></span></div><span class="mono-note">100%</span></div></td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:100%;background:var(--green2-ink)"></span></div><span class="mono-note">100%</span></div></td>
+                <td><span class="pill off">Aún no inicia — árbol pendiente de aceptación</span></td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:0%;background:var(--pink-ink)"></span></div><span class="mono-note">0%</span></div></td>
+                <td class="mono-note">0 veces</td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:0%;background:var(--pink-ink)"></span></div><span class="mono-note">0%</span></div></td>
+              </tr>
+              <tr>
+                <td>Grupo 7 — Mundo Diverso</td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:85%;background:var(--green2-ink)"></span></div><span class="mono-note">85%</span></div></td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:70%;background:var(--yellow-ink)"></span></div><span class="mono-note">70%</span></div></td>
+                <td><span class="pill danger">Árbol en ajuste — pendiente de reenvío</span></td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:0%;background:var(--pink-ink)"></span></div><span class="mono-note">0%</span></div></td>
+                <td class="mono-note">1 vez</td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:0%;background:var(--pink-ink)"></span></div><span class="mono-note">0%</span></div></td>
+              </tr>
+              <tr>
+                <td>Grupo 9 — Raíces y Alas</td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:95%;background:var(--green2-ink)"></span></div><span class="mono-note">95%</span></div></td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:100%;background:var(--green2-ink)"></span></div><span class="mono-note">100%</span></div></td>
+                <td><span class="pill off">Aún no inicia — árbol pendiente de aceptación</span></td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:0%;background:var(--pink-ink)"></span></div><span class="mono-note">0%</span></div></td>
+                <td class="mono-note">0 veces</td>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:10%;background:var(--pink-ink)"></span></div><span class="mono-note">10%</span></div></td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -2057,7 +2205,7 @@ function go(screen){
   window.scrollTo(0,0);
 }
 function setLoginRole(role){
-  ['estudiante','profesor','admin'].forEach(r=>{
+  ['estudiante','profesor','coordinador','admin'].forEach(r=>{
     document.getElementById('role-opt-'+r).classList.toggle('active', r===role);
   });
   window.__loginRole = role;
@@ -2078,7 +2226,7 @@ function toast(msg){
 /* ---- roles ---- */
 function setRole(role){
   window.__role = role;
-  ['estudiante','profesor','admin'].forEach(r=>{
+  ['estudiante','profesor','coordinador','admin'].forEach(r=>{
     document.getElementById('rs-'+r).classList.toggle('active', r===role);
   });
   document.querySelectorAll('[data-role]').forEach(el=>{
@@ -2087,11 +2235,13 @@ function setRole(role){
   });
   document.getElementById('inicio-estudiante').classList.toggle('hidden', role!=='estudiante');
   document.getElementById('inicio-profesor').classList.toggle('hidden', role!=='profesor');
+  document.getElementById('inicio-coordinador').classList.toggle('hidden', role!=='coordinador');
   document.getElementById('inicio-admin').classList.toggle('hidden', role!=='admin');
 
   var info = {
     estudiante: {name:'Valentina Rojas', role:'Grupo 3 · Estudiante', av:'VR', badge:'Grupo 3 · Semilleros de Cambio'},
     profesor: {name:'Prof. Andrés Molina', role:'Profesor · Supervisión', av:'AM', badge:'3 grupos asignados'},
+    coordinador: {name:'Diana Castañeda', role:'Coordinadora de Práctica', av:'DC', badge:'Coordinación · Cohorte 2026-1'},
     admin: {name:'Laura Torres', role:'Administrador', av:'LT', badge:'Cohorte 2026-1'}
   }[role];
   document.getElementById('user-name').textContent = info.name;
@@ -2107,18 +2257,19 @@ var panelTitles = {
   'panel-inicio':'Panel principal',
   'grupo':'Grupo de proyecto',
   'caracterizacion':'Caracterización',
-  'proyecto-aula':'Árbol y Proyecto de Aula',
+  'proyecto-aula':'Una mirada al aula',
   'simulador':'Simulador de Situaciones',
   'aula-viva':'Aula Viva',
   'profesor-cola':'Árboles por revisar',
   'profesor-revision':'Revisión de árbol',
-  'profesor-grupos':'Grupos y Formatos',
   'profesor-actividades':'Parametrización de Actividades',
   'admin-usuarios':'Usuarios',
   'admin-roles':'Roles y Permisos',
   'admin-periodos':'Periodos y Cortes',
   'admin-grupos':'Grupos de proyecto',
-  'admin-biblioteca':'Biblioteca Virtual — Catálogo'
+  'admin-biblioteca':'Biblioteca Virtual — Catálogo',
+  'staff-aula-viva':'Aula Viva de los grupos',
+  'staff-reporte':'Reporte de avance'
 };
 function setPanel(name){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -2131,7 +2282,7 @@ function setPanel(name){
   document.querySelector('.content').scrollTop = 0;
 }
 
-/* ---- módulo Árbol y Proyecto de Aula: substeps internos ---- */
+/* ---- módulo Una mirada al aula: substeps internos ---- */
 function setM1Sub(name){
   document.querySelectorAll('#m1-substeps .step-item').forEach(s=> s.classList.toggle('active', s.dataset.sub===name));
   document.querySelectorAll('.substep-section').forEach(s=> s.classList.toggle('active', s.dataset.sub===name));
@@ -2962,9 +3113,9 @@ var estudiantesDisponibles = [
   {nombre:'Daniel Zapata', correo:'daniel.zapata@americana.edu.co', institucion:'I.E. Distrital La Luz'}
 ];
 var mgIntegrantesSeleccionados = [];
-var mgTablaDestino = 'tabla-grupos-profesor';
+var mgTablaDestino = 'tabla-grupos-admin';
 function abrirModalGrupo(tablaDestino){
-  mgTablaDestino = tablaDestino || 'tabla-grupos-profesor';
+  mgTablaDestino = tablaDestino || 'tabla-grupos-admin';
   document.getElementById('modal-grupo').classList.remove('hidden');
   mgIntegrantesSeleccionados = [];
   renderChipsIntegrantes();
@@ -3027,7 +3178,7 @@ function crearGrupo(){
   if(mgIntegrantesSeleccionados.length < 2){ toast('Selecciona mínimo 2 integrantes'); return; }
   var row = document.createElement('tr');
   row.innerHTML = '<td class="mono-note" style="text-transform:none;">' + codigo + '</td><td>' + nombre + '</td><td>' + tipoPractica + '</td><td>' + periodo + '</td><td>' + mgIntegrantesSeleccionados.join(', ') + '</td><td>' + formatearFechaCorta(apertura) + ' – ' + formatearFechaCorta(cierre) + '</td><td><button class="btn btn-ghost btn-sm" onclick="toast(\'Editar integrantes de ' + nombre + '\')">Editar</button></td>';
-  document.getElementById(mgTablaDestino || 'tabla-grupos-profesor').appendChild(row);
+  document.getElementById(mgTablaDestino || 'tabla-grupos-admin').appendChild(row);
   cerrarModalGrupo();
   ['mg-codigo','mg-nombre','mg-institucion'].forEach(function(id){ document.getElementById(id).value=''; });
   mgIntegrantesSeleccionados = [];
@@ -3038,6 +3189,66 @@ function formatearFechaCorta(iso){
   var meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   var p = iso.split('-');
   return p[2] + ' ' + meses[parseInt(p[1],10)-1] + ' ' + p[0];
+}
+
+/* ---- Aula Viva de los grupos (vista de solo lectura para docente/coordinador/admin) ---- */
+var AULA_VIVA_GRUPOS = {
+  g3: {
+    nombre: 'Grupo 3 — Semilleros de Cambio', institucion: 'I.E. Distrital La Luz',
+    documentos: [
+      {nombre:'Formato de Caracterización', meta:'Diligenciado · 14 ago 2026'},
+      {nombre:'Árbol de Problematización', meta:'Aceptado por el profesor · 19 ago 2026'},
+      {nombre:'Proyecto Pedagógico de Aula', meta:'En borrador — sección de experiencias en curso'}
+    ],
+    producto: [{nombre:'evidencia_producto.jpg', meta:'Cargado · imágenes'}],
+    evidencias: [{nombre:'evidencia_01.jpg', meta:'Cargado · imágenes'}, {nombre:'evidencia_proceso.mp4', meta:'Cargado · videos'}]
+  },
+  g5: {
+    nombre: 'Grupo 5 — Voces del Aula', institucion: 'Jardín Infantil Semillas',
+    documentos: [
+      {nombre:'Formato de Caracterización', meta:'Diligenciado · 15 ago 2026'},
+      {nombre:'Árbol de Problematización', meta:'Enviado — pendiente de revisión del profesor'}
+    ],
+    producto: [],
+    evidencias: []
+  },
+  g7: {
+    nombre: 'Grupo 7 — Mundo Diverso', institucion: 'I.E. Nueva Esperanza',
+    documentos: [
+      {nombre:'Formato de Caracterización', meta:'Diligenciado parcialmente · 85%'},
+      {nombre:'Árbol de Problematización', meta:'El profesor solicitó ajustes'}
+    ],
+    producto: [],
+    evidencias: []
+  },
+  g9: {
+    nombre: 'Grupo 9 — Raíces y Alas', institucion: 'I.E. Distrital La Luz',
+    documentos: [
+      {nombre:'Formato de Caracterización', meta:'Diligenciado parcialmente · 95%'},
+      {nombre:'Árbol de Problematización', meta:'Enviado — pendiente de revisión del profesor'}
+    ],
+    producto: [],
+    evidencias: [{nombre:'evidencia_01.jpg', meta:'Cargado · imágenes'}]
+  }
+};
+function repoItemsHtml(items){
+  if(!items || !items.length) return '<p class="mono-note">Sin archivos cargados todavía.</p>';
+  return items.map(function(it){
+    return '<div class="repo-item"><div class="dot-wrap"><svg class="icon" style="width:16px;height:16px"><use href="#i-file"/></svg></div><div class="rt"><b>' + it.nombre + '</b><span class="meta">' + it.meta + '</span></div></div>';
+  }).join('');
+}
+function verRepositorioGrupo(key){
+  var g = AULA_VIVA_GRUPOS[key];
+  if(!g) return;
+  document.getElementById('vr-titulo').textContent = 'Repositorio — ' + g.nombre;
+  document.getElementById('vr-sub').textContent = g.institucion + ' · vista de solo lectura';
+  document.getElementById('vr-documentos').innerHTML = repoItemsHtml(g.documentos);
+  document.getElementById('vr-producto').innerHTML = repoItemsHtml(g.producto);
+  document.getElementById('vr-evidencias').innerHTML = repoItemsHtml(g.evidencias);
+  document.getElementById('modal-ver-repositorio').classList.remove('hidden');
+}
+function cerrarRepositorioGrupo(){
+  document.getElementById('modal-ver-repositorio').classList.add('hidden');
 }
 
 document.addEventListener('click', function(e){
