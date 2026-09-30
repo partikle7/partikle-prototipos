@@ -70,6 +70,15 @@ ul{list-style:none;}
 .pill.info{background:rgba(142,127,240,0.12);color:var(--purple-ink);}
 .pill.danger{background:rgba(155,83,149,0.12);color:var(--pink-ink);}
 .badge-role{background:rgba(113,83,156,0.12);color:var(--lila-ink);border:1px solid rgba(174,127,240,0.35);}
+.topbar-group-chip{display:flex;align-items:center;gap:10px;padding:6px 16px 6px 12px;border-radius:100px;background:linear-gradient(120deg,rgba(142,127,240,0.14),rgba(238,127,229,0.08));border:1px solid rgba(174,127,240,0.35);cursor:pointer;text-align:left;transition:transform .15s,box-shadow .15s;max-width:320px;}
+.topbar-group-chip:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(142,127,240,0.28);}
+.tgc-dot{width:8px;height:8px;border-radius:50%;background:var(--green2);box-shadow:0 0 0 3px rgba(131,255,143,0.25);flex-shrink:0;}
+.tgc-info{display:flex;flex-direction:column;line-height:1.28;overflow:hidden;}
+.tgc-name{font-size:12.5px;font-weight:800;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tgc-sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tgc-avatars{display:flex;flex-shrink:0;}
+.tgc-av{width:23px;height:23px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--lila));color:#171034;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);margin-left:-8px;}
+.tgc-av:first-child{margin-left:0;}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:100px;font-weight:700;font-size:14.5px;transition:.15s;white-space:nowrap;}
 .btn-primary{background:linear-gradient(135deg,var(--purple),var(--lila));color:#171034;box-shadow:0 8px 20px rgba(142,127,240,0.35);}
 .btn-primary:hover{filter:brightness(1.05);transform:translateY(-1px);box-shadow:0 10px 24px rgba(142,127,240,0.45);}
@@ -265,6 +274,19 @@ footer.site-footer{border-top:1px solid var(--border-soft);padding:26px 0 40px;f
 .group-card .members{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
 .member-chip{display:flex;align-items:center;gap:8px;background:var(--bg-soft);border:1px solid var(--border-soft);border-radius:100px;padding:6px 12px 6px 6px;font-size:12.5px;font-weight:600;}
 .member-chip .av{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--lila));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#171034;}
+
+.misg-list{display:flex;flex-direction:column;gap:16px;}
+.misg-card{padding:22px 24px;border:1px solid var(--border-soft);}
+.misg-card .misg-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:6px;}
+.misg-card h3{font-size:16px;margin:8px 0 3px;}
+.misg-card .misg-meta{font-size:12.5px;color:var(--muted);}
+.misg-active{border:1.5px solid rgba(174,127,240,0.5);background:linear-gradient(120deg,rgba(142,127,240,0.10),rgba(238,127,229,0.05));box-shadow:0 10px 26px rgba(142,127,240,0.14);}
+.misg-past{opacity:.86;}
+.misg-past:hover{opacity:1;}
+.misg-stat-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--border-soft);font-size:13px;}
+.misg-stat-row:last-child{border-bottom:none;}
+.misg-stat-row .k{color:var(--muted);font-weight:600;flex-shrink:0;}
+.misg-stat-row .v{text-align:right;font-weight:700;}
 
 /* substep layout (momento 1) */
 .substep-layout{display:grid;grid-template-columns:220px 1fr;gap:28px;}
@@ -692,7 +714,7 @@ tbody tr:hover{background:var(--bg-soft);}
     <button class="nav-item" data-role="estudiante,profesor,coordinador,admin" data-panel="panel-inicio" onclick="setPanel('panel-inicio')"><svg class="icon"><use href="#i-home"/></svg> Panel principal</button>
 
     <div class="nav-group" data-role="estudiante">Mi proyecto de aula</div>
-    <button class="nav-item" data-role="estudiante" data-panel="grupo" onclick="setPanel('grupo')"><svg class="icon"><use href="#i-users"/></svg> Grupo de proyecto</button>
+    <button class="nav-item" data-role="estudiante" data-panel="mis-grupos" onclick="setPanel('mis-grupos'); renderMisGrupos();"><svg class="icon"><use href="#i-users"/></svg> Mis Grupos</button>
     <button class="nav-item" data-role="estudiante" data-panel="caracterizacion" onclick="setPanel('caracterizacion')"><svg class="icon"><use href="#i-file"/></svg> Caracterización</button>
     <button class="nav-item" data-role="estudiante" data-panel="proyecto-aula" onclick="setPanel('proyecto-aula')"><svg class="icon"><use href="#i-tree"/></svg> Una mirada al aula</button>
     <button class="nav-item" data-role="estudiante" data-panel="simulador" onclick="setPanel('simulador')"><svg class="icon"><use href="#i-chat"/></svg> Simulador de Situaciones <span class="tag" id="tag-m3">recom.</span></button>
@@ -745,7 +767,17 @@ tbody tr:hover{background:var(--bg-soft);}
       </div>
       <div class="topbar-actions">
         <button class="icon-btn"><svg class="icon" style="width:17px;height:17px"><use href="#i-bell"/></svg></button>
-        <span class="pill badge-role" id="topbar-badge">Grupo 3 · Semilleros de Cambio</span>
+        <button type="button" class="topbar-group-chip" id="topbar-group-chip" onclick="setPanel('mis-grupos'); renderMisGrupos();" title="Ver Mis Grupos">
+          <span class="tgc-dot"></span>
+          <div class="tgc-info">
+            <span class="tgc-name" id="tgc-name">Grupo 3 — Semilleros de Cambio</span>
+            <span class="tgc-sub" id="tgc-sub">I.E. Distrital La Luz · Activo</span>
+          </div>
+          <div class="tgc-avatars" id="tgc-avatars">
+            <span class="tgc-av">VR</span><span class="tgc-av">JD</span><span class="tgc-av">MA</span>
+          </div>
+        </button>
+        <span class="pill badge-role hidden" id="topbar-badge">Grupo 3 · Semilleros de Cambio</span>
       </div>
     </header>
 
@@ -756,21 +788,6 @@ tbody tr:hover{background:var(--bg-soft);}
 
         <!-- vista estudiante -->
         <div id="inicio-estudiante">
-          <div class="card group-card" style="margin-bottom:22px;background:linear-gradient(120deg,rgba(142,127,240,0.12),rgba(238,127,229,0.06));">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
-              <div>
-                <h2 style="font-size:20px;">Grupo 3 — Semilleros de Cambio</h2>
-                <p style="font-size:13px;">I.E. Distrital La Luz · Transición A · Cohorte 2026-1</p>
-              </div>
-              <button class="btn btn-ghost btn-sm" onclick="setPanel('proyecto-aula')">Continuar Una mirada al aula</button>
-            </div>
-            <div class="members">
-              <div class="member-chip"><span class="av">VR</span> Valentina Rojas</div>
-              <div class="member-chip"><span class="av">JD</span> Juan David Peña</div>
-              <div class="member-chip"><span class="av">MA</span> María Alejandra Ruiz</div>
-            </div>
-          </div>
-
           <h3 style="font-size:15px;margin-bottom:14px;color:var(--muted);">Avance del proyecto de aula — toca una card para continuar</h3>
           <div class="launch-collage lc-5">
             <button type="button" class="launch-card c-lila st-done" onclick="setPanel('caracterizacion')">
@@ -982,22 +999,25 @@ tbody tr:hover{background:var(--bg-soft);}
         </div>
       </div>
 
-      <!-- ============ GRUPO DE PROYECTO ============ -->
-      <div class="panel" id="panel-grupo">
-        <div class="panel-head"><div><h2>Grupo de proyecto</h2><p>Integrantes e institución donde tu grupo desarrolla su práctica pedagógica.</p></div></div>
-        <div class="card group-card">
-          <label class="field-label">Nombre del grupo</label>
-          <input class="input" value="Grupo 3 — Semilleros de Cambio" style="margin-bottom:16px;">
-          <label class="field-label">Integrantes <span class="mono-note" style="text-transform:none;font-weight:500;">(mínimo 2, máximo 3)</span></label>
-          <div class="members">
-            <div class="member-chip"><span class="av">VR</span> Valentina Rojas</div>
-            <div class="member-chip"><span class="av">JD</span> Juan David Peña</div>
-            <div class="member-chip"><span class="av">MA</span> María Alejandra Ruiz</div>
+      <!-- ============ MIS GRUPOS (estudiante) ============ -->
+      <div class="panel" id="panel-mis-grupos">
+        <div class="panel-head"><div><h2>Mis Grupos</h2><p>El grupo en el que trabajas actualmente queda resaltado. Los grupos de periodos anteriores quedan disponibles en modo de solo lectura para consultar lo que se hizo.</p></div></div>
+        <div class="misg-list" id="mis-grupos-list"></div>
+      </div>
+
+      <!-- Modal: detalle de un grupo anterior (solo lectura) -->
+      <div class="modal-overlay hidden" id="modal-detalle-grupo" onclick="if(event.target===this) cerrarDetalleGrupoAnterior()">
+        <div class="modal-box">
+          <button class="modal-close" onclick="cerrarDetalleGrupoAnterior()"><svg class="icon" style="width:15px;height:15px"><use href="#i-x"/></svg></button>
+          <div class="modal-form">
+            <h3 id="mgd-titulo">Grupo</h3>
+            <p class="sub" id="mgd-sub">—</p>
+            <label class="field-label" style="margin-top:6px;">Integrantes</label>
+            <div class="members" id="mgd-integrantes" style="margin-bottom:6px;"></div>
+            <div class="divider"></div>
+            <label class="field-label">Resumen del proyecto de aula</label>
+            <div id="mgd-resumen"></div>
           </div>
-          <p class="mono-note" style="margin-top:10px;">La conformación de grupos y la asignación de integrantes la gestiona tu docente desde el módulo de Grupos de proyecto.</p>
-          <div class="divider"></div>
-          <label class="field-label">Institución educativa</label>
-          <input class="input" value="I.E. Distrital La Luz">
         </div>
       </div>
 
@@ -1428,7 +1448,7 @@ tbody tr:hover{background:var(--bg-soft);}
                         <div><label class="field-label">Grado o grupo</label><div class="field-help">Indica el grado o grupo específico donde se desarrollará el proyecto.</div><input class="input" id="draft-grado-proy" value="Transición A"></div>
                       </div>
                       <div class="divider"></div>
-                      <label class="field-label">Integrantes <span class="mono-note" style="text-transform:none;font-weight:500;">(mín. 2, máx. 3 — tomados de tu Grupo de proyecto)</span></label>
+                      <label class="field-label">Integrantes <span class="mono-note" style="text-transform:none;font-weight:500;">(mín. 2, máx. 3 — tomados de tu grupo activo, ver Mis Grupos)</span></label>
                       <div class="members"><div class="member-chip"><span class="av">VR</span> Valentina Rojas</div><div class="member-chip"><span class="av">JD</span> Juan David Peña</div><div class="member-chip"><span class="av">MA</span> María Alejandra Ruiz</div></div>
                       <div class="divider"></div>
                       <label class="field-label">Duración</label><div class="field-help">Indica el tiempo total del proyecto y el número de experiencias pedagógicas planeadas.</div>
@@ -2159,6 +2179,9 @@ function setRole(role){
   document.getElementById('user-role').textContent = info.role;
   document.getElementById('user-avatar').textContent = info.av;
   document.getElementById('topbar-badge').textContent = info.badge;
+  document.getElementById('topbar-badge').classList.toggle('hidden', role==='estudiante');
+  document.getElementById('topbar-group-chip').classList.toggle('hidden', role!=='estudiante');
+  if(role==='estudiante') renderTopbarGroupChip();
 
   setPanel('panel-inicio');
 }
@@ -2166,7 +2189,7 @@ function setRole(role){
 /* ---- panel switching ---- */
 var panelTitles = {
   'panel-inicio':'Panel principal',
-  'grupo':'Grupo de proyecto',
+  'mis-grupos':'Mis Grupos',
   'caracterizacion':'Caracterización',
   'proyecto-aula':'Una mirada al aula',
   'simulador':'Simulador de Situaciones',
@@ -2291,6 +2314,114 @@ function generarVentanas(){
   votosPropuesta = {};
   renderVotacion();
   toast('2 propuestas generadas — el grupo debe votar por una');
+}
+
+/* ---- estudiante: Mis Grupos (grupo activo + historial de periodos anteriores, solo lectura) ---- */
+var MIS_GRUPOS_DATA = [
+  {
+    id: 'actual',
+    activo: true,
+    nombre: 'Grupo 3 — Semilleros de Cambio',
+    institucion: 'I.E. Distrital La Luz',
+    periodo: '2026-1 · En curso',
+    integrantes: [
+      {nombre:'Valentina Rojas', av:'VR'},
+      {nombre:'Juan David Peña', av:'JD'},
+      {nombre:'María Alejandra Ruiz', av:'MA'}
+    ],
+    resumen: {
+      caracterizacion: 100,
+      arbol: 100,
+      paso: 'Diligenciando el Proyecto Pedagógico de Aula',
+      proyecto_titulo: '"Aprendemos juntos": participación diversa en el aula',
+      proyecto_pct: 55,
+      simulador_usos: 0,
+      aula_viva_pct: 0
+    }
+  },
+  {
+    id: 'g-2025-2',
+    activo: false,
+    nombre: 'Grupo 1 — Raíces y Alas',
+    institucion: 'Jardín Infantil Los Robles',
+    periodo: '2025-2 · Finalizado',
+    integrantes: [
+      {nombre:'Valentina Rojas', av:'VR'},
+      {nombre:'Camilo Andrés Suárez', av:'CS'}
+    ],
+    resumen: {
+      caracterizacion: 100,
+      arbol: 100,
+      paso: 'Enviado a revisión por parte del agente',
+      proyecto_titulo: '"Raíces y Alas": identidad cultural en la primera infancia',
+      proyecto_pct: 100,
+      simulador_usos: 3,
+      aula_viva_pct: 100
+    }
+  }
+];
+function grupoActivoActual(){
+  return MIS_GRUPOS_DATA.find(function(g){ return g.activo; }) || MIS_GRUPOS_DATA[0];
+}
+function renderTopbarGroupChip(){
+  var g = grupoActivoActual();
+  var nameEl = document.getElementById('tgc-name');
+  var subEl = document.getElementById('tgc-sub');
+  var avEl = document.getElementById('tgc-avatars');
+  if(!nameEl) return;
+  nameEl.textContent = g.nombre;
+  subEl.textContent = g.institucion + ' · Activo';
+  avEl.innerHTML = g.integrantes.map(function(m){ return '<span class="tgc-av">' + m.av + '</span>'; }).join('');
+}
+function misgMemberChips(integrantes){
+  return integrantes.map(function(m){
+    return '<div class="member-chip"><span class="av">' + m.av + '</span> ' + m.nombre + '</div>';
+  }).join('');
+}
+function misgBarRow(label, pct, colorVar){
+  return '<div class="misg-stat-row"><span class="k">' + label + '</span><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:' + pct + '%;background:' + colorVar + '"></span></div><span class="mono-note">' + pct + '%</span></div></div>';
+}
+function misgTextRow(label, value){
+  return '<div class="misg-stat-row"><span class="k">' + label + '</span><span class="v">' + value + '</span></div>';
+}
+function misgResumenHtml(r){
+  return misgBarRow('Caracterización', r.caracterizacion, 'var(--lila-ink)')
+    + misgBarRow('Árbol de Problematización', r.arbol, 'var(--green-ink)')
+    + misgTextRow('Paso en Una mirada al aula', r.paso)
+    + misgTextRow('Proyecto Pedagógico de Aula', r.proyecto_titulo)
+    + misgBarRow('Avance del Proyecto Pedagógico de Aula', r.proyecto_pct, 'var(--pink-ink)')
+    + misgTextRow('Usos del Simulador', r.simulador_usos)
+    + misgBarRow('Aula Viva de Experiencia', r.aula_viva_pct, 'var(--blue-ink)');
+}
+function renderMisGrupos(){
+  var wrap = document.getElementById('mis-grupos-list');
+  if(!wrap) return;
+  wrap.innerHTML = MIS_GRUPOS_DATA.map(function(g){
+    if(g.activo){
+      return '<div class="card misg-card misg-active">'
+        + '<div class="misg-head"><div><span class="pill on">Grupo activo</span><h3>' + g.nombre + '</h3><p class="misg-meta">' + g.institucion + ' · ' + g.periodo + '</p></div>'
+        + '<button class="btn btn-primary btn-sm" onclick="setPanel(\'proyecto-aula\')">Continuar Una mirada al aula</button></div>'
+        + '<div class="members">' + misgMemberChips(g.integrantes) + '</div>'
+        + '</div>';
+    }
+    return '<div class="card misg-card misg-past">'
+      + '<div class="misg-head"><div><span class="pill off">Finalizado</span><h3>' + g.nombre + '</h3><p class="misg-meta">' + g.institucion + ' · ' + g.periodo + '</p></div>'
+      + '<button class="btn btn-ghost btn-sm" onclick="verDetalleGrupoAnterior(\'' + g.id + '\')">Ver detalle</button></div>'
+      + '<div class="members">' + misgMemberChips(g.integrantes) + '</div>'
+      + '</div>';
+  }).join('');
+}
+function verDetalleGrupoAnterior(id){
+  var g = MIS_GRUPOS_DATA.find(function(x){ return x.id === id; });
+  if(!g) return;
+  document.getElementById('mgd-titulo').textContent = g.nombre;
+  document.getElementById('mgd-sub').textContent = g.institucion + ' · ' + g.periodo + ' · vista de solo lectura';
+  document.getElementById('mgd-integrantes').innerHTML = misgMemberChips(g.integrantes);
+  document.getElementById('mgd-resumen').innerHTML = misgResumenHtml(g.resumen);
+  document.getElementById('modal-detalle-grupo').classList.remove('hidden');
+}
+function cerrarDetalleGrupoAnterior(){
+  document.getElementById('modal-detalle-grupo').classList.add('hidden');
 }
 
 /* ---- votación grupal de la propuesta: todos los integrantes deben coincidir ---- */
