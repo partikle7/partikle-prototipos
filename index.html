@@ -271,7 +271,7 @@ footer.site-footer{border-top:1px solid var(--border-soft);padding:26px 0 40px;f
 
 /* group card */
 .group-card{padding:24px;}
-.group-card .members{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.members{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
 .member-chip{display:flex;align-items:center;gap:8px;background:var(--bg-soft);border:1px solid var(--border-soft);border-radius:100px;padding:6px 12px 6px 6px;font-size:12.5px;font-weight:600;}
 .member-chip .av{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--lila));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#171034;}
 
@@ -283,10 +283,27 @@ footer.site-footer{border-top:1px solid var(--border-soft);padding:26px 0 40px;f
 .misg-active{border:1.5px solid rgba(174,127,240,0.5);background:linear-gradient(120deg,rgba(142,127,240,0.10),rgba(238,127,229,0.05));box-shadow:0 10px 26px rgba(142,127,240,0.14);}
 .misg-past{opacity:.86;}
 .misg-past:hover{opacity:1;}
+.misg-viewing{opacity:1;border:1.5px solid rgba(88,105,127,0.4);background:rgba(160,191,231,0.08);}
 .misg-stat-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--border-soft);font-size:13px;}
 .misg-stat-row:last-child{border-bottom:none;}
 .misg-stat-row .k{color:var(--muted);font-weight:600;flex-shrink:0;}
 .misg-stat-row .v{text-align:right;font-weight:700;}
+
+.readonly-group-banner{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 20px;margin:-32px -32px 26px;background:linear-gradient(120deg,rgba(142,127,240,0.14),rgba(238,127,229,0.08));border-bottom:1px solid rgba(174,127,240,0.35);}
+.rgb-info{display:flex;align-items:center;gap:12px;}
+.rgb-info>div{display:flex;flex-direction:column;gap:2px;font-size:13px;}
+.rgb-info b{font-size:13.5px;}
+.rgb-info span.mono-note{font-weight:600;color:var(--purple-ink);}
+.rgb-info>div>span:last-child{color:var(--muted);font-size:12.5px;}
+.ro-block{border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:18px 20px;margin-bottom:14px;background:var(--panel);}
+.ro-block h5{font-size:14px;margin-bottom:10px;}
+.ro-branch{padding:10px 0;border-top:1px dashed var(--border-soft);font-size:13px;}
+.ro-branch:first-child{border-top:none;padding-top:2px;}
+.ro-sim-card{border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:10px;}
+.ro-sim-card .ro-sim-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.ro-sim-card .ro-sim-head b{font-size:13.5px;}
+.ro-sim-card .ro-sim-head span{font-size:12px;color:var(--muted);}
+.ro-sim-card p{font-size:13px;color:var(--ink);line-height:1.5;}
 
 /* substep layout (momento 1) */
 .substep-layout{display:grid;grid-template-columns:220px 1fr;gap:28px;}
@@ -714,7 +731,6 @@ tbody tr:hover{background:var(--bg-soft);}
     <button class="nav-item" data-role="estudiante,profesor,coordinador,admin" data-panel="panel-inicio" onclick="setPanel('panel-inicio')"><svg class="icon"><use href="#i-home"/></svg> Panel principal</button>
 
     <div class="nav-group" data-role="estudiante">Mi proyecto de aula</div>
-    <button class="nav-item" data-role="estudiante" data-panel="mis-grupos" onclick="setPanel('mis-grupos'); renderMisGrupos();"><svg class="icon"><use href="#i-users"/></svg> Mis Grupos</button>
     <button class="nav-item" data-role="estudiante" data-panel="caracterizacion" onclick="setPanel('caracterizacion')"><svg class="icon"><use href="#i-file"/></svg> Caracterización</button>
     <button class="nav-item" data-role="estudiante" data-panel="proyecto-aula" onclick="setPanel('proyecto-aula')"><svg class="icon"><use href="#i-tree"/></svg> Una mirada al aula</button>
     <button class="nav-item" data-role="estudiante" data-panel="simulador" onclick="setPanel('simulador')"><svg class="icon"><use href="#i-chat"/></svg> Simulador de Situaciones <span class="tag" id="tag-m3">recom.</span></button>
@@ -782,6 +798,18 @@ tbody tr:hover{background:var(--bg-soft);}
     </header>
 
     <main class="content">
+
+      <!-- Banner: modo lectura de un grupo anterior -->
+      <div class="readonly-group-banner hidden" id="readonly-group-banner">
+        <div class="rgb-info">
+          <svg class="icon" style="width:18px;height:18px;stroke:var(--purple-ink)"><use href="#i-lock"/></svg>
+          <div>
+            <b>Estás viendo <span id="rgb-nombre">—</span> <span class="mono-note" style="text-transform:none;" id="rgb-periodo">—</span></b>
+            <span>Solo lectura — así quedó este grupo, no puedes editar su información.</span>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="salirModoLecturaGrupo()">Volver a mi grupo activo</button>
+      </div>
 
       <!-- ============ PANEL INICIO (rol-dependiente) ============ -->
       <div class="panel active" id="panel-panel-inicio">
@@ -1003,22 +1031,6 @@ tbody tr:hover{background:var(--bg-soft);}
       <div class="panel" id="panel-mis-grupos">
         <div class="panel-head"><div><h2>Mis Grupos</h2><p>El grupo en el que trabajas actualmente queda resaltado. Los grupos de periodos anteriores quedan disponibles en modo de solo lectura para consultar lo que se hizo.</p></div></div>
         <div class="misg-list" id="mis-grupos-list"></div>
-      </div>
-
-      <!-- Modal: detalle de un grupo anterior (solo lectura) -->
-      <div class="modal-overlay hidden" id="modal-detalle-grupo" onclick="if(event.target===this) cerrarDetalleGrupoAnterior()">
-        <div class="modal-box">
-          <button class="modal-close" onclick="cerrarDetalleGrupoAnterior()"><svg class="icon" style="width:15px;height:15px"><use href="#i-x"/></svg></button>
-          <div class="modal-form">
-            <h3 id="mgd-titulo">Grupo</h3>
-            <p class="sub" id="mgd-sub">—</p>
-            <label class="field-label" style="margin-top:6px;">Integrantes</label>
-            <div class="members" id="mgd-integrantes" style="margin-bottom:6px;"></div>
-            <div class="divider"></div>
-            <label class="field-label">Resumen del proyecto de aula</label>
-            <div id="mgd-resumen"></div>
-          </div>
-        </div>
       </div>
 
       <!-- ============ CARACTERIZACIÓN ============ -->
@@ -2342,7 +2354,7 @@ var MIS_GRUPOS_DATA = [
   {
     id: 'g-2025-2',
     activo: false,
-    nombre: 'Grupo 1 — Raíces y Alas',
+    nombre: 'Grupo 1 — Voces de mi Territorio',
     institucion: 'Jardín Infantil Los Robles',
     periodo: '2025-2 · Finalizado',
     integrantes: [
@@ -2353,7 +2365,7 @@ var MIS_GRUPOS_DATA = [
       caracterizacion: 100,
       arbol: 100,
       paso: 'Enviado a revisión por parte del agente',
-      proyecto_titulo: '"Raíces y Alas": identidad cultural en la primera infancia',
+      proyecto_titulo: '"Voces de mi Territorio": identidad cultural en la primera infancia',
       proyecto_pct: 100,
       simulador_usos: 3,
       aula_viva_pct: 100
@@ -2384,15 +2396,6 @@ function misgBarRow(label, pct, colorVar){
 function misgTextRow(label, value){
   return '<div class="misg-stat-row"><span class="k">' + label + '</span><span class="v">' + value + '</span></div>';
 }
-function misgResumenHtml(r){
-  return misgBarRow('Caracterización', r.caracterizacion, 'var(--lila-ink)')
-    + misgBarRow('Árbol de Problematización', r.arbol, 'var(--green-ink)')
-    + misgTextRow('Paso en Una mirada al aula', r.paso)
-    + misgTextRow('Proyecto Pedagógico de Aula', r.proyecto_titulo)
-    + misgBarRow('Avance del Proyecto Pedagógico de Aula', r.proyecto_pct, 'var(--pink-ink)')
-    + misgTextRow('Usos del Simulador', r.simulador_usos)
-    + misgBarRow('Aula Viva de Experiencia', r.aula_viva_pct, 'var(--blue-ink)');
-}
 function renderMisGrupos(){
   var wrap = document.getElementById('mis-grupos-list');
   if(!wrap) return;
@@ -2400,28 +2403,217 @@ function renderMisGrupos(){
     if(g.activo){
       return '<div class="card misg-card misg-active">'
         + '<div class="misg-head"><div><span class="pill on">Grupo activo</span><h3>' + g.nombre + '</h3><p class="misg-meta">' + g.institucion + ' · ' + g.periodo + '</p></div>'
-        + '<button class="btn btn-primary btn-sm" onclick="setPanel(\'proyecto-aula\')">Continuar Una mirada al aula</button></div>'
+        + '<button class="btn btn-primary btn-sm" onclick="salirModoLecturaGrupo(); setPanel(\'proyecto-aula\');">Continuar Una mirada al aula</button></div>'
         + '<div class="members">' + misgMemberChips(g.integrantes) + '</div>'
         + '</div>';
     }
-    return '<div class="card misg-card misg-past">'
-      + '<div class="misg-head"><div><span class="pill off">Finalizado</span><h3>' + g.nombre + '</h3><p class="misg-meta">' + g.institucion + ' · ' + g.periodo + '</p></div>'
-      + '<button class="btn btn-ghost btn-sm" onclick="verDetalleGrupoAnterior(\'' + g.id + '\')">Ver detalle</button></div>'
+    var viendolo = GRUPO_VIEW_ACTIVO === g.id;
+    return '<div class="card misg-card misg-past' + (viendolo ? ' misg-viewing' : '') + '">'
+      + '<div class="misg-head"><div><span class="pill off">Finalizado</span>' + (viendolo ? ' <span class="pill info">Viéndolo ahora</span>' : '') + '<h3>' + g.nombre + '</h3><p class="misg-meta">' + g.institucion + ' · ' + g.periodo + '</p></div>'
+      + '<button class="btn btn-ghost btn-sm" onclick="entrarModoLecturaGrupo(\'' + g.id + '\')">' + (viendolo ? 'Seguir viendo' : 'Ver en modo lectura') + '</button></div>'
       + '<div class="members">' + misgMemberChips(g.integrantes) + '</div>'
       + '</div>';
   }).join('');
 }
-function verDetalleGrupoAnterior(id){
-  var g = MIS_GRUPOS_DATA.find(function(x){ return x.id === id; });
-  if(!g) return;
-  document.getElementById('mgd-titulo').textContent = g.nombre;
-  document.getElementById('mgd-sub').textContent = g.institucion + ' · ' + g.periodo + ' · vista de solo lectura';
-  document.getElementById('mgd-integrantes').innerHTML = misgMemberChips(g.integrantes);
-  document.getElementById('mgd-resumen').innerHTML = misgResumenHtml(g.resumen);
-  document.getElementById('modal-detalle-grupo').classList.remove('hidden');
+
+/* ---- estudiante: modo lectura de un grupo anterior (cada grupo es una "caja" con toda su info por módulo) ---- */
+var GRUPO_VIEW_ACTIVO = null;
+var MISG_STATE_BACKUP = null;
+
+var GRUPO_HISTORICO_CONTENIDO = {
+  'g-2025-2': {
+    caracterizacion: {
+      institucion: [
+        ['Nombre de la institución','Jardín Infantil Los Robles'],
+        ['Ubicación','Zona rural, vereda El Guayabo, municipio de Marinilla'],
+        ['Naturaleza','Privada, sin ánimo de lucro'],
+        ['Niveles educativos','Educación Inicial (Prejardín, Jardín, Transición)'],
+        ['Características del entorno','Comunidad campesina, entorno natural con fincas cercanas'],
+        ['Condiciones socioeconómicas','Familias de ingresos medios-bajos, economía agrícola'],
+        ['Problemáticas relevantes del contexto','Baja conectividad y desplazamientos largos hasta la institución'],
+        ['Número de estudiantes','64'],
+        ['Grupos etarios atendidos','3 a 5 años'],
+        ['Enfoque pedagógico','Pedagogía por proyectos con énfasis en el vínculo con el territorio']
+      ],
+      aula: [
+        ['Nombre / grado','Jardín B'],
+        ['Número de estudiantes','18'],
+        ['Rango de edad','4 a 5 años'],
+        ['Diversidad del grupo','Un estudiante con diagnóstico de TEA, dos familias migrantes venezolanas'],
+        ['Necesidades educativas especiales','Apoyo para autorregulación emocional y comunicación'],
+        ['Estilos de aprendizaje predominantes','Kinestésico y visual'],
+        ['Recursos didácticos','Material reciclable, elementos naturales del entorno'],
+        ['Nivel de participación','Alto en actividades al aire libre, bajo en trabajo de mesa prolongado']
+      ]
+    },
+    arbol: {
+      pregunta: '¿Por qué los niños y niñas de Jardín B muestran poco interés en reconocer y valorar las tradiciones culturales de su territorio?',
+      estado: 'Aceptado por el profesor · 10 sep 2025',
+      situaciones: [
+        { descripcion:'Los niños desconocen las prácticas agrícolas y oficios tradicionales de sus propias familias.',
+          ramas:[
+            {efecto:'Pérdida del vínculo identitario con el territorio', causa:'Poca transmisión intergeneracional de saberes en el aula', enfoque:'Sociocultural'},
+            {efecto:'Desvalorización de los oficios del campo', causa:'Predominancia de contenidos urbanos en el material didáctico', enfoque:'Intercultural'}
+          ]
+        },
+        { descripcion:'Baja participación de las familias en las actividades pedagógicas del aula.',
+          ramas:[
+            {efecto:'Proyectos pedagógicos desconectados del contexto familiar', causa:'Dificultades de desplazamiento y horarios laborales de las familias', enfoque:'Participación y Agencia Infantil'},
+            {efecto:'Los niños replican poco lo aprendido en casa', causa:'Canales de comunicación limitados entre la institución y las familias', enfoque:'Familia y Comunidad'}
+          ]
+        }
+      ]
+    },
+    propuesta: {
+      tentative_name: '"Voces de mi Territorio": identidad cultural en la primera infancia',
+      problem_statement: 'Desconexión de los niños y niñas con las tradiciones, oficios y saberes campesinos de su territorio.',
+      general_and_specific_objectives: 'Fortalecer el vínculo identitario con el territorio mediante el reconocimiento de oficios y tradiciones familiares.',
+      beneficiary_population: '18 niños y niñas de Jardín B',
+      approaches_involved: 'Sociocultural · Intercultural · Familia y Comunidad',
+      pedagogical_strategies: 'Visitas de familiares a contar sus oficios, huerta escolar, cartografía social del territorio',
+      expected_impact: 'Mayor identidad cultural y participación activa de las familias',
+      feasibility: 'Alta — recursos naturales del entorno ya disponibles',
+      innovation_potential: 'Alto'
+    },
+    proyecto: {
+      estado: 'Enviado a revisión por parte del agente · 22 nov 2025',
+      secciones: [
+        ['Identificación del proyecto', '"Voces de mi Territorio": identidad cultural en la primera infancia — Jardín B, Jardín Infantil Los Robles.'],
+        ['Punto de partida pedagógico', 'Diagnóstico basado en la caracterización y el árbol de problematización aceptado por el profesor.'],
+        ['Propósito formativo', 'Fortalecer el reconocimiento y valoración de las tradiciones campesinas del territorio en la primera infancia.'],
+        ['Fundamentación pedagógica breve', 'Enfoque sociocultural e intercultural centrado en el vínculo familia-territorio-escuela.'],
+        ['Metodología de la experiencia pedagógica', 'Trabajo por proyectos con participación activa de las familias y el entorno natural.'],
+        ['Experiencias pedagógicas', '3 experiencias: "Cuéntame tu oficio", "Nuestra huerta escolar" y "Mapa vivo de mi vereda".'],
+        ['Evaluación, reflexión y evidencias', 'Diario de campo docente, registro fotográfico y muestra final con las familias.']
+      ]
+    },
+    simulador: [
+      {titulo:'Niño con dificultad para integrarse a juegos grupales', fecha:'15 sep 2025', resumen:'El GPT recomendó estrategias de vinculación gradual mediante juego paralelo y roles de apoyo entre pares.'},
+      {titulo:'Resistencia de una familia a participar en actividades escolares', fecha:'03 oct 2025', resumen:'Se sugirió una estrategia de acercamiento flexible en horarios y visitas domiciliarias breves.'},
+      {titulo:'Conflictos por diferencias culturales entre estudiantes', fecha:'20 oct 2025', resumen:'El documento propuso círculos de palabra y actividades de reconocimiento de la diversidad cultural del grupo.'}
+    ],
+    aulaVivaKey: 'hist-g1'
+  }
+};
+
+function roFieldRows(pairs){
+  return pairs.map(function(p){
+    return '<div class="ventana-field"><div class="k">' + p[0] + '</div><div class="v">' + p[1] + '</div></div>';
+  }).join('');
 }
-function cerrarDetalleGrupoAnterior(){
-  document.getElementById('modal-detalle-grupo').classList.add('hidden');
+function roArbolHtml(arbol){
+  var situacionesHtml = arbol.situaciones.map(function(s, i){
+    var ramasHtml = s.ramas.map(function(r){
+      return '<div class="ro-branch"><b>Efecto:</b> ' + r.efecto + ' <span class="mono-note" style="text-transform:none;">· Causa:</span> ' + r.causa + ' <span class="pill info" style="margin-left:6px;">' + r.enfoque + '</span></div>';
+    }).join('');
+    return '<div class="ro-block"><h5>Situación ' + (i+1) + '</h5><p style="font-size:13px;margin-bottom:10px;">' + s.descripcion + '</p>' + ramasHtml + '</div>';
+  }).join('');
+  return '<div class="ventana-field" style="margin-bottom:16px;"><div class="k">Pregunta de problematización</div><div class="v">' + arbol.pregunta + '</div></div>' + situacionesHtml;
+}
+function roPropuestaHtml(p){
+  return roFieldRows([
+    ['Nombre tentativo', p.tentative_name],
+    ['Problemática', p.problem_statement],
+    ['Objetivo general y específicos', p.general_and_specific_objectives],
+    ['Población beneficiaria', p.beneficiary_population],
+    ['Enfoques involucrados', p.approaches_involved],
+    ['Estrategias pedagógicas', p.pedagogical_strategies],
+    ['Impacto esperado', p.expected_impact],
+    ['Viabilidad', p.feasibility],
+    ['Potencial de innovación', p.innovation_potential]
+  ]);
+}
+function roProyectoHtml(proyecto){
+  return proyecto.secciones.map(function(s, i){
+    return '<div class="ro-block"><h5>' + (i+1) + '. ' + s[0] + '</h5><p style="font-size:13px;">' + s[1] + '</p></div>';
+  }).join('');
+}
+function roSimuladorHtml(usos){
+  if(!usos || !usos.length) return '<p class="mono-note">El simulador no se usó durante este periodo.</p>';
+  return usos.map(function(u){
+    return '<div class="ro-sim-card"><div class="ro-sim-head"><b>' + u.titulo + '</b><span>' + u.fecha + '</span></div><p>' + u.resumen + '</p></div>';
+  }).join('');
+}
+function renderCaracterizacionReadOnly(g, data){
+  return '<div class="panel-head"><div><h2>Caracterización</h2><p>' + g.nombre + ' · ' + g.periodo + ' · vista de solo lectura.</p></div><span class="pill on">100% completa</span></div>'
+    + '<div class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:12px;">Institución educativa</h4>' + roFieldRows(data.caracterizacion.institucion) + '</div>'
+    + '<div class="card"><h4 style="font-size:14.5px;margin-bottom:12px;">Aula</h4>' + roFieldRows(data.caracterizacion.aula) + '</div>';
+}
+function renderProyectoAulaReadOnly(g, data){
+  return '<div class="panel-head"><div><h2>Una mirada al aula</h2><p>' + g.nombre + ' · ' + g.periodo + ' · vista de solo lectura.</p></div></div>'
+    + '<div class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:12px;">Árbol de Problematización <span class="mono-note" style="text-transform:none;font-weight:500;">— ' + data.arbol.estado + '</span></h4>' + roArbolHtml(data.arbol) + '</div>'
+    + '<div class="card ventana-card chosen" style="margin-bottom:18px;"><h4>Propuesta elegida por el grupo</h4>' + roPropuestaHtml(data.propuesta) + '</div>'
+    + '<div class="card"><h4 style="font-size:14.5px;margin-bottom:2px;">Proyecto Pedagógico de Aula</h4><p class="mono-note" style="margin-bottom:14px;">' + data.proyecto.estado + '</p>' + roProyectoHtml(data.proyecto) + '</div>';
+}
+function renderSimuladorReadOnly(g, data){
+  return '<div class="panel-head"><div><h2>Simulador de Situaciones Pedagógicas</h2><p>' + g.nombre + ' · ' + g.periodo + ' · vista de solo lectura.</p></div></div>'
+    + '<div class="card">' + roSimuladorHtml(data.simulador) + '</div>';
+}
+function renderAulaVivaReadOnly(g, data){
+  var repo = AULA_VIVA_GRUPOS[data.aulaVivaKey];
+  if(!repo){
+    return '<div class="panel-head"><div><h2>Aula Viva</h2><p>' + g.nombre + ' · vista de solo lectura.</p></div></div><div class="card"><p class="mono-note">Sin información de Aula Viva para este grupo.</p></div>';
+  }
+  return '<div class="panel-head"><div><h2>Aula Viva</h2><p>' + g.nombre + ' · ' + g.periodo + ' · vista de solo lectura.</p></div></div>'
+    + '<div class="card" style="margin-bottom:18px;"><div class="drive-section-title">Documentos del proyecto</div><div class="repo-timeline">' + repoItemsHtml(repo.documentos) + '</div></div>'
+    + '<div class="card" style="margin-bottom:18px;"><div class="drive-section-title">Producto del proyecto</div><div class="repo-timeline">' + repoItemsHtml(repo.producto) + '</div></div>'
+    + '<div class="card"><div class="drive-section-title">Evidencias del proceso</div><div class="repo-timeline">' + repoItemsHtml(repo.evidencias) + '</div></div>';
+}
+function syncFormValuesIntoAttributes(root){
+  if(!root) return;
+  root.querySelectorAll('input').forEach(function(inp){
+    if(inp.type === 'checkbox' || inp.type === 'radio'){
+      if(inp.checked) inp.setAttribute('checked','checked'); else inp.removeAttribute('checked');
+    } else {
+      inp.setAttribute('value', inp.value);
+    }
+  });
+  root.querySelectorAll('textarea').forEach(function(ta){
+    ta.textContent = ta.value;
+  });
+  root.querySelectorAll('select').forEach(function(sel){
+    Array.prototype.forEach.call(sel.options, function(opt){
+      if(opt.selected) opt.setAttribute('selected','selected'); else opt.removeAttribute('selected');
+    });
+  });
+}
+function entrarModoLecturaGrupo(id){
+  var g = MIS_GRUPOS_DATA.find(function(x){ return x.id === id; });
+  var data = GRUPO_HISTORICO_CONTENIDO[id];
+  if(!g || !data) return;
+  if(GRUPO_VIEW_ACTIVO === null){
+    ['panel-caracterizacion','panel-proyecto-aula','panel-simulador','panel-aula-viva'].forEach(function(pid){
+      syncFormValuesIntoAttributes(document.getElementById(pid));
+    });
+    MISG_STATE_BACKUP = {
+      caracterizacion: document.getElementById('panel-caracterizacion').innerHTML,
+      proyectoAula: document.getElementById('panel-proyecto-aula').innerHTML,
+      simulador: document.getElementById('panel-simulador').innerHTML,
+      aulaViva: document.getElementById('panel-aula-viva').innerHTML
+    };
+  }
+  GRUPO_VIEW_ACTIVO = id;
+  document.getElementById('panel-caracterizacion').innerHTML = renderCaracterizacionReadOnly(g, data);
+  document.getElementById('panel-proyecto-aula').innerHTML = renderProyectoAulaReadOnly(g, data);
+  document.getElementById('panel-simulador').innerHTML = renderSimuladorReadOnly(g, data);
+  document.getElementById('panel-aula-viva').innerHTML = renderAulaVivaReadOnly(g, data);
+  document.getElementById('rgb-nombre').textContent = g.nombre;
+  document.getElementById('rgb-periodo').textContent = '· ' + g.periodo;
+  document.getElementById('readonly-group-banner').classList.remove('hidden');
+  renderMisGrupos();
+  setPanel('caracterizacion');
+}
+function salirModoLecturaGrupo(){
+  if(GRUPO_VIEW_ACTIVO === null) return;
+  GRUPO_VIEW_ACTIVO = null;
+  if(MISG_STATE_BACKUP){
+    document.getElementById('panel-caracterizacion').innerHTML = MISG_STATE_BACKUP.caracterizacion;
+    document.getElementById('panel-proyecto-aula').innerHTML = MISG_STATE_BACKUP.proyectoAula;
+    document.getElementById('panel-simulador').innerHTML = MISG_STATE_BACKUP.simulador;
+    document.getElementById('panel-aula-viva').innerHTML = MISG_STATE_BACKUP.aulaViva;
+  }
+  document.getElementById('readonly-group-banner').classList.add('hidden');
+  renderMisGrupos();
 }
 
 /* ---- votación grupal de la propuesta: todos los integrantes deben coincidir ---- */
@@ -3007,6 +3199,16 @@ function formatearFechaCorta(iso){
 
 /* ---- Aula Viva de los grupos (vista de solo lectura para docente/coordinador/admin) ---- */
 var AULA_VIVA_GRUPOS = {
+  'hist-g1': {
+    nombre: 'Grupo 1 — Voces de mi Territorio', institucion: 'Jardín Infantil Los Robles',
+    documentos: [
+      {nombre:'Formato de Caracterización', meta:'Diligenciado · 20 ago 2025'},
+      {nombre:'Árbol de Problematización', meta:'Aceptado por el profesor · 10 sep 2025'},
+      {nombre:'Proyecto Pedagógico de Aula', meta:'Enviado a revisión por parte del agente · 22 nov 2025'}
+    ],
+    producto: [{nombre:'producto_final_voces_territorio.pdf', meta:'Cargado · documentos'}],
+    evidencias: [{nombre:'evidencia_huerta.jpg', meta:'Cargado · imágenes'}, {nombre:'evidencia_cartografia.jpg', meta:'Cargado · imágenes'}, {nombre:'evidencia_cierre.mp4', meta:'Cargado · videos'}]
+  },
   g3: {
     nombre: 'Grupo 3 — Semilleros de Cambio', institucion: 'I.E. Distrital La Luz',
     documentos: [
