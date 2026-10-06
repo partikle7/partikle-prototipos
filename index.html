@@ -786,7 +786,7 @@ tbody tr:hover{background:var(--bg-soft);}
     <button class="nav-item" data-role="estudiante,profesor,coordinador,admin" data-panel="panel-inicio" onclick="setPanel('panel-inicio')"><svg class="icon"><use href="#i-home"/></svg> Panel principal</button>
 
     <div class="nav-group" data-role="estudiante">Mi proyecto de aula</div>
-    <button class="nav-item" data-role="estudiante" data-panel="mirada-aula" onclick="setPanel('mirada-aula')"><svg class="icon"><use href="#i-tree"/></svg> Una mirada al aula</button>
+    <button class="nav-item" data-role="estudiante" data-panel="proyecto-aula" onclick="abrirMiradaDesdeSidebar()"><svg class="icon"><use href="#i-tree"/></svg> Una mirada al aula</button>
     <button class="nav-item" data-role="estudiante" data-panel="simulador" onclick="setPanel('simulador')"><svg class="icon"><use href="#i-chat"/></svg> Evoluciona tu aula <span class="tag" id="tag-m3">recom.</span></button>
     <button class="nav-item" data-role="estudiante" data-panel="aula-viva" onclick="setPanel('aula-viva')"><svg class="icon"><use href="#i-folder"/></svg> Aula Viva <span class="tag" id="tag-m4">recom.</span></button>
 
@@ -872,7 +872,7 @@ tbody tr:hover{background:var(--bg-soft);}
         <div id="inicio-estudiante">
           <h3 style="font-size:15px;margin-bottom:14px;color:var(--muted);">Avance del proyecto de aula — toca una card para continuar</h3>
           <div class="launch-collage" id="dash-collage-estudiante">
-            <button type="button" class="launch-card c-blue st-current" id="dash-card-mirada" onclick="setPanel('mirada-aula')">
+            <button type="button" class="launch-card c-blue st-current" id="dash-card-mirada" onclick="abrirMiradaDesdeDashboard()">
               <div class="lc-shard"></div>
               <div class="lc-icon-wrap" style="color:var(--lila-ink)"><svg class="icon"><use href="#i-tree"/></svg></div>
               <div class="lc-badge"><span class="lc-mom" style="color:var(--lila-ink)">Momento 1 · 4 pasos</span><span class="lc-title">Una mirada al aula</span></div>
@@ -1100,7 +1100,7 @@ tbody tr:hover{background:var(--bg-soft);}
           <div><h2>Una mirada al aula</h2><p>Caracterización, Árbol de Problematización, Propuestas y Proyecto Pedagógico de Aula, en un solo recorrido. El profesor valida el árbol antes de generar propuestas.</p></div>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
             <span class="pill on" id="m1-topstatus">Árbol: aceptado por el profesor</span>
-            <button class="btn btn-ghost btn-sm" onclick="setPanel('mirada-aula')"><svg class="icon" style="width:14px;height:14px;transform:rotate(180deg)"><use href="#i-arrow"/></svg> Ver flujo de pasos</button>
+            <button class="btn btn-ghost btn-sm hidden" id="btn-ver-flujo" onclick="setPanel('mirada-aula')"><svg class="icon" style="width:14px;height:14px;transform:rotate(180deg)"><use href="#i-arrow"/></svg> Ver flujo de pasos</button>
           </div>
         </div>
 
@@ -2292,12 +2292,14 @@ function setPanel(name){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   var el = document.getElementById('panel-'+name);
   if(el) el.classList.add('active');
-  var navKey = (name==='proyecto-aula') ? 'mirada-aula' : name; // el paso a paso vive bajo el mismo item del sidebar
+  var navKey = (name==='mirada-aula') ? 'proyecto-aula' : name; // el flujograma (solo desde el dashboard) resalta el mismo item del sidebar
   document.querySelectorAll('.nav-item[data-panel]').forEach(n=>n.classList.toggle('active', n.dataset.panel===navKey));
   var title = panelTitles[name] || name;
   document.getElementById('topbar-title').textContent = title;
   document.getElementById('topbar-crumb').textContent = 'DiversIA / ' + title + (name==='proyecto-aula' ? ' / Paso a paso' : '');
   if(name==='mirada-aula' && typeof renderMiradaAula==='function') renderMiradaAula();
+  var bf = document.getElementById('btn-ver-flujo');
+  if(bf) bf.classList.toggle('hidden', !(name==='proyecto-aula' && miradaVieneDelHub));
   document.querySelector('.content').scrollTop = 0;
 }
 
@@ -2538,11 +2540,26 @@ function renderMiradaAula(){
     document.getElementById('dash-mirada-txt').textContent = (actualVivo ? 'En curso' : 'Completo') + ' · ' + hechosVivo + ' de ' + live.length + ' pasos completados';
   }
 }
+var miradaVieneDelHub = false;
+function abrirMiradaDesdeDashboard(){
+  miradaVieneDelHub = true;
+  setPanel('mirada-aula');
+}
+function abrirMiradaDesdeSidebar(){
+  // el sidebar entra directo al paso a paso, en el paso en el que está el grupo
+  miradaVieneDelHub = false;
+  setPanel('proyecto-aula');
+  if(GRUPO_VIEW_ACTIVO !== null) return;
+  var est = miradaEstados();
+  var actual = est.find(function(e){ return e.estado !== 'done'; });
+  setM1Sub(actual ? actual.key : 'proyecto');
+}
 function abrirPasoMirada(key){
   var ro = GRUPO_VIEW_ACTIVO !== null;
   var est = miradaEstados().find(function(e){ return e.key === key; });
   if(!est) return;
   if(est.estado === 'locked'){ toast('Paso bloqueado — ' + est.detalle); return; }
+  miradaVieneDelHub = document.getElementById('panel-mirada-aula').classList.contains('active');
   setPanel('proyecto-aula');
   if(ro){
     var anchor = document.getElementById('ro-paso-' + key);
@@ -2641,7 +2658,7 @@ function renderMisGrupos(){
     if(g.activo){
       return '<div class="card misg-card misg-active">'
         + '<div class="misg-head"><div><span class="pill on">Grupo activo</span><h3>' + g.nombre + '</h3><p class="misg-meta">' + g.institucion + ' · ' + g.periodo + '</p></div>'
-        + '<button class="btn btn-primary btn-sm" onclick="salirModoLecturaGrupo(); setPanel(\'mirada-aula\');">Continuar Una mirada al aula</button></div>'
+        + '<button class="btn btn-primary btn-sm" onclick="salirModoLecturaGrupo(); abrirMiradaDesdeSidebar();">Continuar Una mirada al aula</button></div>'
         + '<div class="members">' + misgMemberChips(g.integrantes) + '</div>'
         + '</div>';
     }
@@ -2773,7 +2790,7 @@ function roSimuladorHtml(usos){
   }).join('');
 }
 function renderProyectoAulaReadOnly(g, data){
-  return '<div class="panel-head"><div><h2>Una mirada al aula</h2><p>' + g.nombre + ' · ' + g.periodo + ' · vista de solo lectura.</p></div><button class="btn btn-ghost btn-sm" onclick="setPanel(\'mirada-aula\')"><svg class="icon" style="width:14px;height:14px;transform:rotate(180deg)"><use href="#i-arrow"/></svg> Ver flujo de pasos</button></div>'
+  return '<div class="panel-head"><div><h2>Una mirada al aula</h2><p>' + g.nombre + ' · ' + g.periodo + ' · vista de solo lectura.</p></div></div>'
     + '<div id="ro-paso-caracterizacion" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:4px;">1. Caracterización <span class="mono-note" style="text-transform:none;font-weight:500;">— 100% completa</span></h4><p class="mono-note" style="margin-bottom:12px;">Institución educativa</p>' + roFieldRows(data.caracterizacion.institucion) + '<p class="mono-note" style="margin:18px 0 12px;">Aula</p>' + roFieldRows(data.caracterizacion.aula) + '</div>'
     + '<div id="ro-paso-arbol" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:12px;">2. Árbol de Problematización <span class="mono-note" style="text-transform:none;font-weight:500;">— ' + data.arbol.estado + '</span></h4>' + roArbolHtml(data.arbol) + '</div>'
     + '<div id="ro-paso-propuestas" class="card ventana-card chosen" style="margin-bottom:18px;"><h4>3. Propuesta elegida por el grupo</h4>' + roPropuestaHtml(data.propuesta) + '</div>'
@@ -2833,7 +2850,8 @@ function entrarModoLecturaGrupo(id){
   document.getElementById('rgb-periodo').textContent = '· ' + g.periodo;
   document.getElementById('readonly-group-banner').classList.remove('hidden');
   renderMisGrupos();
-  setPanel('mirada-aula');
+  miradaVieneDelHub = false;
+  setPanel('proyecto-aula');
 }
 function salirModoLecturaGrupo(){
   if(GRUPO_VIEW_ACTIVO === null) return;
