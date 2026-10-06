@@ -326,16 +326,19 @@ footer.site-footer{border-top:1px solid var(--border-soft);padding:26px 0 40px;f
 .flow-row{display:flex;flex-direction:column;margin:8px 0 20px;--cols:5;--w:calc((100% - (var(--cols) - 1) * 34px) / var(--cols));}
 .flow-line{display:flex;align-items:stretch;}
 .flow-line .flow-card{flex:0 0 var(--w);}
-.flow-turn{position:relative;height:44px;margin:0 calc(var(--w) / 2);color:rgba(25,22,40,0.28);}
-.flow-turn::before{content:"";position:absolute;left:0;right:0;top:0;height:50%;border-right:2px dashed currentColor;border-bottom:2px dashed currentColor;}
-.flow-turn::after{content:"";position:absolute;left:0;top:50%;bottom:0;border-left:2px dashed currentColor;}
-.flow-turn .tip{position:absolute;left:-7px;bottom:-1px;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid currentColor;}
+.flow-line.rev{flex-direction:row-reverse;}
+.flow-line.rev .flow-arrow{transform:scaleX(-1);}
+.flow-turn{position:relative;height:34px;color:rgba(25,22,40,0.28);}
+.flow-turn::before{content:"";position:absolute;top:0;bottom:6px;border-left:2px dashed currentColor;}
+.flow-turn .tip{position:absolute;bottom:0;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid currentColor;}
+.flow-turn.at-right::before{right:calc(var(--w) / 2);}
+.flow-turn.at-right .tip{right:calc(var(--w) / 2 - 5px);}
+.flow-turn.at-left::before{left:calc(var(--w) / 2);}
+.flow-turn.at-left .tip{left:calc(var(--w) / 2 - 7px);}
 .flow-turn.passed{color:var(--green2-ink);}
-.flow-turn.passed::before,.flow-turn.passed::after{border-style:solid;}
-.flow-row.cols-1 .flow-turn{margin:0;}
-.flow-row.cols-1 .flow-turn::before{display:none;}
-.flow-row.cols-1 .flow-turn::after{left:50%;top:0;}
-.flow-row.cols-1 .flow-turn .tip{left:calc(50% - 7px);}
+.flow-turn.passed::before{border-left-style:solid;}
+.flow-row.cols-1 .flow-turn::before{left:50%;right:auto;}
+.flow-row.cols-1 .flow-turn .tip{left:calc(50% - 7px);right:auto;}
 .flow-card{flex:1 1 0;min-width:0;position:relative;text-align:left;display:flex;flex-direction:column;gap:8px;padding:18px 14px 16px;border-radius:22px;border:1.5px solid var(--border-soft);background:var(--panel);cursor:pointer;font-family:inherit;color:var(--ink);transition:transform .18s ease,box-shadow .18s ease;box-shadow:var(--shadow-sm);}
 .flow-card:hover{transform:translateY(-4px);box-shadow:0 18px 34px rgba(38,30,70,0.14);}
 .flow-card .fc-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;}
@@ -2527,7 +2530,7 @@ function renderMiradaAula(){
     var cols = miradaCols;
     flow.style.setProperty('--cols', cols);
     flow.className = 'flow-row cols-' + cols;
-    var html = '<div class="flow-line">';
+    var html = '<div class="flow-line">';  // las filas pares van de izquierda a derecha; las impares de derecha a izquierda (flujo en serpiente)
     vista.forEach(function(e, i){
       var paso = MIRADA_PASOS[i];
       var icono = e.estado==='locked' ? 'i-lock' : e.estado==='done' ? 'i-check' : e.estado==='review' ? 'i-clock' : paso.icon;
@@ -2543,7 +2546,9 @@ function renderMiradaAula(){
       if(i < vista.length - 1){
         var pasado = e.estado==='done' ? ' passed' : '';
         if((i+1) % cols === 0){
-          html += '</div><div class="flow-turn' + pasado + '" aria-hidden="true"><span class="tip"></span></div><div class="flow-line">';
+          var filaSig = (i+1) / cols;  // índice de la fila que empieza
+          var lado = (filaSig % 2 === 1) ? 'at-right' : 'at-left';
+          html += '</div><div class="flow-turn ' + lado + pasado + '" aria-hidden="true"><span class="tip"></span></div><div class="flow-line' + (filaSig % 2 === 1 ? ' rev' : '') + '">';
         } else {
           html += '<div class="flow-arrow' + pasado + '" aria-hidden="true"><svg class="icon"><use href="#i-arrow"/></svg></div>';
         }
