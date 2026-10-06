@@ -323,7 +323,7 @@ footer.site-footer{border-top:1px solid var(--border-soft);padding:26px 0 40px;f
 .flow-legend{display:flex;gap:18px;flex-wrap:wrap;margin:2px 0 18px;font-size:11.5px;font-weight:600;color:var(--muted);}
 .flow-legend .lg{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;}
 .lg.done{background:var(--green2);}.lg.current{background:var(--purple);}.lg.review{background:#e6c94f;}.lg.feedback{background:var(--pink);}.lg.locked{background:rgba(25,22,40,0.22);}
-.flow-row{display:flex;flex-direction:column;margin:8px 0 20px;--cols:5;--w:calc((100% - (var(--cols) - 1) * 34px) / var(--cols));}
+.flow-row{display:flex;flex-direction:column;margin:8px auto 20px;max-width:1180px;--cols:3;--w:calc((100% - (var(--cols) - 1) * 34px) / var(--cols));}
 .flow-line{display:flex;align-items:stretch;}
 .flow-line .flow-card{flex:0 0 var(--w);}
 .flow-line.rev{flex-direction:row-reverse;}
@@ -339,13 +339,14 @@ footer.site-footer{border-top:1px solid var(--border-soft);padding:26px 0 40px;f
 .flow-turn.passed::before{border-left-style:solid;}
 .flow-row.cols-1 .flow-turn::before{left:50%;right:auto;}
 .flow-row.cols-1 .flow-turn .tip{left:calc(50% - 7px);right:auto;}
-.flow-card{flex:1 1 0;min-width:0;position:relative;text-align:left;display:flex;flex-direction:column;gap:8px;padding:18px 14px 16px;border-radius:22px;border:1.5px solid var(--border-soft);background:var(--panel);cursor:pointer;font-family:inherit;color:var(--ink);transition:transform .18s ease,box-shadow .18s ease;box-shadow:var(--shadow-sm);}
+.flow-card{flex:1 1 0;min-width:0;position:relative;text-align:left;display:flex;flex-direction:row;align-items:flex-start;gap:14px;padding:18px 18px 16px;border-radius:22px;border:1.5px solid var(--border-soft);background:var(--panel);cursor:pointer;font-family:inherit;color:var(--ink);transition:transform .18s ease,box-shadow .18s ease;box-shadow:var(--shadow-sm);}
 .flow-card:hover{transform:translateY(-4px);box-shadow:0 18px 34px rgba(38,30,70,0.14);}
-.flow-card .fc-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;}
+.flow-card .fc-main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:6px;align-self:stretch;}
+.flow-card .fc-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .flow-card .fc-num{width:26px;height:26px;border-radius:50%;background:rgba(25,22,40,0.08);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
-.flow-card .fc-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(25,22,40,0.05);}
-.flow-card .fc-icon svg{width:22px;height:22px;stroke-width:1.7;}
-.flow-card .fc-title{font-family:var(--font-d);font-size:16px;font-weight:700;line-height:1.2;margin-top:4px;}
+.flow-card .fc-icon{flex:0 0 52px;width:52px;height:52px;border-radius:16px;margin-top:2px;display:flex;align-items:center;justify-content:center;background:rgba(25,22,40,0.05);}
+.flow-card .fc-icon svg{width:24px;height:24px;stroke-width:1.7;}
+.flow-card .fc-title{font-family:var(--font-d);font-size:16px;font-weight:700;line-height:1.2;margin-top:2px;}
 .flow-card .fc-desc{font-size:12px;color:var(--muted);line-height:1.45;}
 .flow-card .fc-detail{font-size:12px;font-weight:700;margin-top:auto;padding-top:6px;}
 .flow-card .fc-cta{font-size:12px;font-weight:800;margin-top:2px;}
@@ -2505,7 +2506,7 @@ function miradaEstados(forzarVivo){
   }
   return res;
 }
-var miradaCols = 5;
+var miradaCols = 3;
 var miradaResizeT = null;
 window.addEventListener('resize', function(){
   clearTimeout(miradaResizeT);
@@ -2525,7 +2526,7 @@ function renderMiradaAula(){
     var ancho = flow.clientWidth;
     if(ancho > 0){
       // las cards se mantienen horizontales; si no caben, el flujo "baja" a otra fila
-      miradaCols = ancho >= 1000 ? 5 : ancho >= 640 ? 3 : ancho >= 420 ? 2 : 1;
+      miradaCols = ancho >= 640 ? 3 : ancho >= 420 ? 2 : 1;  // 3 por fila (flujo en serpiente) incluso en pantallas grandes
     }
     var cols = miradaCols;
     flow.style.setProperty('--cols', cols);
@@ -2536,12 +2537,14 @@ function renderMiradaAula(){
       var icono = e.estado==='locked' ? 'i-lock' : e.estado==='done' ? 'i-check' : e.estado==='review' ? 'i-clock' : paso.icon;
       var cta = e.estado==='locked' ? 'Aún no disponible' : e.estado==='done' ? (ro ? 'Ver paso →' : 'Revisar paso →') : 'Continuar →';
       html += '<button type="button" class="flow-card st-' + e.estado + '" data-step="' + e.key + '" data-state="' + e.estado + '"' + (e.estado==='locked' ? ' aria-disabled="true"' : '') + ' onclick="abrirPasoMirada(\'' + e.key + '\')">'
-        + '<span class="fc-top"><span class="fc-num">' + (i+1) + '</span><span class="pill ' + e.pillClass + '">' + e.pill + '</span></span>'
         + '<span class="fc-icon"><svg class="icon"><use href="#' + icono + '"/></svg></span>'
-        + '<span class="fc-title">' + paso.titulo + '</span>'
-        + '<span class="fc-desc">' + paso.desc + '</span>'
-        + '<span class="fc-detail">' + e.detalle + '</span>'
-        + '<span class="fc-cta">' + cta + '</span>'
+        + '<span class="fc-main">'
+        +   '<span class="fc-top"><span class="fc-num">' + (i+1) + '</span><span class="pill ' + e.pillClass + '">' + e.pill + '</span></span>'
+        +   '<span class="fc-title">' + paso.titulo + '</span>'
+        +   '<span class="fc-desc">' + paso.desc + '</span>'
+        +   '<span class="fc-detail">' + e.detalle + '</span>'
+        +   '<span class="fc-cta">' + cta + '</span>'
+        + '</span>'
         + '</button>';
       if(i < vista.length - 1){
         var pasado = e.estado==='done' ? ' passed' : '';
