@@ -324,7 +324,7 @@ footer.site-footer{border-top:1px solid var(--border-soft);padding:26px 0 40px;f
 .flow-legend .lg{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;}
 .lg.done{background:var(--green2);}.lg.current{background:var(--purple);}.lg.review{background:#e6c94f;}.lg.feedback{background:var(--pink);}.lg.locked{background:rgba(25,22,40,0.22);}
 .flow-row{display:flex;align-items:stretch;margin:8px 0 20px;}
-.flow-card{flex:1 1 0;min-width:0;position:relative;text-align:left;display:flex;flex-direction:column;gap:8px;padding:20px 18px 18px;border-radius:22px;border:1.5px solid var(--border-soft);background:var(--panel);cursor:pointer;font-family:inherit;color:var(--ink);transition:transform .18s ease,box-shadow .18s ease;box-shadow:var(--shadow-sm);}
+.flow-card{flex:1 1 0;min-width:0;position:relative;text-align:left;display:flex;flex-direction:column;gap:8px;padding:18px 14px 16px;border-radius:22px;border:1.5px solid var(--border-soft);background:var(--panel);cursor:pointer;font-family:inherit;color:var(--ink);transition:transform .18s ease,box-shadow .18s ease;box-shadow:var(--shadow-sm);}
 .flow-card:hover{transform:translateY(-4px);box-shadow:0 18px 34px rgba(38,30,70,0.14);}
 .flow-card .fc-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;}
 .flow-card .fc-num{width:26px;height:26px;border-radius:50%;background:rgba(25,22,40,0.08);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
@@ -350,14 +350,14 @@ footer.site-footer{border-top:1px solid var(--border-soft);padding:26px 0 40px;f
 .flow-card.st-locked:hover{transform:none;box-shadow:none;}
 .flow-card.st-locked .fc-title,.flow-card.st-locked .fc-desc,.flow-card.st-locked .fc-icon,.flow-card.st-locked .fc-num{opacity:.55;}
 .flow-card.st-locked .fc-detail,.flow-card.st-locked .fc-cta{color:var(--muted2);}
-.flow-arrow{flex:0 0 46px;display:flex;align-items:center;justify-content:center;color:rgba(25,22,40,0.28);position:relative;}
+.flow-arrow{flex:0 0 34px;display:flex;align-items:center;justify-content:center;color:rgba(25,22,40,0.28);position:relative;}
 .flow-arrow::before{content:"";position:absolute;left:4px;right:14px;top:50%;border-top:2px dashed currentColor;transform:translateY(-1px);}
-.flow-arrow svg{position:relative;width:22px;height:22px;stroke-width:2.4;margin-left:18px;background:var(--bg);border-radius:50%;}
+.flow-arrow svg{position:relative;width:22px;height:22px;stroke-width:2.4;margin-left:10px;background:var(--bg);border-radius:50%;}
 .flow-arrow.passed{color:var(--green2-ink);}
 .flow-arrow.passed::before{border-top-style:solid;}
 .flow-hint{font-size:13px;color:var(--muted);background:var(--bg-soft);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:13px 16px;}
 .flow-hint b{color:var(--ink);}
-@media(max-width:980px){
+@media(max-width:1180px){
   .flow-row{flex-direction:column;}
   .flow-arrow{flex:0 0 38px;}
   .flow-arrow::before{left:50%;right:auto;top:2px;bottom:12px;border-top:0;border-left:2px dashed currentColor;transform:none;}
@@ -513,9 +513,7 @@ tbody tr:hover{background:var(--bg-soft);}
 .add-row-btn{display:flex;align-items:center;gap:8px;width:100%;justify-content:center;padding:12px;border-radius:12px;border:1.5px dashed var(--border);color:var(--purple-ink);font-weight:700;font-size:13px;background:rgba(142,127,240,0.04);}
 .add-row-btn:hover{background:rgba(142,127,240,0.1);}
 
-/* ---------- floating biblioteca button + modal ---------- */
-.fab-biblioteca{position:fixed;bottom:26px;right:26px;z-index:600;display:flex;align-items:center;gap:9px;padding:14px 20px;border-radius:100px;background:linear-gradient(135deg,var(--purple),var(--lila));color:#171034;font-weight:800;font-size:13.5px;box-shadow:0 12px 28px rgba(142,127,240,0.45);}
-.fab-biblioteca:hover{transform:translateY(-2px);filter:brightness(1.05);}
+/* ---------- modales ---------- */
 .modal-overlay{position:fixed;inset:0;background:rgba(20,15,40,0.45);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;z-index:900;padding:24px;}
 .modal-overlay.hidden{display:none;}
 .modal-box{background:var(--panel);border-radius:24px;max-width:560px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 30px 70px rgba(20,15,40,0.35);position:relative;}
@@ -597,7 +595,6 @@ tbody tr:hover{background:var(--bg-soft);}
   .hero,.grid-2,.grid-4,.substep-layout{grid-template-columns:1fr;}
   .stat-row,.momentos-strip .grid-4{grid-template-columns:1fr;}
   .sidebar{display:none;}
-  .fab-biblioteca span{display:none;}
   .act-card-fields{grid-template-columns:1fr;}
 }
 </style>
@@ -787,8 +784,12 @@ tbody tr:hover{background:var(--bg-soft);}
 
     <div class="nav-group" data-role="estudiante">Mi proyecto de aula</div>
     <button class="nav-item" data-role="estudiante" data-panel="proyecto-aula" onclick="abrirMiradaDesdeSidebar()"><svg class="icon"><use href="#i-tree"/></svg> Una mirada al aula</button>
+    <button class="nav-item" data-role="estudiante" data-panel="biblioteca" onclick="setPanel('biblioteca')"><svg class="icon"><use href="#i-book"/></svg> Biblioteca Virtual</button>
     <button class="nav-item" data-role="estudiante" data-panel="simulador" onclick="setPanel('simulador')"><svg class="icon"><use href="#i-chat"/></svg> Evoluciona tu aula <span class="tag" id="tag-m3">recom.</span></button>
     <button class="nav-item" data-role="estudiante" data-panel="aula-viva" onclick="setPanel('aula-viva')"><svg class="icon"><use href="#i-folder"/></svg> Aula Viva <span class="tag" id="tag-m4">recom.</span></button>
+
+    <div class="nav-group" data-role="profesor">Recursos</div>
+    <button class="nav-item" data-role="profesor" data-panel="biblioteca" onclick="setPanel('biblioteca')"><svg class="icon"><use href="#i-book"/></svg> Biblioteca Virtual</button>
 
     <div class="nav-group" data-role="profesor,coordinador,admin">Gestión académica</div>
     <button class="nav-item" data-role="profesor,coordinador,admin" data-panel="profesor-cola" onclick="setPanel('profesor-cola')"><svg class="icon"><use href="#i-shield"/></svg> Árboles por revisar</button>
@@ -813,21 +814,6 @@ tbody tr:hover{background:var(--bg-soft);}
       <button class="nav-item" style="margin-top:6px;" onclick="go('landing')"><svg class="icon"><use href="#i-logout"/></svg> Cerrar sesión</button>
     </div>
   </aside>
-
-  <!-- Biblioteca Virtual: botón flotante accesible desde cualquier vista -->
-  <button class="fab-biblioteca" data-role="estudiante,profesor" onclick="toggleBiblioteca()"><svg class="icon" style="width:17px;height:17px"><use href="#i-external"/></svg> <span>Biblioteca Virtual</span></button>
-  <div class="modal-overlay hidden" id="biblioteca-modal" onclick="if(event.target===this) toggleBiblioteca()">
-    <div class="modal-box">
-      <button class="modal-close" onclick="toggleBiblioteca()"><svg class="icon" style="width:15px;height:15px"><use href="#i-x"/></svg></button>
-      <div class="biblioteca-card" style="border:none;box-shadow:none;padding:40px 36px;">
-        <div class="icon-wrap"><svg class="icon" style="width:30px;height:30px"><use href="#i-external"/></svg></div>
-        <h2>Biblioteca Virtual</h2>
-        <p>Espacio de consulta libre de fuentes y recursos pedagógicos para fundamentar el proyecto de aula. No tiene formulario propio dentro de DiversIA: es un sistema externo al que puedes acceder en cualquier momento del proceso.</p>
-        <button class="btn btn-primary" onclick="toast('Esto abriría el sistema externo de Biblioteca Virtual')">Ir a la Biblioteca Virtual <svg class="icon" style="width:15px;height:15px;stroke:#171034"><use href="#i-external"/></svg></button>
-        <div class="validate-note" style="margin-top:22px;max-width:440px;">⚠ Pendiente de validar con el cliente: si es un sistema institucional existente o uno por construir, y si requiere autenticación separada.</div>
-      </div>
-    </div>
-  </div>
 
   <div class="main-col">
     <header class="topbar">
@@ -875,10 +861,10 @@ tbody tr:hover{background:var(--bg-soft);}
             <button type="button" class="launch-card c-blue st-current" id="dash-card-mirada" onclick="abrirMiradaDesdeDashboard()">
               <div class="lc-shard"></div>
               <div class="lc-icon-wrap" style="color:var(--lila-ink)"><svg class="icon"><use href="#i-tree"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--lila-ink)">Momento 1 · 4 pasos</span><span class="lc-title">Una mirada al aula</span></div>
-              <div class="lc-status"><span class="pill info" id="dash-mirada-pill">Paso 3 de 4</span><span class="lc-meta" id="dash-mirada-meta">Propuestas</span></div>
+              <div class="lc-badge"><span class="lc-mom" style="color:var(--lila-ink)">Momento 1 · 5 pasos</span><span class="lc-title">Una mirada al aula</span></div>
+              <div class="lc-status"><span class="pill info" id="dash-mirada-pill">Paso 3 de 5</span><span class="lc-meta" id="dash-mirada-meta">Propuestas</span></div>
             </button>
-            <button type="button" class="launch-card c-yellow" onclick="toggleBiblioteca()">
+            <button type="button" class="launch-card c-yellow" onclick="setPanel('biblioteca')">
               <div class="lc-shard"></div>
               <div class="lc-icon-wrap" style="color:var(--yellow-ink)"><svg class="icon"><use href="#i-book"/></svg></div>
               <div class="lc-badge"><span class="lc-mom" style="color:var(--yellow-ink)">Momento 2</span><span class="lc-title">Biblioteca Virtual</span></div>
@@ -897,8 +883,8 @@ tbody tr:hover{background:var(--bg-soft);}
 
           <div class="stats-rail">
             <div class="rail-stat">
-              <div class="rail-ring" id="dash-mirada-ring" style="--pct:50;--rc:var(--lila-ink)"><span class="rv" id="dash-mirada-rv">50%</span></div>
-              <div class="rail-txt"><b>Una mirada al aula</b><span id="dash-mirada-txt">En curso · 2 de 4 pasos completados</span></div>
+              <div class="rail-ring" id="dash-mirada-ring" style="--pct:40;--rc:var(--lila-ink)"><span class="rv" id="dash-mirada-rv">40%</span></div>
+              <div class="rail-txt"><b>Una mirada al aula</b><span id="dash-mirada-txt">En curso · 2 de 5 pasos completados</span></div>
             </div>
             <div class="rail-stat">
               <div class="rail-ring" style="--pct:100;--rc:var(--yellow-ink)"><span class="rv">24/7</span></div>
@@ -1079,10 +1065,21 @@ tbody tr:hover{background:var(--bg-soft);}
       </div>
 
       <!-- ============ ÁRBOL Y PROYECTO DE AULA (módulo único) ============ -->
+      <div class="panel" id="panel-biblioteca">
+        <div class="panel-head"><div><h2>Biblioteca Virtual</h2><p>Consulta libre de fuentes y recursos pedagógicos de apoyo, disponible en cualquier momento del proceso.</p></div></div>
+        <div class="biblioteca-card">
+          <div class="icon-wrap"><svg class="icon" style="width:30px;height:30px"><use href="#i-external"/></svg></div>
+          <h2>Biblioteca Virtual</h2>
+          <p>Espacio de consulta libre de fuentes y recursos pedagógicos para fundamentar el proyecto de aula. No tiene formulario propio dentro de DiversIA: es un sistema externo al que puedes acceder en cualquier momento del proceso.</p>
+          <button class="btn btn-primary" onclick="toast('Esto abriría el sistema externo de Biblioteca Virtual')">Ir a la Biblioteca Virtual <svg class="icon" style="width:15px;height:15px;stroke:#171034"><use href="#i-external"/></svg></button>
+          <div class="validate-note" style="margin-top:22px;max-width:440px;">⚠ Pendiente de validar con el cliente: si es un sistema institucional existente o uno por construir, y si requiere autenticación separada.</div>
+        </div>
+      </div>
+
       <div class="panel" id="panel-mirada-aula">
         <div class="panel-head">
           <div><h2>Una mirada al aula</h2><p id="mirada-sub">Sigue el flujo paso a paso: de la Caracterización del aula al Formato de Proyecto Pedagógico de Aula. Solo puedes entrar a los pasos que ya completaste o en los que estás ahora.</p></div>
-          <span class="pill info" id="mirada-progress-pill">2 de 4 pasos completados</span>
+          <span class="pill info" id="mirada-progress-pill">2 de 5 pasos completados</span>
         </div>
         <div class="flow-legend">
           <span><i class="lg done"></i> Completado</span>
@@ -1109,7 +1106,8 @@ tbody tr:hover{background:var(--bg-soft);}
             <div class="step-item done" data-sub="caracterizacion" onclick="setM1Sub('caracterizacion')"><span class="num">1</span> Caracterización</div>
             <div class="step-item done active" data-sub="arbol" onclick="setM1Sub('arbol')"><span class="num">2</span> Árbol de Problematización</div>
             <div class="step-item" data-sub="propuestas" onclick="setM1Sub('propuestas')"><span class="num">3</span> Propuestas (GPT)</div>
-            <div class="step-item" data-sub="proyecto" onclick="setM1Sub('proyecto')"><span class="num">4</span> Proyecto de Aula</div>
+            <div class="step-item" data-sub="proyecto" onclick="setM1Sub('proyecto')"><span class="num">4</span> Formato de Proyecto de Aula</div>
+            <div class="step-item" data-sub="correccion" onclick="setM1Sub('correccion')"><span class="num">5</span> Corrección con IA</div>
           </div>
 
           <div>
@@ -1507,7 +1505,7 @@ tbody tr:hover{background:var(--bg-soft);}
                     <h3 style="font-size:15px;">Borrador del grupo — Proyecto Pedagógico de Aula</h3>
                     <span class="pill" style="background:rgba(25,22,40,0.06);color:var(--muted);">Editable</span>
                   </div>
-                  <p class="mono-note" style="margin-bottom:16px;">Diligencia cada sección con tus propias palabras — están divididas por bloques para que no se sienta un formulario extenso. El GPT lo corrige después.</p>
+                  <p class="mono-note" style="margin-bottom:16px;">Diligencia cada sección con tus propias palabras — están divididas por bloques para que no se sienta un formulario extenso. El GPT lo corrige en el paso siguiente.</p>
 
                   <div class="sec-tabs-wrap">
                     <div class="sec-tabs">
@@ -1616,14 +1614,30 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
                                         </div>
                   </div>
 
-                  <div style="text-align:right;margin-top:18px;"><button class="btn btn-primary" onclick="corregirProyectoConIA()"><svg class="icon" style="width:14px;height:14px;stroke:#171034"><use href="#i-sparkle"/></svg> Enviar a corrección con IA</button></div>
+                  <div style="text-align:right;margin-top:18px;"><button class="btn btn-primary" onclick="completarFormatoProyecto()">Formato listo — continuar al paso 5 →</button></div>
                 </div>
 
-                <!-- VERSIÓN PULIDA (la devuelve el GPT) -->
-                <div class="hidden" id="proyecto-pulido" style="margin-top:24px;">
+              </div>
+            </div>
+
+            <!-- 5 Corrección con IA -->
+            <div class="substep-section" data-sub="correccion">
+              <div id="correccion-locked" class="locked-box">
+                <svg class="icon" style="stroke:var(--muted2)"><use href="#i-lock"/></svg>
+                <p style="max-width:400px;">Este paso se habilita cuando el grupo termina de diligenciar el Formato de Proyecto de Aula (paso 4).</p>
+                <button class="btn btn-ghost btn-sm" style="margin-top:6px;" onclick="setM1Sub('proyecto')">Ir al Formato de Proyecto de Aula</button>
+              </div>
+              <div id="correccion-content" class="hidden">
+                <div class="gen-cta" id="gen-cta-correccion">
+                  <svg class="icon" style="width:26px;height:26px;stroke:var(--lila-ink)"><use href="#i-sparkle"/></svg>
+                  <h3 style="font-size:16px;">Enviar el proyecto a corrección con IA</h3>
+                  <p>El GPT no redacta el proyecto desde cero: revisa el borrador que escribió el grupo en el paso 4, lo corrige y devuelve una versión más pulida. No requiere aprobación adicional del docente.</p>
+                  <button class="btn btn-primary" onclick="corregirProyectoConIA()">Enviar a corrección con IA</button>
+                </div>
+                <div class="hidden" id="proyecto-pulido">
                   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
                     <span class="pill" style="background:rgba(131,255,143,.22);color:var(--green2-ink);">Corregido por IA</span>
-                    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('proyecto-borrador').classList.toggle('hidden')">Ver / ocultar borrador original</button>
+                    <button class="btn btn-ghost btn-sm" onclick="setM1Sub('proyecto')">Ver borrador original (paso 4)</button>
                   </div>
                   <div class="doc-preview">
                     <div class="doc-top"><div class="tag">Proyecto Pedagógico de Aula · Grupo 3 — Semilleros de Cambio</div><h3 id="proyecto-titulo">Aprendemos juntos: participación diversa en el aula</h3></div>
@@ -2275,6 +2289,7 @@ function setRole(role){
 var panelTitles = {
   'panel-inicio':'Panel principal',
   'mis-grupos':'Mis Grupos',
+  'biblioteca':'Biblioteca Virtual',
   'mirada-aula':'Una mirada al aula',
   'proyecto-aula':'Una mirada al aula',
   'simulador':'Evoluciona tu aula',
@@ -2421,12 +2436,14 @@ function renderPropuestasLock(){
 
 /* ---- Una mirada al aula: flujograma de pasos (hub) ---- */
 var eleccionConfirmada = false;
-var proyectoCorregido = false;
+var proyectoListo = false;      // paso 4: formato diligenciado por el grupo
+var proyectoCorregido = false;  // paso 5: corrección con IA recibida
 var MIRADA_PASOS = [
   {key:'caracterizacion', titulo:'Caracterización', icon:'i-file', desc:'Datos de la institución educativa y del aula donde haces tu práctica.'},
   {key:'arbol', titulo:'Árbol de Problematización', icon:'i-tree', desc:'Problema, situaciones, efectos y causas. Lo valida el profesor.'},
   {key:'propuestas', titulo:'Propuestas', icon:'i-sparkle', desc:'El GPT propone 2 ideas de proyecto y el grupo vota por una.'},
-  {key:'proyecto', titulo:'Proyecto de Aula', icon:'i-file', desc:'Borrador del grupo, corrección con IA y Formato de Proyecto Pedagógico.'}
+  {key:'proyecto', titulo:'Formato de Proyecto de Aula', icon:'i-file', desc:'El grupo diligencia, por secciones, el Formato de Proyecto Pedagógico de Aula.'},
+  {key:'correccion', titulo:'Corrección con IA', icon:'i-sparkle', desc:'El proyecto se envía a corrección con IA, que devuelve una versión más pulida.'}
 ];
 var MIRADA_SUB_DEFAULT = 'Sigue el flujo paso a paso: de la Caracterización del aula al Formato de Proyecto Pedagógico de Aula. Solo puedes entrar a los pasos que ya completaste o en los que estás ahora.';
 var MIRADA_PILL = {done:['Completado','on'], current:['En curso','info'], review:['En revisión','warn'], feedback:['Requiere ajustes','danger'], locked:['Bloqueado','off']};
@@ -2438,7 +2455,8 @@ function miradaEstados(forzarVivo){
       mk('caracterizacion','done','Institución y aula diligenciadas'),
       mk('arbol','done', h ? h.arbol.estado : 'Aceptado por el profesor'),
       mk('propuestas','done','Propuesta elegida por el grupo'),
-      mk('proyecto','done', h ? h.proyecto.estado : 'Proyecto entregado')
+      mk('proyecto','done','Formato diligenciado por el grupo'),
+      mk('correccion','done', h ? h.proyecto.estado : 'Proyecto enviado a corrección')
     ];
   }
   var res = [];
@@ -2465,10 +2483,17 @@ function miradaEstados(forzarVivo){
   }
   if(!eleccionConfirmada){
     res.push(mk('proyecto','locked','Se habilita al elegir una propuesta'));
-  } else if(proyectoCorregido){
-    res.push(mk('proyecto','done','Corregido con IA — versión pulida lista'));
+  } else if(proyectoListo){
+    res.push(mk('proyecto','done','Formato diligenciado por el grupo'));
   } else {
-    res.push(mk('proyecto','current','Redacta el borrador y corrígelo con IA'));
+    res.push(mk('proyecto','current','Diligencia el formato por secciones'));
+  }
+  if(!proyectoListo){
+    res.push(mk('correccion','locked','Se habilita al terminar el formato'));
+  } else if(proyectoCorregido){
+    res.push(mk('correccion','done','Corregido con IA — versión pulida lista'));
+  } else {
+    res.push(mk('correccion','current','Envía el proyecto a corrección con IA'));
   }
   return res;
 }
@@ -2509,7 +2534,7 @@ function renderMiradaAula(){
     } else {
       document.getElementById('mirada-sub').textContent = MIRADA_SUB_DEFAULT;
       if(!actual){
-        hint.innerHTML = '<b>¡Recorrido completo!</b> Los 4 pasos de Una mirada al aula están listos. Puedes revisar cualquiera de ellos.';
+        hint.innerHTML = '<b>¡Recorrido completo!</b> Los ' + vista.length + ' pasos de Una mirada al aula están listos. Puedes revisar cualquiera de ellos.';
       } else {
         var idx = vista.indexOf(actual);
         var sig = vista[idx+1];
@@ -2517,6 +2542,10 @@ function renderMiradaAula(){
       }
     }
   }
+
+  // --- paso 5: bloqueado hasta terminar el formato ---
+  var cl = document.getElementById('correccion-locked'), cc = document.getElementById('correccion-content');
+  if(cl && cc){ cl.classList.toggle('hidden', proyectoListo); cc.classList.toggle('hidden', !proyectoListo); }
 
   // --- stepper interno (siempre del estado vivo; en modo lectura no existe) ---
   document.querySelectorAll('#m1-substeps .step-item').forEach(function(it){
@@ -2534,7 +2563,7 @@ function renderMiradaAula(){
     var idxV = actualVivo ? live.indexOf(actualVivo) : -1;
     pillD.textContent = actualVivo ? 'Paso ' + (idxV+1) + ' de ' + live.length : 'Completado';
     pillD.className = 'pill ' + (actualVivo ? MIRADA_PILL[actualVivo.estado][1] : 'on');
-    document.getElementById('dash-mirada-meta').textContent = actualVivo ? MIRADA_PASOS[idxV].titulo : 'Los 4 pasos listos';
+    document.getElementById('dash-mirada-meta').textContent = actualVivo ? MIRADA_PASOS[idxV].titulo : 'Los ' + live.length + ' pasos listos';
     document.getElementById('dash-mirada-ring').style.setProperty('--pct', pct);
     document.getElementById('dash-mirada-rv').textContent = pct + '%';
     document.getElementById('dash-mirada-txt').textContent = (actualVivo ? 'En curso' : 'Completo') + ' · ' + hechosVivo + ' de ' + live.length + ' pasos completados';
@@ -2552,7 +2581,7 @@ function abrirMiradaDesdeSidebar(){
   if(GRUPO_VIEW_ACTIVO !== null) return;
   var est = miradaEstados();
   var actual = est.find(function(e){ return e.estado !== 'done'; });
-  setM1Sub(actual ? actual.key : 'proyecto');
+  setM1Sub(actual ? actual.key : 'correccion');
 }
 function abrirPasoMirada(key){
   var ro = GRUPO_VIEW_ACTIVO !== null;
@@ -2794,7 +2823,8 @@ function renderProyectoAulaReadOnly(g, data){
     + '<div id="ro-paso-caracterizacion" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:4px;">1. Caracterización <span class="mono-note" style="text-transform:none;font-weight:500;">— 100% completa</span></h4><p class="mono-note" style="margin-bottom:12px;">Institución educativa</p>' + roFieldRows(data.caracterizacion.institucion) + '<p class="mono-note" style="margin:18px 0 12px;">Aula</p>' + roFieldRows(data.caracterizacion.aula) + '</div>'
     + '<div id="ro-paso-arbol" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:12px;">2. Árbol de Problematización <span class="mono-note" style="text-transform:none;font-weight:500;">— ' + data.arbol.estado + '</span></h4>' + roArbolHtml(data.arbol) + '</div>'
     + '<div id="ro-paso-propuestas" class="card ventana-card chosen" style="margin-bottom:18px;"><h4>3. Propuesta elegida por el grupo</h4>' + roPropuestaHtml(data.propuesta) + '</div>'
-    + '<div id="ro-paso-proyecto" class="card"><h4 style="font-size:14.5px;margin-bottom:2px;">4. Proyecto Pedagógico de Aula</h4><p class="mono-note" style="margin-bottom:14px;">' + data.proyecto.estado + '</p>' + roProyectoHtml(data.proyecto) + '</div>';
+    + '<div id="ro-paso-proyecto" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:14px;">4. Formato de Proyecto de Aula <span class="mono-note" style="text-transform:none;font-weight:500;">— diligenciado por el grupo</span></h4>' + roProyectoHtml(data.proyecto) + '</div>'
+    + '<div id="ro-paso-correccion" class="card"><h4 style="font-size:14.5px;margin-bottom:6px;">5. Corrección con IA</h4><p class="mono-note">' + data.proyecto.estado + '</p><p style="font-size:13px;margin-top:8px;">El grupo envió el formato a corrección con IA y recibió la versión pulida del Proyecto Pedagógico de Aula.</p></div>';
 }
 function renderSimuladorReadOnly(g, data){
   return '<div class="panel-head"><div><h2>Evoluciona tu aula</h2><p>' + g.nombre + ' · ' + g.periodo + ' · vista de solo lectura.</p></div></div>'
@@ -3020,6 +3050,12 @@ function initExperiencias(){
 }
 
 /* ---- proyecto de aula: corrección del borrador con IA ---- */
+function completarFormatoProyecto(){
+  proyectoListo = true;
+  renderMiradaAula();
+  toast('Formato diligenciado — ahora puedes enviarlo a corrección con IA');
+  setM1Sub('correccion');
+}
 function corregirProyectoConIA(){
   var expNodes = document.querySelectorAll('#draft-experiencias .rep-item');
   var html = '';
@@ -3033,7 +3069,7 @@ function corregirProyectoConIA(){
   document.getElementById('proyecto-experiencias-v').innerHTML = html;
   document.getElementById('proyecto-titulo').textContent = document.getElementById('draft-nombre-proyecto').value || document.getElementById('proyecto-titulo').textContent;
   document.getElementById('proyecto-duracion-v').textContent = document.getElementById('draft-duracion').value;
-  document.getElementById('proyecto-borrador').classList.add('hidden');
+  document.getElementById('gen-cta-correccion').classList.add('hidden');
   document.getElementById('proyecto-pulido').classList.remove('hidden');
   proyectoCorregido = true;
   renderMiradaAula();
@@ -3071,10 +3107,6 @@ function simulateUpload(dropId, filename){
   toast(filename + ' cargado correctamente');
 }
 
-/* ---- biblioteca virtual: modal flotante ---- */
-function toggleBiblioteca(){
-  document.getElementById('biblioteca-modal').classList.toggle('hidden');
-}
 
 /* ---- aula viva: navegación tipo Drive ---- */
 var driveLabels = {root:'Repositorio', documentos:'Documentos del proyecto', producto:'Producto del proyecto', evidencias:'Evidencias del proceso'};
