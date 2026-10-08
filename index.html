@@ -489,6 +489,29 @@ tbody tr:hover{background:var(--bg-soft);}
 
 /* profesor revisión detail */
 .revision-tree{border:1px solid var(--border-soft);border-radius:var(--radius);padding:22px;background:var(--bg-soft);}
+.fx-scroll{overflow-x:auto;}
+.fx-legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:0 0 12px;font-size:11.5px;font-weight:600;color:var(--muted);}
+.fx-legend .fxl{display:inline-block;width:11px;height:11px;border-radius:4px;margin-right:6px;vertical-align:-1px;}
+.fx-legend .fx-note{flex-basis:100%;font-weight:500;color:var(--muted2);}
+.fxl.fx-problema{background:var(--purple);}.fxl.fx-sit{background:var(--blue);}.fxl.fx-efecto{background:var(--pink);}.fxl.fx-causa{background:var(--yellow);}.fxl.fx-enfoque{background:var(--green);}
+/* flujograma horizontal del árbol (problema → situación → efecto → causa → enfoque) */
+.fx{display:flex;align-items:center;min-width:max-content;--lc:rgba(25,22,40,0.32);}
+.fx-kids{display:flex;flex-direction:column;justify-content:center;position:relative;padding-left:34px;}
+.fx-kids::before{content:"";position:absolute;left:0;top:50%;width:17px;border-top:2px solid var(--lc);}
+.fx-item{position:relative;display:flex;align-items:center;padding:5px 0;}
+.fx-item::before{content:"";position:absolute;left:-17px;top:50%;width:17px;border-top:2px solid var(--lc);}
+.fx-item::after{content:"";position:absolute;left:-17px;top:0;bottom:0;border-left:2px solid var(--lc);}
+.fx-item:first-child::after{top:50%;}
+.fx-item:last-child::after{bottom:50%;}
+.fx-item:only-child::after{display:none;}
+.fx-item>.fx-node::before{content:"";position:absolute;left:-8px;top:50%;margin-top:-5px;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:7px solid var(--lc);}
+.fx-node{position:relative;border-radius:14px;padding:10px 13px;font-size:12.5px;line-height:1.4;border:1.5px solid;box-shadow:var(--shadow-sm);}
+.fx-node .k{font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:800;margin-bottom:3px;opacity:.75;}
+.fx-node.problema{width:190px;background:linear-gradient(160deg,rgba(142,127,240,0.24),rgba(142,127,240,0.08));border-color:var(--purple);font-weight:600;color:var(--ink);}
+.fx-node.sit{width:200px;background:rgba(160,191,231,0.26);border-color:rgba(88,105,127,0.45);color:var(--ink);font-weight:600;}
+.fx-node.efecto{width:190px;background:rgba(238,127,229,0.14);border-color:rgba(155,83,149,0.45);color:var(--ink);}
+.fx-node.causa{width:200px;background:rgba(251,233,133,0.34);border-color:rgba(126,116,66,0.5);color:var(--ink);}
+.fx-node.enfoque{width:118px;background:rgba(197,240,127,0.36);border-color:rgba(98,120,64,0.5);color:var(--green-ink);font-weight:700;text-align:center;}
 .revision-tree .sit-title{font-weight:700;font-size:14px;margin:16px 0 10px;color:var(--purple-ink);}
 .revision-efecto{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:10px 0;border-bottom:1px dashed var(--border-soft);font-size:12.5px;}
 .revision-efecto .k{font-size:10px;text-transform:uppercase;color:var(--muted2);font-weight:700;margin-bottom:2px;}
@@ -1877,20 +1900,11 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
           <div><h2>Revisión del árbol — Grupo 3, Semilleros de Cambio</h2><p>I.E. Distrital La Luz · Transición A · enviado el 17 de agosto de 2026</p></div>
           <button class="btn btn-ghost btn-sm" onclick="setPanel('profesor-cola')">← Volver a la cola</button>
         </div>
-        <div class="revision-tree">
-          <div class="field-label">Problema general</div>
-          <p style="color:var(--ink);font-size:13.5px;">Baja participación equitativa y convivencia intercultural poco respetuosa en las actividades colaborativas de aula.</p>
-          <div class="sit-title">Situación 1 — Participación desigual en actividades colaborativas</div>
-          <div class="revision-efecto"><div><div class="k">Efecto</div>No son invitados explícitamente a participar</div><div><div class="k">Causa</div>Falta de roles definidos en el trabajo grupal</div><div><div class="k">Enfoque</div>Inclusión</div></div>
-          <div class="revision-efecto"><div><div class="k">Efecto</div>Baja autoestima frente al grupo</div><div><div class="k">Causa</div>Comparación constante con pares más rápidos</div><div><div class="k">Enfoque</div>Socioafectivo</div></div>
-          <div class="revision-efecto"><div><div class="k">Efecto</div>Desmotivación hacia el trabajo en equipo</div><div><div class="k">Causa</div>Experiencias previas de exclusión no resueltas</div><div><div class="k">Enfoque</div>Derechos</div></div>
-          <div class="revision-efecto"><div><div class="k">Efecto</div>Aprendizajes colaborativos incompletos</div><div><div class="k">Causa</div>El docente no diferencia estrategias por ritmo</div><div><div class="k">Enfoque</div>Curso de vida</div></div>
-          <div class="sit-title">Situación 2 — Interacciones poco respetuosas entre contextos culturales</div>
-          <div class="revision-efecto"><div><div class="k">Efecto</div>Comentarios excluyentes entre pares</div><div><div class="k">Causa</div>Desconocimiento de otras costumbres culturales</div><div><div class="k">Enfoque</div>Intercultural</div></div>
-          <div class="revision-efecto"><div><div class="k">Efecto</div>Formación de subgrupos cerrados</div><div><div class="k">Causa</div>Falta de espacios de encuentro intercultural</div><div><div class="k">Enfoque</div>Intercultural</div></div>
-          <div class="revision-efecto"><div><div class="k">Efecto</div>Conflictos verbales recurrentes</div><div><div class="k">Causa</div>Ausencia de mediación pedagógica temprana</div><div><div class="k">Enfoque</div>Derechos</div></div>
-          <div class="revision-efecto" style="border-bottom:none;"><div><div class="k">Efecto</div>Bajo sentido de pertenencia al grupo</div><div><div class="k">Causa</div>Actividades que no reconocen la diversidad cultural</div><div><div class="k">Enfoque</div>Intercultural</div></div>
+        <div class="fx-legend">
+          <span><i class="fxl fx-problema"></i> Problema</span><span><i class="fxl fx-sit"></i> Situación</span><span><i class="fxl fx-efecto"></i> Efecto</span><span><i class="fxl fx-causa"></i> Causa</span><span><i class="fxl fx-enfoque"></i> Enfoque diferenciador</span>
+          <span class="fx-note">Regla: 1 problema → 2 situaciones → 4 efectos por situación → 1 causa por efecto → 1 enfoque por causa</span>
         </div>
+        <div class="revision-tree fx-scroll" id="revision-flow"></div>
 
         <div class="action-row">
           <button class="btn btn-green" onclick="profesorAceptar()">Aceptar árbol</button>
@@ -3595,6 +3609,41 @@ document.addEventListener('click', function(e){
   if(wrap && !wrap.contains(e.target)) document.getElementById('mg-search-results').classList.add('hidden');
 });
 
+/* ---- profesor: revisión — el árbol se ve como flujograma ---- */
+var REVISION_ARBOL = {
+  problema: 'Baja participación equitativa y convivencia intercultural poco respetuosa en las actividades colaborativas de aula.',
+  situaciones: [
+    { titulo: 'Participación desigual en actividades colaborativas', ramas: [
+      ['No son invitados explícitamente a participar','Falta de roles definidos en el trabajo grupal','Inclusión'],
+      ['Baja autoestima frente al grupo','Comparación constante con pares más rápidos','Socioafectivo'],
+      ['Desmotivación hacia el trabajo en equipo','Experiencias previas de exclusión no resueltas','Derechos'],
+      ['Aprendizajes colaborativos incompletos','El docente no diferencia estrategias por ritmo','Curso de vida']
+    ]},
+    { titulo: 'Interacciones poco respetuosas entre contextos culturales', ramas: [
+      ['Comentarios excluyentes entre pares','Desconocimiento de otras costumbres culturales','Intercultural'],
+      ['Formación de subgrupos cerrados','Falta de espacios de encuentro intercultural','Intercultural'],
+      ['Conflictos verbales recurrentes','Ausencia de mediación pedagógica temprana','Derechos'],
+      ['Bajo sentido de pertenencia al grupo','Actividades que no reconocen la diversidad cultural','Intercultural']
+    ]}
+  ]
+};
+function nodoFx(tipo, etiqueta, texto){
+  return '<div class="fx-node ' + tipo + '"><div class="k">' + etiqueta + '</div>' + escaparHtml(texto) + '</div>';
+}
+function renderRevisionFlow(){
+  var cont = document.getElementById('revision-flow');
+  if(!cont) return;
+  var sits = REVISION_ARBOL.situaciones.map(function(sit, i){
+    var ramas = sit.ramas.map(function(r){
+      var enfoque = '<div class="fx-kids"><div class="fx-item">' + nodoFx('enfoque','Enfoque', r[2]) + '</div></div>';
+      var causa = '<div class="fx-kids"><div class="fx-item">' + nodoFx('causa','Causa', r[1]) + enfoque + '</div></div>';
+      return '<div class="fx-item">' + nodoFx('efecto','Efecto', r[0]) + causa + '</div>';
+    }).join('');
+    return '<div class="fx-item">' + nodoFx('sit','Situación ' + (i+1), sit.titulo) + '<div class="fx-kids">' + ramas + '</div></div>';
+  }).join('');
+  cont.innerHTML = '<div class="fx">' + nodoFx('problema','Problema general', REVISION_ARBOL.problema) + '<div class="fx-kids">' + sits + '</div></div>';
+}
+
 /* ---- profesor: revisión ---- */
 function toggleFeedbackBox(){
   document.getElementById('feedback-box').classList.toggle('show');
@@ -3612,6 +3661,7 @@ function profesorRetroalimentar(){
 }
 
 /* ---- init ---- */
+renderRevisionFlow();
 checkArbol();
 renderArbolStatus();
 renderMiradaAula();
