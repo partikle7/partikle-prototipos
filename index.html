@@ -489,6 +489,20 @@ tbody tr:hover{background:var(--bg-soft);}
 
 /* profesor revisión detail */
 .revision-tree{border:1px solid var(--border-soft);border-radius:var(--radius);padding:22px;background:var(--bg-soft);}
+.rev-hist{margin-top:26px;}
+.rev-hist-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px;}
+.rev-hist-head h4{font-size:15px;}
+.rev-item{position:relative;border:1px solid var(--border-soft);border-left-width:4px;border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:12px;background:var(--panel);}
+.rev-item.st-accepted{border-left-color:var(--green2-ink);background:rgba(131,255,143,0.07);}
+.rev-item.st-feedback{border-left-color:var(--pink-ink);background:rgba(238,127,229,0.06);}
+.rev-item.st-pending{border-left-color:#c9a93a;background:rgba(251,233,133,0.12);}
+.rev-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+.rev-top b{font-size:13.5px;}
+.rev-dates{font-size:11.5px;color:var(--muted2);margin-bottom:8px;}
+.rev-comment{font-size:13px;line-height:1.5;color:var(--ink);background:var(--bg-soft);border-radius:10px;padding:10px 12px;}
+.rev-comment .who{display:block;font-size:11px;color:var(--muted2);font-weight:700;margin-top:6px;}
+.rev-comment.waiting{color:var(--muted);font-style:italic;}
+.rev-empty{font-size:12.5px;color:var(--muted);padding:14px;border:1px dashed var(--border);border-radius:var(--radius-sm);text-align:center;}
 .fx-scroll{overflow-x:auto;}
 .fx-legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:0 0 12px;font-size:11.5px;font-weight:600;color:var(--muted);}
 .fx-legend .fxl{display:inline-block;width:11px;height:11px;border-radius:4px;margin-right:6px;vertical-align:-1px;}
@@ -1457,6 +1471,12 @@ tbody tr:hover{background:var(--bg-soft);}
                   <button class="btn btn-ghost btn-sm" onclick="simularRevisionProfesor('feedback')">Simular: pide ajustes</button>
                 </div>
               </div>
+
+              <div class="rev-hist" id="rev-hist">
+                <div class="rev-hist-head"><h4>Revisiones del profesor</h4><span class="pill off" id="rev-hist-count">0 revisiones</span></div>
+                <p class="mono-note" style="margin-bottom:14px;">Cada vez que envías el árbol queda registrada una revisión, con el estado que tuvo y los comentarios del profesor.</p>
+                <div id="rev-hist-list"></div>
+              </div>
             </div>
 
             <!-- 3 Propuestas -->
@@ -2385,14 +2405,63 @@ function checkArbol(){
 }
 var arbolStatus = 'accepted'; // demo starts already accepted so Momento 1 can be explored end-to-end
 function enviarArbol(){
+  var ult = arbolRevisiones[arbolRevisiones.length - 1];
+  if(!ult || ult.estado !== 'pending') arbolRevisiones.push({enviado: fechaCorta(), estado: 'pending'});
   arbolStatus = 'pending';
   renderArbolStatus();
   toast('Árbol enviado — pendiente de revisión del profesor');
+}
+/* ---- historial de revisiones del árbol (lo ve el estudiante) ---- */
+function fechaCorta(){
+  var d = new Date();
+  return d.getDate() + ' ' + ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][d.getMonth()] + ' ' + d.getFullYear();
+}
+var arbolRevisiones = [
+  {enviado:'10 ago 2026', respondido:'12 ago 2026', estado:'feedback', docente:'Prof. Andrés Molina',
+   comentario:'Las causas de la Situación 1 son muy generales; aterrízalas a lo que observaron en el aula. Revisen también que cada efecto tenga un enfoque diferenciador coherente.'},
+  {enviado:'17 ago 2026', respondido:'19 ago 2026', estado:'accepted', docente:'Prof. Andrés Molina',
+   comentario:'Ajustes incorporados. El árbol cumple la estructura y las causas ya reflejan el contexto del aula. Pueden continuar con las propuestas.'}
+];
+var REV_ESTADO = {
+  accepted: {txt:'Aceptado', pill:'on'},
+  feedback: {txt:'Ajustes solicitados', pill:'danger'},
+  pending: {txt:'Pendiente de revisión', pill:'warn'}
+};
+function revisionesHtml(lista){
+  if(!lista || !lista.length) return '<div class="rev-empty">Aún no has enviado el árbol a revisión. Cuando lo envíes, aquí verás el estado y los comentarios del profesor.</div>';
+  return lista.slice().reverse().map(function(r, idx){
+    var n = lista.length - idx;
+    var est = REV_ESTADO[r.estado];
+    var fechas = 'Enviado el ' + escaparHtml(r.enviado) + (r.respondido ? ' · Respondido el ' + escaparHtml(r.respondido) : '');
+    var cuerpo = r.estado === 'pending'
+      ? '<div class="rev-comment waiting">Esperando la respuesta del profesor…</div>'
+      : '<div class="rev-comment">“' + escaparHtml(r.comentario) + '”<span class="who">— ' + escaparHtml(r.docente || 'Profesor') + '</span></div>';
+    return '<div class="rev-item st-' + r.estado + '"><div class="rev-top"><b>Revisión ' + n + '</b><span class="pill ' + est.pill + '">' + est.txt + '</span></div>'
+      + '<div class="rev-dates">' + fechas + '</div>' + cuerpo + '</div>';
+  }).join('');
+}
+function renderRevisionHistorial(){
+  var list = document.getElementById('rev-hist-list');
+  if(!list) return;
+  list.innerHTML = revisionesHtml(arbolRevisiones);
+  var n = arbolRevisiones.length;
+  document.getElementById('rev-hist-count').textContent = n + (n === 1 ? ' revisión' : ' revisiones');
 }
 function aplicarRevisionArbol(resultado, comentario){
   // resultado: 'accepted' | 'feedback'. Lo usan tanto la vista del profesor como la simulación dentro del recorrido del estudiante.
   arbolStatus = resultado;
   if(comentario) window.__feedbackText = comentario;
+  var ultima = arbolRevisiones[arbolRevisiones.length - 1];
+  if(!ultima || ultima.estado !== 'pending'){
+    ultima = {enviado: fechaCorta(), estado: 'pending'};
+    arbolRevisiones.push(ultima);
+  }
+  ultima.estado = resultado;
+  ultima.respondido = fechaCorta();
+  ultima.docente = 'Prof. Andrés Molina';
+  ultima.comentario = resultado === 'feedback'
+    ? (window.__feedbackText || 'Los efectos de la Situación 2 necesitan causas más específicas antes de continuar.')
+    : 'Árbol aceptado. Cumple la estructura requerida; pueden continuar con las propuestas.';
   renderArbolStatus();
 }
 function simularRevisionProfesor(resultado){
@@ -2431,6 +2500,7 @@ function renderArbolStatus(){
     topstatus.textContent = 'Árbol: requiere ajustes'; topstatus.className='pill danger';
     if(cola){ cola.textContent = 'En ajuste'; cola.className = 'pill danger'; }
   }
+  renderRevisionHistorial();
   var demo = document.getElementById('arbol-demo-review');
   if(demo) demo.classList.toggle('hidden', arbolStatus !== 'pending');
   var goBtn = document.getElementById('btn-ir-propuestas');
@@ -2783,6 +2853,10 @@ var GRUPO_HISTORICO_CONTENIDO = {
     arbol: {
       pregunta: '¿Por qué los niños y niñas de Jardín B muestran poco interés en reconocer y valorar las tradiciones culturales de su territorio?',
       estado: 'Aceptado por el profesor · 10 sep 2025',
+      revisiones: [
+        {enviado:'2 sep 2025', respondido:'5 sep 2025', estado:'feedback', docente:'Prof. Andrés Molina', comentario:'Las situaciones deben partir de hechos observados en el aula; ajusten la Situación 2 para que se vea el rol de las familias.'},
+        {enviado:'8 sep 2025', respondido:'10 sep 2025', estado:'accepted', docente:'Prof. Andrés Molina', comentario:'Ajustes incorporados. Árbol aceptado.'}
+      ],
       situaciones: [
         { descripcion:'Los niños desconocen las prácticas agrícolas y oficios tradicionales de sus propias familias.',
           ramas:[
@@ -2871,7 +2945,7 @@ function roSimuladorHtml(usos){
 function renderProyectoAulaReadOnly(g, data){
   return '<div class="panel-head"><div><h2>Una mirada al aula</h2><p>' + g.nombre + ' · ' + g.periodo + ' · vista de solo lectura.</p></div></div>'
     + '<div id="ro-paso-caracterizacion" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:4px;">1. Caracterización <span class="mono-note" style="text-transform:none;font-weight:500;">— 100% completa</span></h4><p class="mono-note" style="margin-bottom:12px;">Institución educativa</p>' + roFieldRows(data.caracterizacion.institucion) + '<p class="mono-note" style="margin:18px 0 12px;">Aula</p>' + roFieldRows(data.caracterizacion.aula) + '</div>'
-    + '<div id="ro-paso-arbol" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:12px;">2. Árbol de Problematización <span class="mono-note" style="text-transform:none;font-weight:500;">— ' + data.arbol.estado + '</span></h4>' + roArbolHtml(data.arbol) + '</div>'
+    + '<div id="ro-paso-arbol" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:12px;">2. Árbol de Problematización <span class="mono-note" style="text-transform:none;font-weight:500;">— ' + data.arbol.estado + '</span></h4>' + roArbolHtml(data.arbol) + '<div class="rev-hist"><div class="rev-hist-head"><h4>Revisiones del profesor</h4><span class="pill off">' + data.arbol.revisiones.length + ' revisiones</span></div>' + revisionesHtml(data.arbol.revisiones) + '</div></div>'
     + '<div id="ro-paso-propuestas" class="card ventana-card chosen" style="margin-bottom:18px;"><h4>3. Propuesta elegida por el grupo</h4>' + roPropuestaHtml(data.propuesta) + '</div>'
     + '<div id="ro-paso-proyecto" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:14px;">4. Formato de Proyecto de Aula <span class="mono-note" style="text-transform:none;font-weight:500;">— diligenciado por el grupo</span></h4>' + roProyectoHtml(data.proyecto) + '</div>'
     + '<div id="ro-paso-correccion" class="card"><h4 style="font-size:14.5px;margin-bottom:6px;">5. Corrección con IA</h4><p class="mono-note">' + data.proyecto.estado + '</p><p style="font-size:13px;margin-top:8px;">El grupo envió el formato a corrección con IA y recibió la versión pulida del Proyecto Pedagógico de Aula.</p></div>';
