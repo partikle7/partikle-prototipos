@@ -489,7 +489,12 @@ tbody tr:hover{background:var(--bg-soft);}
 
 /* profesor revisión detail */
 .revision-tree{border:1px solid var(--border-soft);border-radius:var(--radius);padding:22px;background:var(--bg-soft);}
-.rev-hist{margin-top:26px;}
+.rev-hist{margin:0 0 22px;}
+.rev-toggle{display:inline-flex;align-items:center;gap:6px;border:1px dashed var(--border);background:transparent;border-radius:100px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--purple-ink);cursor:pointer;font-family:inherit;margin:2px 0 12px;}
+.rev-toggle:hover{background:rgba(142,127,240,0.08);}
+.rev-toggle .chev{display:inline-block;transition:transform .2s;}
+.rev-toggle.open .chev{transform:rotate(180deg);}
+.rev-older.hidden{display:none;}
 .rev-hist-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px;}
 .rev-hist-head h4{font-size:15px;}
 .rev-item{position:relative;border:1px solid var(--border-soft);border-left-width:4px;border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:12px;background:var(--panel);}
@@ -1339,6 +1344,12 @@ tbody tr:hover{background:var(--bg-soft);}
 
             <!-- 2 Árbol de Problematización -->
             <div class="substep-section active" data-sub="arbol">
+              <div class="rev-hist" id="rev-hist">
+                <div class="rev-hist-head"><h4>Revisiones del profesor</h4><span class="pill off" id="rev-hist-count">0 revisiones</span></div>
+                <p class="mono-note" style="margin-bottom:12px;">Aquí ves la última respuesta del profesor a tu árbol. Si quieres, puedes consultar las revisiones anteriores.</p>
+                <div id="rev-hist-list"></div>
+              </div>
+
               <div class="rule-note"><svg class="icon" style="width:16px;height:16px;stroke:var(--blue-ink)"><use href="#i-lock"/></svg> <span><b>Regla del sistema:</b> 1 problema → 2 situaciones → 4 efectos por situación → 1 causa por efecto → 1 enfoque diferenciador por causa. El profesor revisa el árbol completo antes de que se generen propuestas.</span></div>
 
               <div class="card problema-card">
@@ -1470,12 +1481,6 @@ tbody tr:hover{background:var(--bg-soft);}
                   <button class="btn btn-primary btn-sm" onclick="simularRevisionProfesor('accepted')">Simular: el profesor acepta</button>
                   <button class="btn btn-ghost btn-sm" onclick="simularRevisionProfesor('feedback')">Simular: pide ajustes</button>
                 </div>
-              </div>
-
-              <div class="rev-hist" id="rev-hist">
-                <div class="rev-hist-head"><h4>Revisiones del profesor</h4><span class="pill off" id="rev-hist-count">0 revisiones</span></div>
-                <p class="mono-note" style="margin-bottom:14px;">Cada vez que envías el árbol queda registrada una revisión, con el estado que tuvo y los comentarios del profesor.</p>
-                <div id="rev-hist-list"></div>
               </div>
             </div>
 
@@ -2427,23 +2432,43 @@ var REV_ESTADO = {
   feedback: {txt:'Ajustes solicitados', pill:'danger'},
   pending: {txt:'Pendiente de revisión', pill:'warn'}
 };
-function revisionesHtml(lista){
+var revAnterioresAbierto = false;
+function revisionItemHtml(r, n){
+  var est = REV_ESTADO[r.estado];
+  var fechas = 'Enviado el ' + escaparHtml(r.enviado) + (r.respondido ? ' · Respondido el ' + escaparHtml(r.respondido) : '');
+  var cuerpo = r.estado === 'pending'
+    ? '<div class="rev-comment waiting">Esperando la respuesta del profesor…</div>'
+    : '<div class="rev-comment">“' + escaparHtml(r.comentario) + '”<span class="who">— ' + escaparHtml(r.docente || 'Profesor') + '</span></div>';
+  return '<div class="rev-item st-' + r.estado + '"><div class="rev-top"><b>Revisión ' + n + '</b><span class="pill ' + est.pill + '">' + est.txt + '</span></div>'
+    + '<div class="rev-dates">' + fechas + '</div>' + cuerpo + '</div>';
+}
+function revisionesHtml(lista, abierto){
   if(!lista || !lista.length) return '<div class="rev-empty">Aún no has enviado el árbol a revisión. Cuando lo envíes, aquí verás el estado y los comentarios del profesor.</div>';
-  return lista.slice().reverse().map(function(r, idx){
-    var n = lista.length - idx;
-    var est = REV_ESTADO[r.estado];
-    var fechas = 'Enviado el ' + escaparHtml(r.enviado) + (r.respondido ? ' · Respondido el ' + escaparHtml(r.respondido) : '');
-    var cuerpo = r.estado === 'pending'
-      ? '<div class="rev-comment waiting">Esperando la respuesta del profesor…</div>'
-      : '<div class="rev-comment">“' + escaparHtml(r.comentario) + '”<span class="who">— ' + escaparHtml(r.docente || 'Profesor') + '</span></div>';
-    return '<div class="rev-item st-' + r.estado + '"><div class="rev-top"><b>Revisión ' + n + '</b><span class="pill ' + est.pill + '">' + est.txt + '</span></div>'
-      + '<div class="rev-dates">' + fechas + '</div>' + cuerpo + '</div>';
-  }).join('');
+  var total = lista.length;
+  var html = revisionItemHtml(lista[total - 1], total);   // la más reciente, siempre visible
+  if(total > 1){
+    var anteriores = '';
+    for(var i = total - 2; i >= 0; i--) anteriores += revisionItemHtml(lista[i], i + 1);
+    var n = total - 1;
+    html += '<button type="button" class="rev-toggle' + (abierto ? ' open' : '') + '" aria-expanded="' + (abierto ? 'true' : 'false') + '" onclick="toggleRevAnteriores(this)"><span class="chev">▾</span> <span class="lbl">' + (abierto ? 'Ocultar ' : 'Ver ') + (n === 1 ? 'revisión anterior' : n + ' revisiones anteriores') + '</span></button>'
+      + '<div class="rev-older' + (abierto ? '' : ' hidden') + '">' + anteriores + '</div>';
+  }
+  return html;
+}
+function toggleRevAnteriores(btn){
+  var cont = btn.nextElementSibling;
+  var abrir = cont.classList.contains('hidden');
+  cont.classList.toggle('hidden', !abrir);
+  btn.classList.toggle('open', abrir);
+  btn.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+  var n = cont.children.length;
+  btn.querySelector('.lbl').textContent = (abrir ? 'Ocultar ' : 'Ver ') + (n === 1 ? 'revisión anterior' : n + ' revisiones anteriores');
+  if(btn.closest('#rev-hist')) revAnterioresAbierto = abrir;
 }
 function renderRevisionHistorial(){
   var list = document.getElementById('rev-hist-list');
   if(!list) return;
-  list.innerHTML = revisionesHtml(arbolRevisiones);
+  list.innerHTML = revisionesHtml(arbolRevisiones, revAnterioresAbierto);
   var n = arbolRevisiones.length;
   document.getElementById('rev-hist-count').textContent = n + (n === 1 ? ' revisión' : ' revisiones');
 }
@@ -2945,7 +2970,7 @@ function roSimuladorHtml(usos){
 function renderProyectoAulaReadOnly(g, data){
   return '<div class="panel-head"><div><h2>Una mirada al aula</h2><p>' + g.nombre + ' · ' + g.periodo + ' · vista de solo lectura.</p></div></div>'
     + '<div id="ro-paso-caracterizacion" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:4px;">1. Caracterización <span class="mono-note" style="text-transform:none;font-weight:500;">— 100% completa</span></h4><p class="mono-note" style="margin-bottom:12px;">Institución educativa</p>' + roFieldRows(data.caracterizacion.institucion) + '<p class="mono-note" style="margin:18px 0 12px;">Aula</p>' + roFieldRows(data.caracterizacion.aula) + '</div>'
-    + '<div id="ro-paso-arbol" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:12px;">2. Árbol de Problematización <span class="mono-note" style="text-transform:none;font-weight:500;">— ' + data.arbol.estado + '</span></h4>' + roArbolHtml(data.arbol) + '<div class="rev-hist"><div class="rev-hist-head"><h4>Revisiones del profesor</h4><span class="pill off">' + data.arbol.revisiones.length + ' revisiones</span></div>' + revisionesHtml(data.arbol.revisiones) + '</div></div>'
+    + '<div id="ro-paso-arbol" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:12px;">2. Árbol de Problematización <span class="mono-note" style="text-transform:none;font-weight:500;">— ' + data.arbol.estado + '</span></h4>' + roArbolHtml(data.arbol) + '<div class="rev-hist" style="margin:22px 0 0;"><div class="rev-hist-head"><h4>Revisiones del profesor</h4><span class="pill off">' + data.arbol.revisiones.length + ' revisiones</span></div>' + revisionesHtml(data.arbol.revisiones, false) + '</div></div>'
     + '<div id="ro-paso-propuestas" class="card ventana-card chosen" style="margin-bottom:18px;"><h4>3. Propuesta elegida por el grupo</h4>' + roPropuestaHtml(data.propuesta) + '</div>'
     + '<div id="ro-paso-proyecto" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:14px;">4. Formato de Proyecto de Aula <span class="mono-note" style="text-transform:none;font-weight:500;">— diligenciado por el grupo</span></h4>' + roProyectoHtml(data.proyecto) + '</div>'
     + '<div id="ro-paso-correccion" class="card"><h4 style="font-size:14.5px;margin-bottom:6px;">5. Corrección con IA</h4><p class="mono-note">' + data.proyecto.estado + '</p><p style="font-size:13px;margin-top:8px;">El grupo envió el formato a corrección con IA y recibió la versión pulida del Proyecto Pedagógico de Aula.</p></div>';
