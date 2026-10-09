@@ -598,13 +598,6 @@ tbody tr:hover{background:var(--bg-soft);}
 .win-slot .win-banner{background-color:#fff !important;background-image:linear-gradient(100deg,rgba(142,127,240,.10),rgba(160,191,231,.12));box-shadow:0 6px 18px rgba(38,30,70,.07);}
 .win-slot .win-banner.st-pending{background-image:linear-gradient(100deg,rgba(25,22,40,.04),rgba(160,191,231,.10));}
 .win-slot .win-banner.st-closed{background-image:linear-gradient(100deg,rgba(155,83,149,.09),rgba(25,22,40,.03));}
-.nav-item{flex-wrap:wrap;}
-.nav-item .nav-sub{flex-basis:100%;padding-left:30px;margin-top:-6px;font-size:10.5px;font-weight:700;color:var(--muted2);display:flex;align-items:center;gap:5px;}
-.nav-item .nav-sub:empty{display:none;}
-.nav-item .tag#tag-m3,.nav-item .tag#tag-m4{display:none;}
-.nav-item .nav-sub .icon{width:11px;height:11px;}
-.nav-item .nav-sub.w-open{color:var(--green2-ink);}
-.nav-item .nav-sub.w-closed{color:var(--pink-ink);}
 .win-banner{display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:16px;border:1px solid var(--border-soft);background:linear-gradient(100deg,rgba(142,127,240,.10),rgba(160,191,231,.12));margin-bottom:16px;flex-wrap:wrap;}
 .win-banner .wb-ico{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(142,127,240,.18);color:var(--purple-ink);flex-shrink:0;}
 .win-banner .wb-ico .icon{width:18px;height:18px;}
@@ -1014,10 +1007,10 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
     <button class="nav-item" data-role="estudiante,profesor,coordinador,admin" data-panel="panel-inicio" onclick="setPanel('panel-inicio')"><svg class="icon"><use href="#i-home"/></svg> Panel principal</button>
 
     <div class="nav-group" data-role="estudiante">Mi proyecto de aula</div>
-    <button class="nav-item" data-role="estudiante" data-panel="proyecto-aula" onclick="abrirMiradaDesdeSidebar()"><svg class="icon"><use href="#i-tree"/></svg> Una mirada al aula <span class="nav-sub" id="nav-sub-mirada"></span></button>
+    <button class="nav-item" data-role="estudiante" data-panel="proyecto-aula" onclick="abrirMiradaDesdeSidebar()"><svg class="icon"><use href="#i-tree"/></svg> Una mirada al aula</button>
     <button class="nav-item" data-role="estudiante" data-panel="biblioteca" onclick="setPanel('biblioteca')"><svg class="icon"><use href="#i-book"/></svg> Biblioteca Virtual</button>
-    <button class="nav-item" data-role="estudiante" data-panel="simulador" onclick="setPanel('simulador')"><svg class="icon"><use href="#i-chat"/></svg> Evoluciona tu aula <span class="tag" id="tag-m3">recom.</span><span class="nav-sub" id="nav-sub-sim"></span></button>
-    <button class="nav-item" data-role="estudiante" data-panel="aula-viva" onclick="setPanel('aula-viva')"><svg class="icon"><use href="#i-folder"/></svg> Aula Viva <span class="tag" id="tag-m4">recom.</span><span class="nav-sub" id="nav-sub-av"></span></button>
+    <button class="nav-item" data-role="estudiante" data-panel="simulador" onclick="setPanel('simulador')"><svg class="icon"><use href="#i-chat"/></svg> Evoluciona tu aula <span class="tag" id="tag-m3">recom.</span></button>
+    <button class="nav-item" data-role="estudiante" data-panel="aula-viva" onclick="setPanel('aula-viva')"><svg class="icon"><use href="#i-folder"/></svg> Aula Viva <span class="tag" id="tag-m4">recom.</span></button>
 
     <div class="nav-group" data-role="profesor">Recursos</div>
     <button class="nav-item" data-role="profesor" data-panel="biblioteca" onclick="setPanel('biblioteca')"><svg class="icon"><use href="#i-book"/></svg> Biblioteca Virtual</button>
@@ -3455,13 +3448,6 @@ function renderVentanasMirada(){
     bloquearSeccion(sec, !!(v && v.estado === 'closed'));
   });
 }
-function setNavSub(id, v){
-  var el = document.getElementById(id);
-  if(!el) return;
-  var lbl = v ? (v.estado === 'pending' ? ' · Aún no abre' : v.estado === 'closed' ? ' · Cerrada' : ' · Abierta') : '';
-  el.innerHTML = v ? '<svg class="icon"><use href="#' + (v.estado === 'pending' ? 'i-lock' : 'i-calendar') + '"/></svg>' + fechaMedia(v.open) + ' → ' + fechaMedia(v.close) + lbl : '';
-  el.className = 'nav-sub' + (v ? (v.estado === 'open' ? ' w-open' : v.estado === 'closed' ? ' w-closed' : '') : '');
-}
 function pasoActualMirada(){
   var est = miradaEstados(true);
   var a = est.find(function(e){ return e.estado !== 'done' && e.estado !== 'locked'; });
@@ -3469,10 +3455,6 @@ function pasoActualMirada(){
   return a;
 }
 function renderVentanasNav(){
-  var pa = pasoActualMirada();
-  setNavSub('nav-sub-mirada', pa ? ventanaAct(MIRADA_ACT[pa.key]) : null);
-  setNavSub('nav-sub-sim', ventanaAct('ACT-SIMULADOR'));
-  setNavSub('nav-sub-av', ventanaAct('ACT-EVIDENCIAS'));
   [['tag-m3','ACT-SIMULADOR'], ['tag-m4','ACT-EVIDENCIAS']].forEach(function(p){
     var t = document.getElementById(p[0]);
     var v = ventanaAct(p[1]);
