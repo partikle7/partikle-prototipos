@@ -761,6 +761,10 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
 .av-drop small{display:block;font-weight:600;opacity:.8;margin-top:2px;}
 .av-drop:disabled,.av-drop.off{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
 .av-closed-note{font-size:12px;font-weight:700;color:var(--pink-ink);margin:0 0 10px;}
+.av-checks{list-style:none;display:flex;flex-direction:column;gap:7px;margin-top:18px;}
+.av-checks li{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;color:rgba(255,255,255,.62);}
+.av-checks li .icon{width:15px;height:15px;}
+.av-checks li.ok{color:#a8ffb1;}
 .av-final{display:flex;gap:20px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin-top:20px;padding:20px;}
 .av-final h4{font-size:15px;margin-bottom:6px;}
 .av-final p{font-size:12.5px;max-width:560px;}
@@ -3495,9 +3499,11 @@ function renderVentanasDashboard(){
     var pill = document.getElementById('dash-' + c[0] + '-pill'), meta = document.getElementById('dash-' + c[0] + '-meta'), txt = document.getElementById('dash-' + c[0] + '-txt');
     var card = document.getElementById('dash-card-' + c[0]);
     if(!v || !pill) return;
-    var tit = v.estado === 'pending' ? ['Bloqueado','off']
+    var tit;
+    tit = v.estado === 'pending' ? ['Bloqueado','off']
             : v.estado === 'closed' ? ['Cerrado','danger']
             : ['Abierto','on'];
+    if(c[0] === 'av' && v.estado === 'open' && !avRepoAbierto && momento1Pendientes().length){ tit = ['Falta Momento 1','warn']; }
     pill.textContent = tit[0]; pill.className = 'pill ' + tit[1];
     if(meta) meta.textContent = 'Abre ' + fechaMedia(v.open) + ' · Cierra ' + fechaMedia(v.close);
     if(card) card.classList.toggle('win-locked', v.estado !== 'open');
@@ -3644,6 +3650,48 @@ function avTilesHtml(){
     return '<div class="av-seal" data-folder="' + k + '"><span class="si"><svg class="icon"><use href="#' + c.icon + '"/></svg></span><b>' + c.nombre + '</b><span class="st"><svg class="icon"><use href="#i-lock"/></svg> Sellada</span></div>';
   }).join('') + '</div>';
 }
+var M1_PASOS_TXT = ['Caracterización','Árbol de Problematización','Propuestas','Formato de Proyecto de Aula','Corrección con IA'];
+function momento1Pendientes(){
+  var p = [];
+  if(!caracterizacionSaved) p.push(M1_PASOS_TXT[0]);
+  if(arbolStatus !== 'accepted') p.push(M1_PASOS_TXT[1]);
+  if(!eleccionConfirmada) p.push(M1_PASOS_TXT[2]);
+  if(!proyectoListo) p.push(M1_PASOS_TXT[3]);
+  if(!proyectoCorregido) p.push(M1_PASOS_TXT[4]);
+  return p;
+}
+function avCompletarMomento1Demo(){
+  // atajo de la demo: lleva Una mirada al aula a los 5 pasos completos (sin depender de las ventanas)
+  var hoy = DEMO_HOY, v = ventanaAct('ACT-PPA');
+  DEMO_HOY = v ? v.open : '2026-04-15';
+  try {
+    caracterizacionSaved = true;
+    if(arbolStatus !== 'accepted') aplicarRevisionArbol('accepted');
+    if(!propuestaElegida) propuestaElegida = 1;
+    if(!eleccionConfirmada) confirmarEleccion();
+    if(!proyectoListo) completarFormatoProyecto();
+    if(!proyectoCorregido) corregirProyectoConIA();
+  } finally { DEMO_HOY = hoy; }
+  renderVentanas();
+  toast('Demo: Una mirada al aula quedó completa (5 de 5 pasos)');
+}
+function avBloqueoM1Html(){
+  var pend = momento1Pendientes();
+  var hechos = M1_PASOS_TXT.length - pend.length;
+  return '<div class="av-hero sealed" id="av-bloqueo-m1">'
+    + '<div class="av-orb"><i class="r r1"></i><i class="r r2"></i><i class="r r3"></i><div class="av-core"><svg class="icon"><use href="#i-lock"/></svg></div></div>'
+    + '<div class="av-copy"><span class="av-eyebrow">Aula Viva de experiencias · Requisito del Momento 1</span>'
+    + '<h3>Antes de entrar, finaliza Una mirada al aula</h3>'
+    + '<p>La ventana ya está abierta, pero el repositorio solo se abre cuando el grupo termina los 5 pasos del Momento 1. Llevan ' + hechos + ' de ' + M1_PASOS_TXT.length + '.</p>'
+    + '<ul class="av-checks" id="av-m1-checks">' + M1_PASOS_TXT.map(function(n, i){
+        var ok = pend.indexOf(n) === -1;
+        return '<li class="' + (ok ? 'ok' : '') + '"><svg class="icon"><use href="#' + (ok ? 'i-check' : 'i-lock') + '"/></svg><span>' + (i + 1) + '. ' + n + '</span></li>';
+      }).join('') + '</ul>'
+    + '<button type="button" class="av-open" id="av-ir-m1" onclick="abrirMiradaDesdeSidebar()"><svg class="icon"><use href="#i-arrow"/></svg><span>Ir a Una mirada al aula</span></button>'
+    + avTilesHtml().replace(/Sellada/g, 'Sellada')
+    + '<button type="button" class="av-demo" onclick="avCompletarMomento1Demo()"><svg class="icon"><use href="#i-sparkle"/></svg> Completar el Momento 1 <i>DEMO</i></button>'
+    + '</div></div>';
+}
 function avGatewayHtml(){
   var g = (MIS_GRUPOS_DATA.find(function(x){ return x.activo; }) || {}).nombre || 'Tu grupo';
   return '<div class="av-hero" id="av-gate">'
@@ -3660,6 +3708,8 @@ function avGatewayHtml(){
 function abrirRepositorioGrupo(){
   if(avAbriendo || avRepoAbierto) return;
   if(!ventanaAbierta('ACT-EVIDENCIAS')) return;
+  var pm1 = momento1Pendientes();
+  if(pm1.length){ toast('Primero finaliza Una mirada al aula — falta: ' + pm1.join(', ')); return; }
   var gate = document.getElementById('av-gate');
   if(!gate) return;
   avAbriendo = true;
@@ -3764,14 +3814,16 @@ function renderAulaViva(reveal){
   var root = document.getElementById('av-root');
   if(!root) return;
   var v = ventanaAct('ACT-EVIDENCIAS');
-  var fase = (v && v.estado === 'pending') ? 'sealed' : (v && v.estado === 'closed' && !avRepoAbierto) ? 'missed' : !avRepoAbierto ? 'gateway' : 'repo';
+  var fase = (v && v.estado === 'pending') ? 'sealed' : (v && v.estado === 'closed' && !avRepoAbierto) ? 'missed' : (!avRepoAbierto && momento1Pendientes().length) ? 'blocked' : !avRepoAbierto ? 'gateway' : 'repo';
   root.setAttribute('data-fase', fase);
-  var sub = {sealed:'Una puerta que todavía no se abre: aquí vivirá la memoria del proyecto.', missed:'La ventana de esta actividad ya cerró.', gateway:'Tu grupo ya puede entrar: abre el repositorio y descubre sus tres carpetas.', repo:'Todo lo que ha producido el grupo, en tres carpetas: documentos, producto y evidencias.'}[fase];
+  var sub = {sealed:'Una puerta que todavía no se abre: aquí vivirá la memoria del proyecto.', missed:'La ventana de esta actividad ya cerró.', blocked:'Falta finalizar Una mirada al aula (Momento 1) para poder abrir el repositorio.', gateway:'Tu grupo ya puede entrar: abre el repositorio y descubre sus tres carpetas.', repo:'Todo lo que ha producido el grupo, en tres carpetas: documentos, producto y evidencias.'}[fase];
   var s = document.getElementById('av-sub');
   if(s) s.textContent = sub;
   var h = '<div class="win-slot">' + ventanaBannerHtml('ACT-EVIDENCIAS') + '</div>';
   if(fase === 'sealed' || fase === 'missed'){
-    h += selloHtml({id:'av-sello', v:v, eyebrow:'Aula Viva de experiencias · Corte ' + (v.corte || '—'), texto:'Cuando abra su ventana podrás desbloquear el repositorio del grupo y descubrir las tres carpetas donde vivirán tus documentos, el producto del proyecto y las evidencias del proceso.', textoCerrado:'El grupo no abrió su repositorio dentro de la ventana de esta actividad, así que se finalizó automáticamente.', tiles:true}) + avResultadoHtml();
+    h += selloHtml({id:'av-sello', v:v, eyebrow:'Aula Viva de experiencias · Corte ' + (v.corte || '—'), texto:'Cuando abra su ventana, y con el Momento 1 (Una mirada al aula) finalizado, podrás desbloquear el repositorio del grupo y descubrir las tres carpetas donde vivirán tus documentos, el producto del proyecto y las evidencias del proceso.', textoCerrado:'El grupo no abrió su repositorio dentro de la ventana de esta actividad, así que se finalizó automáticamente.', tiles:true}) + avResultadoHtml();
+  } else if(fase === 'blocked'){
+    h += avBloqueoM1Html();
   } else if(fase === 'gateway'){
     h += avGatewayHtml();
   } else {
