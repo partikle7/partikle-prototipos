@@ -3589,7 +3589,7 @@ var AV_DOC_SLOTS = [
   {key:'arbol', nombre:'Árbol de Problematización', icon:'i-tree', archivo:'Arbol_Problematizacion.pdf', abrir:"abrirPasoMirada('arbol')"},
   {key:'ppa', nombre:'Proyecto Pedagógico de Aula', icon:'i-layers', archivo:'Proyecto_Pedagogico_Aula.pdf', abrir:"abrirPasoMirada('proyecto')"}
 ];
-var avFinalManual = null;   // {estado:'completo', auto:false, fecha} cuando el grupo finaliza a mano
+var avFinalManual = null;   // {estado:'completo'|'incompleto', auto:false, fecha, faltan} cuando el grupo finaliza a mano
 function avDocDe(slot){ return avArchivos.documentos.find(function(d){ return d.slot === slot; }) || null; }
 function avFaltantes(){
   var f = [];
@@ -3600,22 +3600,15 @@ function avFaltantes(){
 }
 var AV_REQ_TOTAL = 5;  // 3 documentos + producto + evidencias
 function avFinalEstado(){
-  if(avFinalManual) return avFinalManual;
-  var v = ventanaAct('ACT-EVIDENCIAS');
-  if(v && v.estado === 'closed' && avRepoAbierto){   // solo se finaliza un repositorio que existe (fue creado)
-    var f = avFaltantes();
-    return {estado: f.length ? 'incompleto' : 'completo', auto:true, fecha:v.close, faltan:f};
-  }
-  return null;
+  return avFinalManual;   // no hay finalización automática: solo la hace el grupo
 }
 function avResultadoHtml(){
   var fin = avFinalEstado();
   if(!fin) return '';
   var comp = fin.estado === 'completo';
-  var titulo = 'Repositorio finalizado' + (fin.auto ? ' automáticamente' : '') + ' · ' + (comp ? 'Completo' : 'Incompleto');
-  var det = fin.auto
-    ? 'La ventana cerró el ' + fechaLarga(fin.fecha) + ' y el repositorio se finalizó solo' + (comp ? '.' : ' con lo que el grupo alcanzó a cargar.')
-    : 'El grupo lo finalizó el ' + fechaLarga(fin.fecha) + ' con todos los requisitos cumplidos.';
+  var titulo = 'Repositorio finalizado · ' + (comp ? 'Completo' : 'Incompleto');
+  var det = comp ? 'El grupo lo finalizó el ' + fechaLarga(fin.fecha) + ' con todos los requisitos cumplidos.'
+                 : 'El grupo lo finalizó el ' + fechaLarga(fin.fecha) + ', después del cierre de la ventana, con lo que alcanzó a cargar.';
   var faltan = (!comp && fin.faltan && fin.faltan.length) ? '<div class="ar-faltan"><b>No se cargó:</b> ' + fin.faltan.map(function(x){ return '<span class="av-chip">' + x + '</span>'; }).join(' ') + '</div>' : '';
   return '<div class="av-result ' + fin.estado + '" id="av-result"><span class="ar-ico"><svg class="icon"><use href="#' + (comp ? 'i-check' : 'i-clock') + '"/></svg></span>'
     + '<div class="ar-txt"><b>' + titulo + '</b><span>' + det + ' Queda en modo consulta.</span>' + faltan + '</div>'
@@ -3630,17 +3623,23 @@ function avNoCreadoHtml(){
 }
 function avFinalizarCardHtml(){
   var f = avFaltantes();
+  var v = ventanaAct('ACT-EVIDENCIAS');
+  var cerrada = !!(v && v.estado === 'closed');
   var nd = AV_DOC_SLOTS.filter(function(sl){ return avDocDe(sl.key); }).length;
   var req = [
     {ok: nd === AV_DOC_SLOTS.length, t:'Documentos del proyecto: ' + nd + ' de ' + AV_DOC_SLOTS.length + ' en PDF'},
     {ok: avArchivos.producto.length > 0, t:'Producto del proyecto: al menos 1 archivo'},
     {ok: avArchivos.evidencias.length > 0, t:'Evidencias del proceso: al menos 1 archivo'}
   ];
+  var bloqueado = f.length > 0 && !cerrada;
+  var hint = !f.length ? 'Todo listo para finalizar.'
+    : cerrada ? 'La ventana cerró: ya no puedes cargar archivos, pero sí finalizar. Faltan ' + f.length + (f.length === 1 ? ' elemento' : ' elementos') + ' y quedará como Incompleto.'
+    : 'Falta cargar ' + f.length + (f.length === 1 ? ' elemento' : ' elementos') + ': ' + f.join(', ') + '.';
   return '<div class="card av-final" id="av-final"><div class="af-main"><h4>Finalizar el repositorio</h4>'
-    + '<p>Se habilita cuando están los 3 documentos y hay al menos un archivo de producto y uno de evidencias. Si la ventana cierra antes, el repositorio se finaliza solo y queda como <b>Incompleto</b>.</p>'
+    + '<p>Mientras la ventana esté abierta se habilita cuando están los 3 documentos y hay al menos un archivo de producto y uno de evidencias. Tras el cierre ya no se pueden cargar archivos, pero el grupo puede finalizar con lo que tenga: queda como <b>Incompleto</b> si faltó algo.</p>'
     + '<ul class="av-req">' + req.map(function(r){ return '<li class="' + (r.ok ? 'ok' : '') + '"><svg class="icon"><use href="#' + (r.ok ? 'i-check' : 'i-clock') + '"/></svg>' + r.t + '</li>'; }).join('') + '</ul></div>'
-    + '<div class="af-act"><button type="button" class="btn btn-green" id="av-final-btn" onclick="avFinalizar()"' + (f.length ? ' disabled' : '') + '>Finalizar y guardar en el repositorio</button>'
-    + '<small id="av-final-hint">' + (f.length ? 'Falta cargar ' + f.length + (f.length === 1 ? ' elemento' : ' elementos') + ': ' + f.join(', ') + '.' : 'Todo listo para finalizar.') + '</small></div></div>';
+    + '<div class="af-act"><button type="button" class="btn btn-green" id="av-final-btn" onclick="avFinalizar()"' + (bloqueado ? ' disabled' : '') + '>Finalizar y guardar en el repositorio</button>'
+    + '<small id="av-final-hint">' + hint + '</small></div></div>';
 }
 function avConteo(key){
   return avArchivos[key].length;
@@ -3770,7 +3769,7 @@ function avCarpetaHtml(key){
     + '<div class="card av-rules"><h4><svg class="icon"><use href="#i-shield"/></svg> Reglas de esta carpeta</h4><ul>'
     + c.reglas.map(function(r){ return '<li><svg class="icon"><use href="#i-check"/></svg><span>' + r + '</span></li>'; }).join('') + '</ul></div>'
     + '<div class="av-fmain">';
-  if(cerrada) h += '<p class="av-closed-note">' + (avFinalEstado() ? 'El repositorio ya fue finalizado: la carpeta queda en modo consulta.' : 'El cargue cerró el ' + fechaLarga(v.close) + ': la carpeta queda en modo consulta.') + '</p>';
+  if(cerrada) h += '<p class="av-closed-note">' + (avFinalEstado() ? 'El repositorio ya fue finalizado: la carpeta queda en modo consulta.' : 'El cargue cerró el ' + fechaLarga(v.close) + ': ya no se pueden cargar ni retirar archivos.') + '</p>';
   if(key === 'documentos'){
     h += '<div class="drive-section-title">Documentos del proyecto · ' + avConteo('documentos') + ' de ' + AV_DOC_SLOTS.length + ' cargados</div>';
     h += AV_DOC_SLOTS.map(function(sl){
@@ -3806,7 +3805,7 @@ function avRepoHtml(reveal){
   var g = (MIS_GRUPOS_DATA.find(function(x){ return x.activo; }) || {}).nombre || 'Tu grupo';
   var cumplidos = AV_REQ_TOTAL - avFaltantes().length;
   var fin = avFinalEstado();
-  var h = '<div class="av-repo-head"><div class="av-repo-id"><span class="av-vault"><svg class="icon"><use href="#i-unlock"/></svg></span><div><small>Repositorio del grupo · ' + (fin ? 'finalizado' : 'abierto') + '</small><b>' + g + '</b></div></div>'
+  var h = '<div class="av-repo-head"><div class="av-repo-id"><span class="av-vault"><svg class="icon"><use href="#i-unlock"/></svg></span><div><small>Repositorio del grupo · ' + (fin ? 'finalizado' : (ventanaAct('ACT-EVIDENCIAS') && ventanaAct('ACT-EVIDENCIAS').estado === 'closed') ? 'cargue cerrado · sin finalizar' : 'abierto') + '</small><b>' + g + '</b></div></div>'
     + '<div class="av-meter"><div class="am-top"><span>Requisitos para finalizar</span><span>' + cumplidos + ' de ' + AV_REQ_TOTAL + '</span></div><div class="am-bar"><i style="width:' + Math.round(cumplidos / AV_REQ_TOTAL * 100) + '%"></i></div></div></div>';
   h += avResultadoHtml();
   if(avCarpeta){
@@ -3877,14 +3876,16 @@ function avQuitar(key, i){
   renderAulaViva();
 }
 function avFinalizar(){
-  if(!ventanaAbierta('ACT-EVIDENCIAS')) return;
-  if(avFinalEstado()) return;
+  if(avFinalEstado() || !avRepoAbierto) return;
+  var v = ventanaAct('ACT-EVIDENCIAS');
+  if(v && v.estado === 'pending') return;
+  var cerrada = !!(v && v.estado === 'closed');
   var f = avFaltantes();
-  if(f.length){ toast('Aún no puedes finalizar — falta: ' + f.join(', ')); return; }
-  avFinalManual = {estado:'completo', auto:false, fecha:DEMO_HOY};
+  if(f.length && !cerrada){ toast('Aún no puedes finalizar — falta: ' + f.join(', ')); return; }
+  avFinalManual = {estado: f.length ? 'incompleto' : 'completo', auto:false, fecha:DEMO_HOY, faltan:f};
   avCarpeta = null;
   renderAulaViva();
-  toast('Repositorio finalizado — entrega completa');
+  toast(f.length ? 'Repositorio finalizado como Incompleto — faltó cargar ' + f.length + (f.length === 1 ? ' elemento' : ' elementos') : 'Repositorio finalizado — entrega completa');
 }
 function avReiniciarDemo(){
   avRepoAbierto = false; avAbriendo = false; avCarpeta = null; avFinalManual = null;
