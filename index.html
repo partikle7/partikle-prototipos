@@ -3568,9 +3568,9 @@ var avArchivos = {documentos:[], producto:[], evidencias:[]};
 var avTipo = {producto:null, evidencias:null};
 var AV_CARPETAS = {
   documentos: {nombre:'Documentos del proyecto', icon:'i-file', acc:'lila', num:'01',
-    desc:'El expediente escrito del grupo: los cinco documentos del proyecto, cargados por ustedes en PDF.',
-    chips:['5 documentos','Solo PDF'],
-    reglas:['Cada documento lo carga el grupo manualmente: Caracterización, Árbol, Proyecto Pedagógico de Aula, Evoluciona tu aula y Formato ejecutado.','Un solo archivo PDF por documento.','No se admiten imágenes, audios ni videos en esta carpeta.']},
+    desc:'El expediente escrito del grupo: los tres documentos del proyecto, cargados por ustedes en PDF.',
+    chips:['3 documentos','Solo PDF'],
+    reglas:['Cada documento lo carga el grupo manualmente: Caracterización, Árbol de Problematización y Proyecto Pedagógico de Aula.','Un solo archivo PDF por documento.','No se admiten imágenes, audios ni videos en esta carpeta.']},
   producto: {nombre:'Producto del proyecto', icon:'i-sparkle', acc:'verde', num:'02',
     desc:'Lo que el grupo construyó con su proyecto: la muestra final de la experiencia.',
     chips:['1 solo tipo de archivo'],
@@ -3585,9 +3585,7 @@ var AV_BASE = {producto:'producto_final', evidencias:'evidencia_proceso'};
 var AV_DOC_SLOTS = [
   {key:'caracterizacion', nombre:'Formato de Caracterización', icon:'i-file', archivo:'Formato_Caracterizacion.pdf', abrir:"abrirPasoMirada('caracterizacion')"},
   {key:'arbol', nombre:'Árbol de Problematización', icon:'i-tree', archivo:'Arbol_Problematizacion.pdf', abrir:"abrirPasoMirada('arbol')"},
-  {key:'ppa', nombre:'Proyecto Pedagógico de Aula', icon:'i-layers', archivo:'Proyecto_Pedagogico_Aula.pdf', abrir:"abrirPasoMirada('proyecto')"},
-  {key:'evoluciona', nombre:'Documento de Evoluciona tu aula', icon:'i-chat', archivo:'Evoluciona_tu_aula.pdf', abrir:"setPanel('simulador')"},
-  {key:'ejecutado', nombre:'Formato de proyecto ejecutado', icon:'i-upload', archivo:'Formato_Proyecto_Ejecutado.pdf', abrir:null}
+  {key:'ppa', nombre:'Proyecto Pedagógico de Aula', icon:'i-layers', archivo:'Proyecto_Pedagogico_Aula.pdf', abrir:"abrirPasoMirada('proyecto')"}
 ];
 var avFinalManual = null;   // {estado:'completo', auto:false, fecha} cuando el grupo finaliza a mano
 function avDocDe(slot){ return avArchivos.documentos.find(function(d){ return d.slot === slot; }) || null; }
@@ -3598,7 +3596,7 @@ function avFaltantes(){
   if(!avArchivos.evidencias.length) f.push('Evidencias del proceso');
   return f;
 }
-var AV_REQ_TOTAL = 7;  // 5 documentos + producto + evidencias
+var AV_REQ_TOTAL = 5;  // 3 documentos + producto + evidencias
 function avFinalEstado(){
   if(avFinalManual) return avFinalManual;
   var v = ventanaAct('ACT-EVIDENCIAS');
@@ -3630,7 +3628,7 @@ function avFinalizarCardHtml(){
     {ok: avArchivos.evidencias.length > 0, t:'Evidencias del proceso: al menos 1 archivo'}
   ];
   return '<div class="card av-final" id="av-final"><div class="af-main"><h4>Finalizar el repositorio</h4>'
-    + '<p>Se habilita cuando están los 5 documentos y hay al menos un archivo de producto y uno de evidencias. Si la ventana cierra antes, el repositorio se finaliza solo y queda como <b>Incompleto</b>.</p>'
+    + '<p>Se habilita cuando están los 3 documentos y hay al menos un archivo de producto y uno de evidencias. Si la ventana cierra antes, el repositorio se finaliza solo y queda como <b>Incompleto</b>.</p>'
     + '<ul class="av-req">' + req.map(function(r){ return '<li class="' + (r.ok ? 'ok' : '') + '"><svg class="icon"><use href="#' + (r.ok ? 'i-check' : 'i-clock') + '"/></svg>' + r.t + '</li>'; }).join('') + '</ul></div>'
     + '<div class="af-act"><button type="button" class="btn btn-green" id="av-final-btn" onclick="avFinalizar()"' + (f.length ? ' disabled' : '') + '>Finalizar y guardar en el repositorio</button>'
     + '<small id="av-final-hint">' + (f.length ? 'Falta cargar ' + f.length + (f.length === 1 ? ' elemento' : ' elementos') + ': ' + f.join(', ') + '.' : 'Todo listo para finalizar.') + '</small></div></div>';
