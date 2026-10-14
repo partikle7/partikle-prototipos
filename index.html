@@ -761,7 +761,30 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
 .av-drop small{display:block;font-weight:600;opacity:.8;margin-top:2px;}
 .av-drop:disabled,.av-drop.off{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
 .av-closed-note{font-size:12px;font-weight:700;color:var(--pink-ink);margin:0 0 10px;}
-.av-save{display:flex;justify-content:flex-end;margin-top:20px;}
+.av-final{display:flex;gap:20px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin-top:20px;padding:20px;}
+.av-final h4{font-size:15px;margin-bottom:6px;}
+.av-final p{font-size:12.5px;max-width:560px;}
+.av-final .af-main{flex:1;min-width:260px;}
+.av-final .af-act{display:flex;flex-direction:column;align-items:flex-end;gap:8px;max-width:340px;}
+.av-final .af-act small{font-size:11.5px;color:var(--muted2);font-weight:600;text-align:right;}
+.av-final .btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;}
+.av-req{list-style:none;display:flex;flex-direction:column;gap:6px;margin-top:12px;}
+.av-req li{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--muted2);}
+.av-req li .icon{width:15px;height:15px;}
+.av-req li.ok{color:var(--green2-ink);}
+.av-result{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:16px 18px;border-radius:18px;margin-bottom:18px;border:1px solid var(--border-soft);}
+.av-result.completo{background:linear-gradient(100deg,rgba(131,255,143,.22),rgba(197,240,127,.10));border-color:rgba(66,128,72,.35);}
+.av-result.incompleto{background:linear-gradient(100deg,rgba(251,233,133,.38),rgba(238,127,229,.10));border-color:rgba(126,116,66,.40);}
+.av-result .ar-ico{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.7);flex-shrink:0;}
+.av-result.completo .ar-ico{color:var(--green2-ink);}
+.av-result.incompleto .ar-ico{color:var(--yellow-ink);}
+.av-result .ar-ico .icon{width:20px;height:20px;}
+.av-result .ar-txt{flex:1;min-width:220px;display:flex;flex-direction:column;gap:3px;}
+.av-result .ar-txt b{font-family:var(--font-d);font-size:15px;}
+.av-result .ar-txt span{font-size:12.5px;color:var(--muted);}
+.av-result .ar-faltan{margin-top:6px;font-size:12px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;}
+.av-up{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;border:1.5px dashed var(--acc-ink);background:var(--acc-bg);color:var(--acc-ink);font:inherit;font-size:12px;font-weight:800;cursor:pointer;}
+.av-up .icon{width:14px;height:14px;}
 
 /* ---------- switch (cuenta bloqueada / activa — control de admin) ---------- */
 .switch{position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0;}
@@ -3539,9 +3562,9 @@ var avArchivos = {documentos:[], producto:[], evidencias:[]};
 var avTipo = {producto:null, evidencias:null};
 var AV_CARPETAS = {
   documentos: {nombre:'Documentos del proyecto', icon:'i-file', acc:'lila', num:'01',
-    desc:'El expediente escrito del grupo: lo que DiversIA archiva por ti y el formato ejecutado que subes tú.',
-    chips:['Documentos de la plataforma','1 PDF'],
-    reglas:['Los documentos de Una mirada al aula y de Evoluciona tu aula se archivan solos al completar cada paso.','Tú solo subes el Formato de proyecto ejecutado, en un único archivo PDF.','No se admiten imágenes, audios ni videos en esta carpeta.']},
+    desc:'El expediente escrito del grupo: los cinco documentos del proyecto, cargados por ustedes en PDF.',
+    chips:['5 documentos','Solo PDF'],
+    reglas:['Cada documento lo carga el grupo manualmente: Caracterización, Árbol, Proyecto Pedagógico de Aula, Evoluciona tu aula y Formato ejecutado.','Un solo archivo PDF por documento.','No se admiten imágenes, audios ni videos en esta carpeta.']},
   producto: {nombre:'Producto del proyecto', icon:'i-sparkle', acc:'verde', num:'02',
     desc:'Lo que el grupo construyó con su proyecto: la muestra final de la experiencia.',
     chips:['1 solo tipo de archivo'],
@@ -3553,24 +3576,65 @@ var AV_CARPETAS = {
 };
 var AV_TIPOS = {imagenes:{label:'Imágenes', icon:'i-image', ext:'jpg'}, videos:{label:'Videos', icon:'i-video', ext:'mp4'}, audios:{label:'Audios', icon:'i-audio', ext:'mp3'}, documentos:{label:'Documentos', icon:'i-file', ext:'pdf'}};
 var AV_BASE = {producto:'producto_final', evidencias:'evidencia_proceso'};
-function avDocsSistema(){
-  var est = miradaEstados(true);
-  var simDoc = document.getElementById('simulador-doc');
-  var simOk = !!(simDoc && !simDoc.classList.contains('hidden'));
-  return [
-    {nombre:'Formato de Caracterización', icon:'i-file', ok: est[0].estado === 'done', meta: est[0].estado === 'done' ? 'Diligenciado por el grupo' : 'Pendiente de diligenciar', abrir:"abrirPasoMirada('caracterizacion')"},
-    {nombre:'Árbol de Problematización', icon:'i-tree', ok: arbolStatus === 'accepted', meta: arbolStatus === 'accepted' ? 'Aceptado por el profesor' : 'Aún sin aceptar', abrir:"abrirPasoMirada('arbol')"},
-    {nombre:'Proyecto Pedagógico de Aula', icon:'i-layers', ok: proyectoCorregido, meta: proyectoCorregido ? 'Corregido con IA' : (proyectoListo ? 'Formato listo — falta la corrección con IA' : 'En construcción'), abrir: proyectoListo ? "abrirPasoMirada('correccion')" : "abrirPasoMirada('proyecto')"},
-    {nombre:'Documento de Evoluciona tu aula', icon:'i-chat', ok: simOk, meta: simOk ? 'Solución y ruta de acción generadas' : 'Aún sin generar', abrir:"setPanel('simulador')"}
+var AV_DOC_SLOTS = [
+  {key:'caracterizacion', nombre:'Formato de Caracterización', icon:'i-file', archivo:'Formato_Caracterizacion.pdf', abrir:"abrirPasoMirada('caracterizacion')"},
+  {key:'arbol', nombre:'Árbol de Problematización', icon:'i-tree', archivo:'Arbol_Problematizacion.pdf', abrir:"abrirPasoMirada('arbol')"},
+  {key:'ppa', nombre:'Proyecto Pedagógico de Aula', icon:'i-layers', archivo:'Proyecto_Pedagogico_Aula.pdf', abrir:"abrirPasoMirada('proyecto')"},
+  {key:'evoluciona', nombre:'Documento de Evoluciona tu aula', icon:'i-chat', archivo:'Evoluciona_tu_aula.pdf', abrir:"setPanel('simulador')"},
+  {key:'ejecutado', nombre:'Formato de proyecto ejecutado', icon:'i-upload', archivo:'Formato_Proyecto_Ejecutado.pdf', abrir:null}
+];
+var avFinalManual = null;   // {estado:'completo', auto:false, fecha} cuando el grupo finaliza a mano
+function avDocDe(slot){ return avArchivos.documentos.find(function(d){ return d.slot === slot; }) || null; }
+function avFaltantes(){
+  var f = [];
+  AV_DOC_SLOTS.forEach(function(sl){ if(!avDocDe(sl.key)) f.push(sl.nombre); });
+  if(!avArchivos.producto.length) f.push('Producto del proyecto');
+  if(!avArchivos.evidencias.length) f.push('Evidencias del proceso');
+  return f;
+}
+var AV_REQ_TOTAL = 7;  // 5 documentos + producto + evidencias
+function avFinalEstado(){
+  if(avFinalManual) return avFinalManual;
+  var v = ventanaAct('ACT-EVIDENCIAS');
+  if(v && v.estado === 'closed'){
+    var f = avFaltantes();
+    return {estado: f.length ? 'incompleto' : 'completo', auto:true, fecha:v.close, faltan:f};
+  }
+  return null;
+}
+function avResultadoHtml(){
+  var fin = avFinalEstado();
+  if(!fin) return '';
+  var comp = fin.estado === 'completo';
+  var titulo = 'Repositorio finalizado' + (fin.auto ? ' automáticamente' : '') + ' · ' + (comp ? 'Completo' : 'Incompleto');
+  var det = fin.auto
+    ? 'La ventana cerró el ' + fechaLarga(fin.fecha) + ' y el repositorio se finalizó solo' + (comp ? '.' : ' con lo que el grupo alcanzó a cargar.')
+    : 'El grupo lo finalizó el ' + fechaLarga(fin.fecha) + ' con todos los requisitos cumplidos.';
+  var faltan = (!comp && fin.faltan && fin.faltan.length) ? '<div class="ar-faltan"><b>No se cargó:</b> ' + fin.faltan.map(function(x){ return '<span class="av-chip">' + x + '</span>'; }).join(' ') + '</div>' : '';
+  return '<div class="av-result ' + fin.estado + '" id="av-result"><span class="ar-ico"><svg class="icon"><use href="#' + (comp ? 'i-check' : 'i-clock') + '"/></svg></span>'
+    + '<div class="ar-txt"><b>' + titulo + '</b><span>' + det + ' Queda en modo consulta.</span>' + faltan + '</div>'
+    + '<span class="pill ' + (comp ? 'on' : 'warn') + '">' + (comp ? 'Completo' : 'Incompleto') + '</span></div>';
+}
+function avFinalizarCardHtml(){
+  var f = avFaltantes();
+  var nd = AV_DOC_SLOTS.filter(function(sl){ return avDocDe(sl.key); }).length;
+  var req = [
+    {ok: nd === AV_DOC_SLOTS.length, t:'Documentos del proyecto: ' + nd + ' de ' + AV_DOC_SLOTS.length + ' en PDF'},
+    {ok: avArchivos.producto.length > 0, t:'Producto del proyecto: al menos 1 archivo'},
+    {ok: avArchivos.evidencias.length > 0, t:'Evidencias del proceso: al menos 1 archivo'}
   ];
+  return '<div class="card av-final" id="av-final"><div class="af-main"><h4>Finalizar el repositorio</h4>'
+    + '<p>Se habilita cuando están los 5 documentos y hay al menos un archivo de producto y uno de evidencias. Si la ventana cierra antes, el repositorio se finaliza solo y queda como <b>Incompleto</b>.</p>'
+    + '<ul class="av-req">' + req.map(function(r){ return '<li class="' + (r.ok ? 'ok' : '') + '"><svg class="icon"><use href="#' + (r.ok ? 'i-check' : 'i-clock') + '"/></svg>' + r.t + '</li>'; }).join('') + '</ul></div>'
+    + '<div class="af-act"><button type="button" class="btn btn-green" id="av-final-btn" onclick="avFinalizar()"' + (f.length ? ' disabled' : '') + '>Finalizar y guardar en el repositorio</button>'
+    + '<small id="av-final-hint">' + (f.length ? 'Falta cargar ' + f.length + (f.length === 1 ? ' elemento' : ' elementos') + ': ' + f.join(', ') + '.' : 'Todo listo para finalizar.') + '</small></div></div>';
 }
 function avConteo(key){
-  if(key === 'documentos') return avDocsSistema().filter(function(d){ return d.ok; }).length + avArchivos.documentos.length;
   return avArchivos[key].length;
 }
 function avEstadoTexto(key){
   var n = avConteo(key);
-  if(key === 'documentos') return n ? n + ' de 5 documentos' : 'Vacía · lista para recibir';
+  if(key === 'documentos') return n ? n + ' de ' + AV_DOC_SLOTS.length + ' documentos' : 'Vacía · lista para recibir';
   if(!n) return avTipo[key] ? 'Vacía · tipo ' + AV_TIPOS[avTipo[key]].label.toLowerCase() : 'Vacía · lista para recibir';
   return n + (n === 1 ? ' archivo · ' : ' archivos · ') + AV_TIPOS[avTipo[key]].label.toLowerCase();
 }
@@ -3641,7 +3705,7 @@ function avFileRowHtml(key, f, i, cerrada){
 function avCarpetaHtml(key){
   var c = AV_CARPETAS[key];
   var v = ventanaAct('ACT-EVIDENCIAS');
-  var cerrada = !!(v && v.estado === 'closed');
+  var cerrada = !!(v && v.estado === 'closed') || !!avFinalEstado();
   var h = '<div class="av-fhead acc-' + c.acc + '"><span class="fico"><svg class="icon"><use href="#' + c.icon + '"/></svg></span>'
     + '<div><h3>' + c.nombre + '</h3><p>' + c.desc + '</p></div>'
     + '<button type="button" class="btn btn-ghost btn-sm" onclick="avVolver()">← Todas las carpetas</button></div>'
@@ -3649,20 +3713,21 @@ function avCarpetaHtml(key){
     + '<div class="card av-rules"><h4><svg class="icon"><use href="#i-shield"/></svg> Reglas de esta carpeta</h4><ul>'
     + c.reglas.map(function(r){ return '<li><svg class="icon"><use href="#i-check"/></svg><span>' + r + '</span></li>'; }).join('') + '</ul></div>'
     + '<div class="av-fmain">';
-  if(cerrada) h += '<p class="av-closed-note">El cargue cerró el ' + fechaLarga(v.close) + ': la carpeta queda en modo consulta.</p>';
+  if(cerrada) h += '<p class="av-closed-note">' + (avFinalEstado() ? 'El repositorio ya fue finalizado: la carpeta queda en modo consulta.' : 'El cargue cerró el ' + fechaLarga(v.close) + ': la carpeta queda en modo consulta.') + '</p>';
   if(key === 'documentos'){
-    h += '<div class="drive-section-title">Archivados por DiversIA</div>';
-    h += avDocsSistema().map(function(d){
-      return '<button type="button" class="av-doc-row' + (d.ok ? '' : ' off') + '" onclick="' + d.abrir + '"><span class="di"><svg class="icon"><use href="#' + d.icon + '"/></svg></span>'
-        + '<span class="dn"><b>' + d.nombre + '</b><span>' + d.meta + '</span></span>'
-        + '<span class="pill ' + (d.ok ? 'on' : 'off') + '">' + (d.ok ? 'Archivado' : 'Pendiente') + '</span></button>';
+    h += '<div class="drive-section-title">Documentos del proyecto · ' + avConteo('documentos') + ' de ' + AV_DOC_SLOTS.length + ' cargados</div>';
+    h += AV_DOC_SLOTS.map(function(sl){
+      var d = avDocDe(sl.key), idx = avArchivos.documentos.indexOf(d);
+      if(d){
+        return '<div class="av-doc-row" data-slot="' + sl.key + '"><span class="di"><svg class="icon"><use href="#' + sl.icon + '"/></svg></span>'
+          + '<div class="dn"><b>' + sl.nombre + '</b><span>' + d.nombre + ' · cargado ' + fechaLarga(d.fecha) + '</span></div>'
+          + '<span class="pill on">Cargado</span>' + (cerrada ? '' : '<button type="button" class="rm" onclick="avQuitar(\'documentos\',' + idx + ')">Retirar</button>') + '</div>';
+      }
+      return '<div class="av-doc-row off" data-slot="' + sl.key + '"><span class="di"><svg class="icon"><use href="#' + sl.icon + '"/></svg></span>'
+        + '<div class="dn"><b>' + sl.nombre + '</b><span>Pendiente · solo PDF</span></div>'
+        + (sl.abrir ? '<button type="button" class="rm" style="color:var(--purple-ink)" onclick="' + sl.abrir + '">Ver en la plataforma</button>' : '')
+        + (cerrada ? '<span class="pill off">Sin cargar</span>' : '<button type="button" class="av-up" id="av-up-' + sl.key + '" onclick="avSubir(\'documentos\',\'' + sl.key + '\')"><svg class="icon"><use href="#i-upload"/></svg> Cargar PDF</button>') + '</div>';
     }).join('');
-    h += '<div class="drive-section-title">Lo que sube el grupo</div>';
-    if(avArchivos.documentos.length){
-      h += avArchivos.documentos.map(function(f, i){ return avFileRowHtml('documentos', f, i, cerrada); }).join('');
-    } else {
-      h += '<button type="button" class="av-drop' + (cerrada ? ' off' : '') + '" id="av-drop-documentos" onclick="avSubir(\'documentos\')"><svg class="icon"><use href="#i-upload"/></svg>Subir el Formato de proyecto ejecutado<small>Solo PDF · un único archivo</small></button>';
-    }
   } else {
     var t = avTipo[key], n = avArchivos[key].length;
     h += '<div class="drive-section-title">Tipo de archivo de esta carpeta</div><div class="filetype-row" id="av-tipos-' + key + '">'
@@ -3682,14 +3747,15 @@ function avCarpetaHtml(key){
 }
 function avRepoHtml(reveal){
   var g = (MIS_GRUPOS_DATA.find(function(x){ return x.activo; }) || {}).nombre || 'Tu grupo';
-  var con = ['documentos','producto','evidencias'].filter(function(k){ return avConteo(k) > 0; }).length;
-  var h = '<div class="av-repo-head"><div class="av-repo-id"><span class="av-vault"><svg class="icon"><use href="#i-unlock"/></svg></span><div><small>Repositorio del grupo · abierto</small><b>' + g + '</b></div></div>'
-    + '<div class="av-meter"><div class="am-top"><span>Carpetas con contenido</span><span>' + con + ' de 3</span></div><div class="am-bar"><i style="width:' + Math.round(con / 3 * 100) + '%"></i></div></div></div>';
+  var cumplidos = AV_REQ_TOTAL - avFaltantes().length;
+  var fin = avFinalEstado();
+  var h = '<div class="av-repo-head"><div class="av-repo-id"><span class="av-vault"><svg class="icon"><use href="#i-unlock"/></svg></span><div><small>Repositorio del grupo · ' + (fin ? 'finalizado' : 'abierto') + '</small><b>' + g + '</b></div></div>'
+    + '<div class="av-meter"><div class="am-top"><span>Requisitos para finalizar</span><span>' + cumplidos + ' de ' + AV_REQ_TOTAL + '</span></div><div class="am-bar"><i style="width:' + Math.round(cumplidos / AV_REQ_TOTAL * 100) + '%"></i></div></div></div>';
+  h += avResultadoHtml();
   if(avCarpeta){
     h += '<div class="drive-crumb"><span onclick="avVolver()">Repositorio</span><span class="sep">/</span><span class="current">' + AV_CARPETAS[avCarpeta].nombre + '</span></div>' + avCarpetaHtml(avCarpeta);
   } else {
-    h += avFoldersHtml(reveal)
-      + '<div class="av-save"><button type="button" class="btn btn-green" onclick="avGuardar()">Finalizar y guardar en el repositorio</button></div>';
+    h += avFoldersHtml(reveal) + (fin ? '' : avFinalizarCardHtml());
   }
   return h;
 }
@@ -3705,7 +3771,7 @@ function renderAulaViva(reveal){
   if(s) s.textContent = sub;
   var h = '<div class="win-slot">' + ventanaBannerHtml('ACT-EVIDENCIAS') + '</div>';
   if(fase === 'sealed' || fase === 'missed'){
-    h += selloHtml({id:'av-sello', v:v, eyebrow:'Aula Viva de experiencias · Corte ' + (v.corte || '—'), texto:'Cuando abra su ventana podrás desbloquear el repositorio del grupo y descubrir las tres carpetas donde vivirán tus documentos, el producto del proyecto y las evidencias del proceso.', textoCerrado:'El grupo no alcanzó a abrir su repositorio dentro de la ventana de esta actividad. Consulta con tu profesor para conocer las opciones.', tiles:true});
+    h += selloHtml({id:'av-sello', v:v, eyebrow:'Aula Viva de experiencias · Corte ' + (v.corte || '—'), texto:'Cuando abra su ventana podrás desbloquear el repositorio del grupo y descubrir las tres carpetas donde vivirán tus documentos, el producto del proyecto y las evidencias del proceso.', textoCerrado:'El grupo no abrió su repositorio dentro de la ventana de esta actividad, así que se finalizó automáticamente.', tiles:true}) + avResultadoHtml();
   } else if(fase === 'gateway'){
     h += avGatewayHtml();
   } else {
@@ -3717,6 +3783,7 @@ function avIrCarpeta(k){ avCarpeta = k; renderAulaViva(); document.querySelector
 function avVolver(){ avCarpeta = null; renderAulaViva(); }
 function avElegirTipo(key, tipo){
   if(!ventanaAbierta('ACT-EVIDENCIAS')) return;
+  if(avFinalEstado()){ toast('El repositorio ya fue finalizado — solo consulta'); return; }
   if(avTipo[key] && avTipo[key] !== tipo && avArchivos[key].length){
     toast('Esta carpeta ya tiene archivos de ' + AV_TIPOS[avTipo[key]].label.toLowerCase() + ' — retíralos para cambiar de tipo');
     return;
@@ -3724,33 +3791,44 @@ function avElegirTipo(key, tipo){
   avTipo[key] = tipo;
   renderAulaViva();
 }
-function avSubir(key){
+function avSubir(key, slot){
   if(!ventanaAbierta('ACT-EVIDENCIAS')) return;
+  if(avFinalEstado()){ toast('El repositorio ya fue finalizado — solo consulta'); return; }
+  var f;
   if(key === 'documentos'){
-    if(avArchivos.documentos.length){ toast('Esta carpeta admite un único PDF — retira el actual para subir otro'); return; }
-    avArchivos.documentos.push({nombre:'Formato_Proyecto_Ejecutado.pdf', tipo:'documentos'});
+    var sl = AV_DOC_SLOTS.find(function(x){ return x.key === slot; });
+    if(!sl){ toast('Elige qué documento vas a cargar'); return; }
+    if(avDocDe(slot)){ toast('«' + sl.nombre + '» ya está cargado — retíralo para subir otro'); return; }
+    f = {slot:slot, nombre:sl.archivo, tipo:'documentos', fecha:DEMO_HOY};
+    avArchivos.documentos.push(f);
   } else {
     var t = avTipo[key];
     if(!t){ toast('Elige primero el tipo de archivo de la carpeta'); return; }
     var n = avArchivos[key].length + 1;
-    avArchivos[key].push({nombre: AV_BASE[key] + '_' + (n < 10 ? '0' : '') + n + '.' + AV_TIPOS[t].ext, tipo:t});
+    f = {nombre: AV_BASE[key] + '_' + (n < 10 ? '0' : '') + n + '.' + AV_TIPOS[t].ext, tipo:t, fecha:DEMO_HOY};
+    avArchivos[key].push(f);
   }
-  var f = avArchivos[key][avArchivos[key].length - 1];
   renderAulaViva();
   toast(f.nombre + ' cargado en «' + AV_CARPETAS[key].nombre + '»');
 }
 function avQuitar(key, i){
   if(!ventanaAbierta('ACT-EVIDENCIAS')) return;
+  if(avFinalEstado()){ toast('El repositorio ya fue finalizado — solo consulta'); return; }
   avArchivos[key].splice(i, 1);
   renderAulaViva();
 }
-function avGuardar(){
+function avFinalizar(){
   if(!ventanaAbierta('ACT-EVIDENCIAS')) return;
-  var n = avArchivos.documentos.length + avArchivos.producto.length + avArchivos.evidencias.length;
-  toast('Aula Viva guardada en el repositorio del grupo · ' + n + (n === 1 ? ' archivo cargado' : ' archivos cargados'));
+  if(avFinalEstado()) return;
+  var f = avFaltantes();
+  if(f.length){ toast('Aún no puedes finalizar — falta: ' + f.join(', ')); return; }
+  avFinalManual = {estado:'completo', auto:false, fecha:DEMO_HOY};
+  avCarpeta = null;
+  renderAulaViva();
+  toast('Repositorio finalizado — entrega completa');
 }
 function avReiniciarDemo(){
-  avRepoAbierto = false; avAbriendo = false; avCarpeta = null;
+  avRepoAbierto = false; avAbriendo = false; avCarpeta = null; avFinalManual = null;
   avArchivos = {documentos:[], producto:[], evidencias:[]};
   avTipo = {producto:null, evidencias:null};
   renderAulaViva();
