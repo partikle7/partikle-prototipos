@@ -778,6 +778,8 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
 .av-req li.ok{color:var(--green2-ink);}
 .av-result{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:16px 18px;border-radius:18px;margin-bottom:18px;border:1px solid var(--border-soft);}
 .av-result.completo{background:linear-gradient(100deg,rgba(131,255,143,.22),rgba(197,240,127,.10));border-color:rgba(66,128,72,.35);}
+.av-result.nocreado{margin-top:18px;background:linear-gradient(100deg,rgba(25,22,40,.06),rgba(160,191,231,.12));}
+.av-result.nocreado .ar-ico{color:var(--muted);}
 .av-result.incompleto{background:linear-gradient(100deg,rgba(251,233,133,.38),rgba(238,127,229,.10));border-color:rgba(126,116,66,.40);}
 .av-result .ar-ico{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.7);flex-shrink:0;}
 .av-result.completo .ar-ico{color:var(--green2-ink);}
@@ -3528,7 +3530,7 @@ function selloHtml(o){
   if(o.tiles){
     h += '<div class="av-seals">' + ['documentos','producto','evidencias'].map(function(k){
       var c = AV_CARPETAS[k];
-      return '<div class="av-seal"><span class="si"><svg class="icon"><use href="#' + c.icon + '"/></svg></span><b>' + c.nombre + '</b><span class="st"><svg class="icon"><use href="#i-lock"/></svg> ' + (cerrado ? 'Sin abrir' : 'Sellada') + '</span></div>';
+      return '<div class="av-seal"><span class="si"><svg class="icon"><use href="#' + c.icon + '"/></svg></span><b>' + c.nombre + '</b><span class="st"><svg class="icon"><use href="#i-lock"/></svg> ' + (cerrado ? 'No creada' : 'Sellada') + '</span></div>';
     }).join('') + '</div>';
   }
   if(!cerrado){
@@ -3600,7 +3602,7 @@ var AV_REQ_TOTAL = 5;  // 3 documentos + producto + evidencias
 function avFinalEstado(){
   if(avFinalManual) return avFinalManual;
   var v = ventanaAct('ACT-EVIDENCIAS');
-  if(v && v.estado === 'closed'){
+  if(v && v.estado === 'closed' && avRepoAbierto){   // solo se finaliza un repositorio que existe (fue creado)
     var f = avFaltantes();
     return {estado: f.length ? 'incompleto' : 'completo', auto:true, fecha:v.close, faltan:f};
   }
@@ -3618,6 +3620,13 @@ function avResultadoHtml(){
   return '<div class="av-result ' + fin.estado + '" id="av-result"><span class="ar-ico"><svg class="icon"><use href="#' + (comp ? 'i-check' : 'i-clock') + '"/></svg></span>'
     + '<div class="ar-txt"><b>' + titulo + '</b><span>' + det + ' Queda en modo consulta.</span>' + faltan + '</div>'
     + '<span class="pill ' + (comp ? 'on' : 'warn') + '">' + (comp ? 'Completo' : 'Incompleto') + '</span></div>';
+}
+function avNoCreadoHtml(){
+  var v = ventanaAct('ACT-EVIDENCIAS');
+  if(!v) return '';
+  return '<div class="av-result nocreado" id="av-nocreado"><span class="ar-ico"><svg class="icon"><use href="#i-lock"/></svg></span>'
+    + '<div class="ar-txt"><b>Repositorio no creado</b><span>La ventana cerró el ' + fechaLarga(v.close) + ' sin que el grupo creara su repositorio. No existe repositorio ni carpetas, así que no hay nada que finalizar.</span></div>'
+    + '<span class="pill off">Sin repositorio</span></div>';
 }
 function avFinalizarCardHtml(){
   var f = avFaltantes();
@@ -3819,7 +3828,7 @@ function renderAulaViva(reveal){
   if(s) s.textContent = sub;
   var h = '<div class="win-slot">' + ventanaBannerHtml('ACT-EVIDENCIAS') + '</div>';
   if(fase === 'sealed' || fase === 'missed'){
-    h += selloHtml({id:'av-sello', v:v, eyebrow:'Aula Viva de experiencias · Corte ' + (v.corte || '—'), texto:'Cuando abra su ventana, y con el Momento 1 (Una mirada al aula) finalizado, podrás desbloquear el repositorio del grupo y descubrir las tres carpetas donde vivirán tus documentos, el producto del proyecto y las evidencias del proceso.', textoCerrado:'El grupo no abrió su repositorio dentro de la ventana de esta actividad, así que se finalizó automáticamente.', tiles:true}) + avResultadoHtml();
+    h += selloHtml({id:'av-sello', v:v, eyebrow:'Aula Viva de experiencias · Corte ' + (v.corte || '—'), texto:'Cuando abra su ventana, y con el Momento 1 (Una mirada al aula) finalizado, podrás desbloquear el repositorio del grupo y descubrir las tres carpetas donde vivirán tus documentos, el producto del proyecto y las evidencias del proceso.', textoCerrado:'El grupo no creó su repositorio dentro de la ventana de esta actividad: no se generó el repositorio ni sus carpetas.', tiles:true}) + avNoCreadoHtml();
   } else if(fase === 'blocked'){
     h += avBloqueoM1Html();
   } else if(fase === 'gateway'){
