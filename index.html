@@ -283,27 +283,76 @@ footer.site-footer{border-top:1px solid var(--border-soft);padding:26px 0 40px;f
 .misg-active{border:1.5px solid rgba(174,127,240,0.5);background:linear-gradient(120deg,rgba(142,127,240,0.10),rgba(238,127,229,0.05));box-shadow:0 10px 26px rgba(142,127,240,0.14);}
 .misg-past{opacity:.86;}
 .misg-past:hover{opacity:1;}
-.misg-viewing{opacity:1;border:1.5px solid rgba(88,105,127,0.4);background:rgba(160,191,231,0.08);}
+/* ---- Mis Grupos: bóveda de documentos de un grupo anterior ---- */
+.misg-past .misg-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.misg-past .misg-foot .mf-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted);background:var(--panel-2);border-radius:999px;padding:5px 11px;}
+.misg-past .misg-foot .mf-chip .icon{width:13px;height:13px;}
+.mv-back{display:inline-flex;align-items:center;gap:8px;border:0;background:none;color:var(--purple-ink);font:inherit;font-weight:700;font-size:13px;cursor:pointer;padding:4px 0;margin-bottom:14px;}
+.mv-back .icon{width:15px;height:15px;transform:rotate(180deg);}
+.mv-hero{position:relative;overflow:hidden;border-radius:26px;padding:34px 36px;color:#fff;background:radial-gradient(120% 140% at 12% 0%,#6f5bd6 0%,#3b2d86 46%,#1b1442 100%);display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;box-shadow:0 22px 50px rgba(59,45,134,.28);}
+.mv-hero::before,.mv-hero::after{content:"";position:absolute;border-radius:50%;pointer-events:none;}
+.mv-hero::before{width:320px;height:320px;right:-80px;top:-140px;background:radial-gradient(circle,rgba(238,127,229,.45),transparent 65%);}
+.mv-hero::after{width:260px;height:260px;left:30%;bottom:-170px;background:radial-gradient(circle,rgba(197,240,127,.28),transparent 65%);}
+.mv-hero>*{position:relative;z-index:1;}
+.mv-id{display:flex;align-items:center;gap:18px;min-width:0;}
+.mv-vault{flex:none;width:62px;height:62px;border-radius:20px;display:grid;place-items:center;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);backdrop-filter:blur(6px);}
+.mv-vault .icon{width:28px;height:28px;stroke:#fff;}
+.mv-id small{display:block;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;opacity:.75;font-weight:700;margin-bottom:4px;}
+.mv-id h3{font-size:24px;line-height:1.15;margin:0 0 6px;color:#fff;}
+.mv-id p{margin:0;font-size:13px;color:rgba(255,255,255,.88) !important;}
+.mv-hero .btn-dl{background:#fff;color:#3b2d86;border:0;border-radius:14px;padding:12px 18px;font:inherit;font-weight:800;font-size:13.5px;display:inline-flex;align-items:center;gap:9px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.22);transition:transform .15s;}
+.mv-hero .btn-dl:hover{transform:translateY(-2px);}
+.mv-hero .btn-dl .icon{width:17px;height:17px;}
+.mv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0 22px;}
+.mv-stat{border:1px solid var(--border-soft);background:var(--panel);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;}
+.mv-stat b{font-size:22px;line-height:1.1;}
+.mv-stat span{font-size:12px;color:var(--muted);font-weight:600;}
+.mv-stat.lila{background:linear-gradient(135deg,rgba(174,127,240,.14),transparent);}
+.mv-stat.verde{background:linear-gradient(135deg,rgba(197,240,127,.28),transparent);}
+.mv-stat.rosa{background:linear-gradient(135deg,rgba(238,127,229,.16),transparent);}
+.mv-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.mv-tab{border:1px solid var(--border);background:var(--panel);border-radius:999px;padding:8px 15px;font:inherit;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:all .15s;}
+.mv-tab em{font-style:normal;font-size:11.5px;background:var(--panel-2);border-radius:999px;padding:1px 8px;}
+.mv-tab:hover{border-color:var(--purple);color:var(--purple-ink);}
+.mv-tab.on{background:var(--ink);border-color:var(--ink);color:#fff;}
+.mv-tab.on em{background:rgba(255,255,255,.2);color:#fff;}
+.mv-sec{margin-bottom:28px;}
+.mv-sec-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.mv-sec-head .ico{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;}
+.mv-sec-head .ico .icon{width:19px;height:19px;}
+.mv-sec-head h4{margin:0;font-size:15.5px;}
+.mv-sec-head small{display:block;color:var(--muted);font-size:12px;font-weight:600;}
+.mv-sec-head .num{margin-left:auto;font-size:30px;font-weight:800;opacity:.12;letter-spacing:-.03em;}
+.mv-sec.lila .ico{background:rgba(174,127,240,.2);color:var(--lila-ink);}
+.mv-sec.verde .ico{background:rgba(197,240,127,.5);color:var(--green-ink);}
+.mv-sec.rosa .ico{background:rgba(238,127,229,.2);color:var(--pink-ink);}
+.mv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+.mv-file{position:relative;border:1px solid var(--border-soft);border-radius:20px;background:var(--panel);overflow:hidden;display:flex;flex-direction:column;transition:transform .18s,box-shadow .18s,border-color .18s;animation:mvIn .45s both;}
+.mv-file:hover{transform:translateY(-4px);box-shadow:0 16px 32px rgba(40,30,90,.14);border-color:rgba(142,127,240,.45);}
+@keyframes mvIn{from{opacity:0;transform:translateY(14px) scale(.97);}to{opacity:1;transform:none;}}
+.mv-thumb{position:relative;height:108px;display:grid;place-items:center;color:#fff;overflow:hidden;}
+.mv-thumb::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 0%,rgba(255,255,255,.35),transparent 55%);}
+.mv-thumb .icon{width:38px;height:38px;stroke:#fff;position:relative;z-index:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.25));}
+.mv-thumb.t-pdf{background:linear-gradient(135deg,#e5675f,#b93f7a);}
+.mv-thumb.t-jpg{background:linear-gradient(135deg,#46b2c9,#6e7de8);}
+.mv-thumb.t-mp4{background:linear-gradient(135deg,#7a5ce0,#2d2470);}
+.mv-thumb.t-mp3{background:linear-gradient(135deg,#f0a35a,#e2557d);}
+.mv-thumb.t-doc{background:linear-gradient(135deg,#5b8def,#3358b8);}
+.mv-ext{position:absolute;top:10px;left:10px;z-index:2;background:rgba(0,0,0,.28);color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.07em;border-radius:7px;padding:3px 8px;}
+.mv-body{padding:13px 15px 15px;display:flex;flex-direction:column;gap:3px;flex:1;}
+.mv-body b{font-size:13.5px;line-height:1.3;word-break:break-word;}
+.mv-body .meta{font-size:12px;color:var(--muted);}
+.mv-dl{margin-top:auto;padding-top:12px;}
+.mv-dl button{width:100%;border:1px solid var(--border);background:var(--bg-soft);border-radius:12px;padding:9px 12px;font:inherit;font-size:12.5px;font-weight:800;color:var(--purple-ink);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;}
+.mv-dl button .icon{width:15px;height:15px;}
+.mv-file:hover .mv-dl button,.mv-dl button:hover{background:var(--purple);border-color:var(--purple);color:#fff;}
+.mv-dl button.done{background:var(--green);border-color:var(--green);color:var(--green-ink);}
+@media(max-width:820px){.mv-stats{grid-template-columns:repeat(2,1fr);}.mv-hero{padding:26px 22px;}}
 .misg-stat-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--border-soft);font-size:13px;}
 .misg-stat-row:last-child{border-bottom:none;}
 .misg-stat-row .k{color:var(--muted);font-weight:600;flex-shrink:0;}
 .misg-stat-row .v{text-align:right;font-weight:700;}
 
-.readonly-group-banner{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 20px;margin:-32px -32px 26px;background:linear-gradient(120deg,rgba(142,127,240,0.14),rgba(238,127,229,0.08));border-bottom:1px solid rgba(174,127,240,0.35);}
-.rgb-info{display:flex;align-items:center;gap:12px;}
-.rgb-info>div{display:flex;flex-direction:column;gap:2px;font-size:13px;}
-.rgb-info b{font-size:13.5px;}
-.rgb-info span.mono-note{font-weight:600;color:var(--purple-ink);}
-.rgb-info>div>span:last-child{color:var(--muted);font-size:12.5px;}
-.ro-block{border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:18px 20px;margin-bottom:14px;background:var(--panel);}
-.ro-block h5{font-size:14px;margin-bottom:10px;}
-.ro-branch{padding:10px 0;border-top:1px dashed var(--border-soft);font-size:13px;}
-.ro-branch:first-child{border-top:none;padding-top:2px;}
-.ro-sim-card{border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:10px;}
-.ro-sim-card .ro-sim-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.ro-sim-card .ro-sim-head b{font-size:13.5px;}
-.ro-sim-card .ro-sim-head span{font-size:12px;color:var(--muted);}
-.ro-sim-card p{font-size:13px;color:var(--ink);line-height:1.5;}
 
 /* substep layout (momento 1) */
 .substep-layout{display:grid;grid-template-columns:220px 1fr;gap:28px;}
@@ -878,6 +927,7 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
 <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5Z"/><path d="M3 13l9 5 9-5"/></symbol>
 <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
 <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol>
 <symbol id="i-unlock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.6-1.7"/></symbol>
 <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
 <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
@@ -1103,18 +1153,6 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
 
     <main class="content">
 
-      <!-- Banner: modo lectura de un grupo anterior -->
-      <div class="readonly-group-banner hidden" id="readonly-group-banner">
-        <div class="rgb-info">
-          <svg class="icon" style="width:18px;height:18px;stroke:var(--purple-ink)"><use href="#i-lock"/></svg>
-          <div>
-            <b>Estás viendo <span id="rgb-nombre">—</span> <span class="mono-note" style="text-transform:none;" id="rgb-periodo">—</span></b>
-            <span>Solo lectura — así quedó este grupo, no puedes editar su información.</span>
-          </div>
-        </div>
-        <button class="btn btn-ghost btn-sm" onclick="salirModoLecturaGrupo()">Volver a mi grupo activo</button>
-      </div>
-
       <!-- ============ PANEL INICIO (rol-dependiente) ============ -->
       <div class="panel active" id="panel-panel-inicio">
 
@@ -1326,7 +1364,7 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
 
       <!-- ============ MIS GRUPOS (estudiante) ============ -->
       <div class="panel" id="panel-mis-grupos">
-        <div class="panel-head"><div><h2>Mis Grupos</h2><p>El grupo en el que trabajas actualmente queda resaltado. Los grupos de periodos anteriores quedan disponibles en modo de solo lectura para consultar lo que se hizo.</p></div></div>
+        <div class="panel-head"><div><h2>Mis Grupos</h2><p>El grupo en el que trabajas actualmente queda resaltado. De los grupos de periodos anteriores puedes ver y descargar los documentos que quedaron cargados en su repositorio.</p></div></div>
         <div class="misg-list" id="mis-grupos-list"></div>
       </div>
 
@@ -2495,10 +2533,8 @@ function setPanel(name){
 
 /* ---- módulo Una mirada al aula: substeps internos ---- */
 function setM1Sub(name){
-  if(GRUPO_VIEW_ACTIVO === null){
-    var est = miradaEstados().find(function(e){ return e.key===name; });
-    if(est && est.estado==='locked'){ toast('Paso bloqueado — ' + est.detalle); return; }
-  }
+  var est = miradaEstados().find(function(e){ return e.key===name; });
+  if(est && est.estado==='locked'){ toast('Paso bloqueado — ' + est.detalle); return; }
   document.querySelectorAll('#m1-substeps .step-item').forEach(s=> s.classList.toggle('active', s.dataset.sub===name));
   document.querySelectorAll('.substep-section').forEach(s=> s.classList.toggle('active', s.dataset.sub===name));
 }
@@ -2695,16 +2731,6 @@ var MIRADA_SUB_DEFAULT = 'Sigue el flujo paso a paso: de la Caracterización del
 var MIRADA_PILL = {done:['Completado','on'], current:['En curso','info'], review:['En revisión','warn'], feedback:['Requiere ajustes','danger'], locked:['Bloqueado','off']};
 function miradaEstados(forzarVivo){
   var mk = function(key, estado, detalle){ return {key:key, estado:estado, detalle:detalle, pill:MIRADA_PILL[estado][0], pillClass:MIRADA_PILL[estado][1]}; };
-  if(!forzarVivo && GRUPO_VIEW_ACTIVO !== null){
-    var h = GRUPO_HISTORICO_CONTENIDO[GRUPO_VIEW_ACTIVO];
-    return [
-      mk('caracterizacion','done','Institución y aula diligenciadas'),
-      mk('arbol','done', h ? h.arbol.estado : 'Aceptado por el profesor'),
-      mk('propuestas','done','Propuesta elegida por el grupo'),
-      mk('proyecto','done','Formato diligenciado por el grupo'),
-      mk('correccion','done', h ? h.proyecto.estado : 'Proyecto enviado a corrección')
-    ];
-  }
   var res = [];
   res.push(caracterizacionSaved ? mk('caracterizacion','done','Institución y aula guardadas') : mk('caracterizacion','current','Falta guardar la institución y el aula'));
   if(!caracterizacionSaved){
@@ -2767,7 +2793,6 @@ window.addEventListener('resize', function(){
 function renderMiradaAula(){
   var live = miradaEstados(true);
   var vista = miradaEstados();
-  var ro = GRUPO_VIEW_ACTIVO !== null;
 
   // --- flujograma ---
   var flow = document.getElementById('mirada-flow');
@@ -2784,7 +2809,7 @@ function renderMiradaAula(){
     vista.forEach(function(e, i){
       var paso = MIRADA_PASOS[i];
       var icono = e.estado==='locked' ? 'i-lock' : e.estado==='done' ? 'i-check' : e.estado==='review' ? 'i-clock' : paso.icon;
-      var cta = e.win==='closed' ? 'Ventana cerrada' : e.estado==='locked' ? 'Aún no disponible' : e.win==='closed-done' ? 'Consultar paso →' : e.estado==='done' ? (ro ? 'Ver paso →' : 'Revisar paso →') : 'Continuar →';
+      var cta = e.win==='closed' ? 'Ventana cerrada' : e.estado==='locked' ? 'Aún no disponible' : e.win==='closed-done' ? 'Consultar paso →' : e.estado==='done' ? 'Revisar paso →' : 'Continuar →';
       var fechas = e.ventana ? '<span class="fc-dates win-' + e.win + '"><svg class="icon"><use href="#i-calendar"/></svg>' + fechaMedia(e.ventana.open) + ' → ' + fechaMedia(e.ventana.close) + '</span>' : '';
       html += '<button type="button" class="flow-card st-' + e.estado + '" data-step="' + e.key + '" data-state="' + e.estado + '"' + (e.estado==='locked' ? ' aria-disabled="true"' : '') + ' onclick="abrirPasoMirada(\'' + e.key + '\')">'
         + '<span class="fc-icon"><svg class="icon"><use href="#' + icono + '"/></svg></span>'
@@ -2814,11 +2839,7 @@ function renderMiradaAula(){
     document.getElementById('mirada-progress-pill').textContent = hechos + ' de ' + vista.length + ' pasos completados';
     var actual = vista.find(function(e){ return e.estado !== 'done'; });
     var hint = document.getElementById('mirada-hint');
-    if(ro){
-      var g = MIS_GRUPOS_DATA.find(function(x){ return x.id === GRUPO_VIEW_ACTIVO; });
-      hint.innerHTML = '<b>Vista de solo lectura.</b> Todos los pasos de este grupo quedaron completos; toca uno para consultar lo que se hizo.';
-      document.getElementById('mirada-sub').textContent = (g ? g.nombre + ' · ' + g.periodo + ' · ' : '') + 'recorrido completo del grupo, en modo lectura.';
-    } else {
+    {
       document.getElementById('mirada-sub').textContent = MIRADA_SUB_DEFAULT;
       if(!actual){
         hint.innerHTML = '<b>¡Recorrido completo!</b> Los ' + vista.length + ' pasos de Una mirada al aula están listos. Puedes revisar cualquiera de ellos.';
@@ -2874,24 +2895,17 @@ function abrirMiradaDesdeSidebar(){
   // el sidebar entra directo al paso a paso, en el paso en el que está el grupo
   miradaVieneDelHub = false;
   setPanel('proyecto-aula');
-  if(GRUPO_VIEW_ACTIVO !== null) return;
   var est = miradaEstados();
   var actual = est.find(function(e){ return e.estado !== 'done' && e.estado !== 'locked'; });
   if(!actual){ var hechos = est.filter(function(e){ return e.estado === 'done'; }); actual = hechos[hechos.length - 1]; }
   setM1Sub(actual ? actual.key : 'caracterizacion');
 }
 function abrirPasoMirada(key){
-  var ro = GRUPO_VIEW_ACTIVO !== null;
   var est = miradaEstados().find(function(e){ return e.key === key; });
   if(!est) return;
   if(est.estado === 'locked'){ toast('Paso bloqueado — ' + est.detalle); return; }
   miradaVieneDelHub = document.getElementById('panel-mirada-aula').classList.contains('active');
   setPanel('proyecto-aula');
-  if(ro){
-    var anchor = document.getElementById('ro-paso-' + key);
-    if(anchor) setTimeout(function(){ anchor.scrollIntoView({behavior:'smooth', block:'start'}); }, 80);
-    return;
-  }
   setM1Sub(key);
 }
 
@@ -2978,224 +2992,152 @@ function misgBarRow(label, pct, colorVar){
 function misgTextRow(label, value){
   return '<div class="misg-stat-row"><span class="k">' + label + '</span><span class="v">' + value + '</span></div>';
 }
+/* ---- estudiante: documentos cargados en el repositorio de un grupo anterior (solo consulta y descarga) ---- */
+var MISG_REPOS = {
+  'g-2025-2': {
+    estado:'completo', finalizado:'2025-11-28',
+    documentos:[
+      {nombre:'Formato_Caracterizacion.pdf', tipo:'pdf', tam:'412 KB', fecha:'20 ago 2025', por:'Valentina Rojas'},
+      {nombre:'Arbol_Problematizacion.pdf', tipo:'pdf', tam:'688 KB', fecha:'10 sep 2025', por:'Camilo Andrés Suárez'},
+      {nombre:'Proyecto_Pedagogico_Aula.pdf', tipo:'pdf', tam:'1.4 MB', fecha:'22 nov 2025', por:'Valentina Rojas'}
+    ],
+    producto:[
+      {nombre:'producto_final_voces_territorio.pdf', tipo:'pdf', tam:'3.2 MB', fecha:'26 nov 2025', por:'Camilo Andrés Suárez'}
+    ],
+    evidencias:[
+      {nombre:'evidencia_huerta.jpg', tipo:'jpg', tam:'2.1 MB', fecha:'14 oct 2025', por:'Valentina Rojas'},
+      {nombre:'evidencia_cartografia.jpg', tipo:'jpg', tam:'1.8 MB', fecha:'29 oct 2025', por:'Camilo Andrés Suárez'},
+      {nombre:'evidencia_cierre.mp4', tipo:'mp4', tam:'18.6 MB', fecha:'25 nov 2025', por:'Valentina Rojas'}
+    ]
+  }
+};
+var MISG_TIPO = {pdf:{icon:'i-file', label:'PDF'}, jpg:{icon:'i-image', label:'JPG'}, mp4:{icon:'i-video', label:'MP4'}, mp3:{icon:'i-audio', label:'MP3'}, doc:{icon:'i-file', label:'DOC'}};
+var MISG_REPO_ABIERTO = null;
+var MISG_REPO_TAB = 'todo';
+function misgArchivos(id){
+  var r = MISG_REPOS[id];
+  if(!r) return [];
+  var out = [];
+  ['documentos','producto','evidencias'].forEach(function(k){ r[k].forEach(function(f, i){ out.push({carpeta:k, idx:i, f:f}); }); });
+  return out;
+}
+function misgTamMB(t){ var n = parseFloat(t); return /KB/.test(t) ? n / 1024 : n; }
+function misgTamTotal(id){
+  var mb = misgArchivos(id).reduce(function(a, x){ return a + misgTamMB(x.f.tam); }, 0);
+  return mb >= 1 ? mb.toFixed(1) + ' MB' : Math.round(mb * 1024) + ' KB';
+}
 function renderMisGrupos(){
   var wrap = document.getElementById('mis-grupos-list');
   if(!wrap) return;
+  if(MISG_REPO_ABIERTO){ wrap.innerHTML = misgRepoVistaHtml(MISG_REPO_ABIERTO); return; }
   wrap.innerHTML = MIS_GRUPOS_DATA.map(function(g){
     if(g.activo){
       return '<div class="card misg-card misg-active">'
         + '<div class="misg-head"><div><span class="pill on">Grupo activo</span><h3>' + g.nombre + '</h3><p class="misg-meta">' + g.institucion + ' · ' + g.periodo + '</p></div>'
-        + '<button class="btn btn-primary btn-sm" onclick="salirModoLecturaGrupo(); abrirMiradaDesdeSidebar();">Continuar Una mirada al aula</button></div>'
+        + '<button class="btn btn-primary btn-sm" onclick="abrirMiradaDesdeSidebar();">Continuar Una mirada al aula</button></div>'
         + '<div class="members">' + misgMemberChips(g.integrantes) + '</div>'
         + '</div>';
     }
-    var viendolo = GRUPO_VIEW_ACTIVO === g.id;
-    return '<div class="card misg-card misg-past' + (viendolo ? ' misg-viewing' : '') + '">'
-      + '<div class="misg-head"><div><span class="pill off">Finalizado</span>' + (viendolo ? ' <span class="pill info">Viéndolo ahora</span>' : '') + '<h3>' + g.nombre + '</h3><p class="misg-meta">' + g.institucion + ' · ' + g.periodo + '</p></div>'
-      + '<button class="btn btn-ghost btn-sm" onclick="entrarModoLecturaGrupo(\'' + g.id + '\')">' + (viendolo ? 'Seguir viendo' : 'Ver en modo lectura') + '</button></div>'
+    var n = misgArchivos(g.id).length;
+    return '<div class="card misg-card misg-past">'
+      + '<div class="misg-head"><div><span class="pill off">Finalizado</span><h3>' + g.nombre + '</h3><p class="misg-meta">' + g.institucion + ' · ' + g.periodo + '</p></div>'
+      + '<button class="btn btn-ghost btn-sm" onclick="misgVerRepo(\'' + g.id + '\')">Ver</button></div>'
       + '<div class="members">' + misgMemberChips(g.integrantes) + '</div>'
+      + (n ? '<div class="misg-foot"><span class="mf-chip"><svg class="icon"><use href="#i-folder"/></svg>Repositorio del grupo</span><span class="mf-chip">' + n + (n === 1 ? ' archivo' : ' archivos') + ' para descargar</span></div>' : '')
       + '</div>';
   }).join('');
 }
-
-/* ---- estudiante: modo lectura de un grupo anterior (cada grupo es una "caja" con toda su info por módulo) ---- */
-var GRUPO_VIEW_ACTIVO = null;
-var MISG_STATE_BACKUP = null;
-
-var GRUPO_HISTORICO_CONTENIDO = {
-  'g-2025-2': {
-    caracterizacion: {
-      institucion: [
-        ['Nombre de la institución','Jardín Infantil Los Robles'],
-        ['Ubicación','Zona rural, vereda El Guayabo, municipio de Marinilla'],
-        ['Naturaleza','Privada, sin ánimo de lucro'],
-        ['Niveles educativos','Educación Inicial (Prejardín, Jardín, Transición)'],
-        ['Características del entorno','Comunidad campesina, entorno natural con fincas cercanas'],
-        ['Condiciones socioeconómicas','Familias de ingresos medios-bajos, economía agrícola'],
-        ['Problemáticas relevantes del contexto','Baja conectividad y desplazamientos largos hasta la institución'],
-        ['Número de estudiantes','64'],
-        ['Grupos etarios atendidos','3 a 5 años'],
-        ['Enfoque pedagógico','Pedagogía por proyectos con énfasis en el vínculo con el territorio']
-      ],
-      aula: [
-        ['Nombre / grado','Jardín B'],
-        ['Número de estudiantes','18'],
-        ['Rango de edad','4 a 5 años'],
-        ['Diversidad del grupo','Un estudiante con diagnóstico de TEA, dos familias migrantes venezolanas'],
-        ['Necesidades educativas especiales','Apoyo para autorregulación emocional y comunicación'],
-        ['Estilos de aprendizaje predominantes','Kinestésico y visual'],
-        ['Recursos didácticos','Material reciclable, elementos naturales del entorno'],
-        ['Nivel de participación','Alto en actividades al aire libre, bajo en trabajo de mesa prolongado']
-      ]
-    },
-    arbol: {
-      pregunta: '¿Por qué los niños y niñas de Jardín B muestran poco interés en reconocer y valorar las tradiciones culturales de su territorio?',
-      estado: 'Aceptado por el profesor · 10 sep 2025',
-      revisiones: [
-        {enviado:'2 sep 2025', respondido:'5 sep 2025', estado:'feedback', docente:'Prof. Andrés Molina', comentario:'Las situaciones deben partir de hechos observados en el aula; ajusten la Situación 2 para que se vea el rol de las familias.'},
-        {enviado:'8 sep 2025', respondido:'10 sep 2025', estado:'accepted', docente:'Prof. Andrés Molina', comentario:'Ajustes incorporados. Árbol aceptado.'}
-      ],
-      situaciones: [
-        { descripcion:'Los niños desconocen las prácticas agrícolas y oficios tradicionales de sus propias familias.',
-          ramas:[
-            {efecto:'Pérdida del vínculo identitario con el territorio', causa:'Poca transmisión intergeneracional de saberes en el aula', enfoque:'Sociocultural'},
-            {efecto:'Desvalorización de los oficios del campo', causa:'Predominancia de contenidos urbanos en el material didáctico', enfoque:'Intercultural'}
-          ]
-        },
-        { descripcion:'Baja participación de las familias en las actividades pedagógicas del aula.',
-          ramas:[
-            {efecto:'Proyectos pedagógicos desconectados del contexto familiar', causa:'Dificultades de desplazamiento y horarios laborales de las familias', enfoque:'Participación y Agencia Infantil'},
-            {efecto:'Los niños replican poco lo aprendido en casa', causa:'Canales de comunicación limitados entre la institución y las familias', enfoque:'Familia y Comunidad'}
-          ]
-        }
-      ]
-    },
-    propuesta: {
-      tentative_name: '"Voces de mi Territorio": identidad cultural en la primera infancia',
-      problem_statement: 'Desconexión de los niños y niñas con las tradiciones, oficios y saberes campesinos de su territorio.',
-      general_and_specific_objectives: 'Fortalecer el vínculo identitario con el territorio mediante el reconocimiento de oficios y tradiciones familiares.',
-      beneficiary_population: '18 niños y niñas de Jardín B',
-      approaches_involved: 'Sociocultural · Intercultural · Familia y Comunidad',
-      pedagogical_strategies: 'Visitas de familiares a contar sus oficios, huerta escolar, cartografía social del territorio',
-      expected_impact: 'Mayor identidad cultural y participación activa de las familias',
-      feasibility: 'Alta — recursos naturales del entorno ya disponibles',
-      innovation_potential: 'Alto'
-    },
-    proyecto: {
-      estado: 'Enviado a revisión por parte del agente · 22 nov 2025',
-      secciones: [
-        ['Identificación del proyecto', '"Voces de mi Territorio": identidad cultural en la primera infancia — Jardín B, Jardín Infantil Los Robles.'],
-        ['Punto de partida pedagógico', 'Diagnóstico basado en la caracterización y el árbol de problematización aceptado por el profesor.'],
-        ['Propósito formativo', 'Fortalecer el reconocimiento y valoración de las tradiciones campesinas del territorio en la primera infancia.'],
-        ['Fundamentación pedagógica breve', 'Enfoque sociocultural e intercultural centrado en el vínculo familia-territorio-escuela.'],
-        ['Metodología de la experiencia pedagógica', 'Trabajo por proyectos con participación activa de las familias y el entorno natural.'],
-        ['Experiencias pedagógicas', '3 experiencias: "Cuéntame tu oficio", "Nuestra huerta escolar" y "Mapa vivo de mi vereda".'],
-        ['Evaluación, reflexión y evidencias', 'Diario de campo docente, registro fotográfico y muestra final con las familias.']
-      ]
-    },
-    simulador: [
-      {titulo:'Niño con dificultad para integrarse a juegos grupales', fecha:'15 sep 2025', resumen:'El GPT recomendó estrategias de vinculación gradual mediante juego paralelo y roles de apoyo entre pares.'},
-      {titulo:'Resistencia de una familia a participar en actividades escolares', fecha:'03 oct 2025', resumen:'Se sugirió una estrategia de acercamiento flexible en horarios y visitas domiciliarias breves.'},
-      {titulo:'Conflictos por diferencias culturales entre estudiantes', fecha:'20 oct 2025', resumen:'El documento propuso círculos de palabra y actividades de reconocimiento de la diversidad cultural del grupo.'}
-    ],
-    aulaVivaKey: 'hist-g1'
-  }
-};
-
-function roFieldRows(pairs){
-  return pairs.map(function(p){
-    return '<div class="ventana-field"><div class="k">' + p[0] + '</div><div class="v">' + p[1] + '</div></div>';
-  }).join('');
-}
-function roArbolHtml(arbol){
-  var situacionesHtml = arbol.situaciones.map(function(s, i){
-    var ramasHtml = s.ramas.map(function(r){
-      return '<div class="ro-branch"><b>Efecto:</b> ' + r.efecto + ' <span class="mono-note" style="text-transform:none;">· Causa:</span> ' + r.causa + ' <span class="pill info" style="margin-left:6px;">' + r.enfoque + '</span></div>';
-    }).join('');
-    return '<div class="ro-block"><h5>Situación ' + (i+1) + '</h5><p style="font-size:13px;margin-bottom:10px;">' + s.descripcion + '</p>' + ramasHtml + '</div>';
-  }).join('');
-  return '<div class="ventana-field" style="margin-bottom:16px;"><div class="k">Pregunta de problematización</div><div class="v">' + arbol.pregunta + '</div></div>' + situacionesHtml;
-}
-function roPropuestaHtml(p){
-  return roFieldRows([
-    ['Nombre tentativo', p.tentative_name],
-    ['Problemática', p.problem_statement],
-    ['Objetivo general y específicos', p.general_and_specific_objectives],
-    ['Población beneficiaria', p.beneficiary_population],
-    ['Enfoques involucrados', p.approaches_involved],
-    ['Estrategias pedagógicas', p.pedagogical_strategies],
-    ['Impacto esperado', p.expected_impact],
-    ['Viabilidad', p.feasibility],
-    ['Potencial de innovación', p.innovation_potential]
-  ]);
-}
-function roProyectoHtml(proyecto){
-  return proyecto.secciones.map(function(s, i){
-    return '<div class="ro-block"><h5>' + (i+1) + '. ' + s[0] + '</h5><p style="font-size:13px;">' + s[1] + '</p></div>';
-  }).join('');
-}
-function roSimuladorHtml(usos){
-  if(!usos || !usos.length) return '<p class="mono-note">Evoluciona tu aula no se usó durante este periodo.</p>';
-  return usos.map(function(u){
-    return '<div class="ro-sim-card"><div class="ro-sim-head"><b>' + u.titulo + '</b><span>' + u.fecha + '</span></div><p>' + u.resumen + '</p></div>';
-  }).join('');
-}
-function renderProyectoAulaReadOnly(g, data){
-  return '<div class="panel-head"><div><h2>Una mirada al aula</h2><p>' + g.nombre + ' · ' + g.periodo + ' · vista de solo lectura.</p></div></div>'
-    + '<div id="ro-paso-caracterizacion" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:4px;">1. Caracterización <span class="mono-note" style="text-transform:none;font-weight:500;">— 100% completa</span></h4><p class="mono-note" style="margin-bottom:12px;">Institución educativa</p>' + roFieldRows(data.caracterizacion.institucion) + '<p class="mono-note" style="margin:18px 0 12px;">Aula</p>' + roFieldRows(data.caracterizacion.aula) + '</div>'
-    + '<div id="ro-paso-arbol" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:12px;">2. Árbol de Problematización <span class="mono-note" style="text-transform:none;font-weight:500;">— ' + data.arbol.estado + '</span></h4>' + roArbolHtml(data.arbol) + '<div class="rev-hist" style="margin:22px 0 0;"><div class="rev-hist-head"><h4>Revisiones del profesor</h4><span class="pill off">' + data.arbol.revisiones.length + ' revisiones</span></div>' + revisionesHtml(data.arbol.revisiones, false) + '</div></div>'
-    + '<div id="ro-paso-propuestas" class="card ventana-card chosen" style="margin-bottom:18px;"><h4>3. Propuesta elegida por el grupo</h4>' + roPropuestaHtml(data.propuesta) + '</div>'
-    + '<div id="ro-paso-proyecto" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:14px;">4. Formato de Proyecto de Aula <span class="mono-note" style="text-transform:none;font-weight:500;">— diligenciado por el grupo</span></h4>' + roProyectoHtml(data.proyecto) + '</div>'
-    + '<div id="ro-paso-correccion" class="card"><h4 style="font-size:14.5px;margin-bottom:6px;">5. Corrección con IA</h4><p class="mono-note">' + data.proyecto.estado + '</p><p style="font-size:13px;margin-top:8px;">El grupo envió el formato a corrección con IA y recibió la versión pulida del Proyecto Pedagógico de Aula.</p></div>';
-}
-function renderSimuladorReadOnly(g, data){
-  return '<div class="panel-head"><div><h2>Evoluciona tu aula</h2><p>' + g.nombre + ' · ' + g.periodo + ' · vista de solo lectura.</p></div></div>'
-    + '<div class="card">' + roSimuladorHtml(data.simulador) + '</div>';
-}
-function renderAulaVivaReadOnly(g, data){
-  var repo = AULA_VIVA_GRUPOS[data.aulaVivaKey];
-  if(!repo){
-    return '<div class="panel-head"><div><h2>Aula Viva</h2><p>' + g.nombre + ' · vista de solo lectura.</p></div></div><div class="card"><p class="mono-note">Sin información de Aula Viva para este grupo.</p></div>';
-  }
-  return '<div class="panel-head"><div><h2>Aula Viva</h2><p>' + g.nombre + ' · ' + g.periodo + ' · vista de solo lectura.</p></div></div>'
-    + '<div class="card" style="margin-bottom:18px;"><div class="drive-section-title">Documentos del proyecto</div><div class="repo-timeline">' + repoItemsHtml(repo.documentos) + '</div></div>'
-    + '<div class="card" style="margin-bottom:18px;"><div class="drive-section-title">Producto del proyecto</div><div class="repo-timeline">' + repoItemsHtml(repo.producto) + '</div></div>'
-    + '<div class="card"><div class="drive-section-title">Evidencias del proceso</div><div class="repo-timeline">' + repoItemsHtml(repo.evidencias) + '</div></div>';
-}
-function syncFormValuesIntoAttributes(root){
-  if(!root) return;
-  root.querySelectorAll('input').forEach(function(inp){
-    if(inp.type === 'checkbox' || inp.type === 'radio'){
-      if(inp.checked) inp.setAttribute('checked','checked'); else inp.removeAttribute('checked');
-    } else {
-      inp.setAttribute('value', inp.value);
-    }
-  });
-  root.querySelectorAll('textarea').forEach(function(ta){
-    ta.textContent = ta.value;
-  });
-  root.querySelectorAll('select').forEach(function(sel){
-    Array.prototype.forEach.call(sel.options, function(opt){
-      if(opt.selected) opt.setAttribute('selected','selected'); else opt.removeAttribute('selected');
-    });
-  });
-}
-function entrarModoLecturaGrupo(id){
+function misgRepoVistaHtml(id){
   var g = MIS_GRUPOS_DATA.find(function(x){ return x.id === id; });
-  var data = GRUPO_HISTORICO_CONTENIDO[id];
-  if(!g || !data) return;
-  if(GRUPO_VIEW_ACTIVO === null){
-    ['panel-proyecto-aula','panel-simulador','panel-aula-viva'].forEach(function(pid){
-      syncFormValuesIntoAttributes(document.getElementById(pid));
-    });
-    MISG_STATE_BACKUP = {
-      proyectoAula: document.getElementById('panel-proyecto-aula').innerHTML,
-      simulador: document.getElementById('panel-simulador').innerHTML,
-      aulaViva: document.getElementById('panel-aula-viva').innerHTML
-    };
-  }
-  GRUPO_VIEW_ACTIVO = id;
-  document.getElementById('panel-proyecto-aula').innerHTML = renderProyectoAulaReadOnly(g, data);
-  document.getElementById('panel-simulador').innerHTML = renderSimuladorReadOnly(g, data);
-  document.getElementById('panel-aula-viva').innerHTML = renderAulaVivaReadOnly(g, data);
-  document.getElementById('rgb-nombre').textContent = g.nombre;
-  document.getElementById('rgb-periodo').textContent = '· ' + g.periodo;
-  document.getElementById('readonly-group-banner').classList.remove('hidden');
-  renderMisGrupos();
-  miradaVieneDelHub = false;
-  setPanel('proyecto-aula');
+  var r = MISG_REPOS[id];
+  var tabs = [{k:'todo', t:'Todo', n:misgArchivos(id).length}].concat(['documentos','producto','evidencias'].map(function(k){ return {k:k, t:AV_CARPETAS[k].nombre, n:r[k].length}; }));
+  var h = '<button type="button" class="mv-back" id="mv-back" onclick="misgCerrarRepo()"><svg class="icon"><use href="#i-arrow"/></svg>Volver a mis grupos</button>';
+  h += '<div class="mv-hero" id="mv-hero"><div class="mv-id"><span class="mv-vault"><svg class="icon"><use href="#i-unlock"/></svg></span><div><small>Repositorio del grupo · ' + (r.estado === 'completo' ? 'finalizado completo' : 'finalizado incompleto') + '</small><h3>' + g.nombre + '</h3><p>' + g.institucion + ' · ' + g.periodo + ' · finalizado el ' + fechaLarga(r.finalizado) + '</p></div></div>'
+    + '<button type="button" class="btn-dl" id="mv-dl-all" onclick="misgDescargarTodo(\'' + id + '\')"><svg class="icon"><use href="#i-download"/></svg>Descargar todo (.zip)</button></div>';
+  h += '<div class="mv-stats"><div class="mv-stat"><b>' + misgArchivos(id).length + '</b><span>archivos en total</span></div>'
+    + ['documentos','producto','evidencias'].map(function(k){ return '<div class="mv-stat ' + AV_CARPETAS[k].acc.replace('lila','lila') + '"><b>' + r[k].length + '</b><span>' + AV_CARPETAS[k].nombre.toLowerCase() + '</span></div>'; }).join('')
+    + '</div>';
+  h += '<div class="mv-tabs" id="mv-tabs">' + tabs.map(function(t){ return '<button type="button" class="mv-tab' + (MISG_REPO_TAB === t.k ? ' on' : '') + '" data-tab="' + t.k + '" onclick="misgRepoTab(\'' + t.k + '\')">' + t.t + ' <em>' + t.n + '</em></button>'; }).join('') + '</div>';
+  var delay = 0;
+  ['documentos','producto','evidencias'].forEach(function(k){
+    if(MISG_REPO_TAB !== 'todo' && MISG_REPO_TAB !== k) return;
+    var c = AV_CARPETAS[k];
+    h += '<section class="mv-sec ' + c.acc + '" data-folder="' + k + '"><div class="mv-sec-head"><span class="ico"><svg class="icon"><use href="#' + c.icon + '"/></svg></span><div><h4>' + c.nombre + '</h4><small>' + r[k].length + (r[k].length === 1 ? ' archivo' : ' archivos') + '</small></div><span class="num">' + c.num + '</span></div>';
+    if(!r[k].length){ h += '<p class="mono-note">El grupo no cargó archivos en esta carpeta.</p></section>'; return; }
+    h += '<div class="mv-grid">' + r[k].map(function(f, i){
+      var t = MISG_TIPO[f.tipo] || MISG_TIPO.doc;
+      return '<article class="mv-file" data-file="' + f.nombre + '" style="animation-delay:' + (delay++ * 55) + 'ms"><div class="mv-thumb t-' + f.tipo + '"><span class="mv-ext">' + t.label + '</span><svg class="icon"><use href="#' + t.icon + '"/></svg></div>'
+        + '<div class="mv-body"><b>' + f.nombre + '</b><span class="meta">' + f.tam + ' · ' + f.fecha + '</span><span class="meta">Cargado por ' + f.por + '</span>'
+        + '<div class="mv-dl"><button type="button" onclick="misgDescargar(\'' + id + '\',\'' + k + '\',' + i + ',this)"><svg class="icon"><use href="#i-download"/></svg>Descargar</button></div></div></article>';
+    }).join('') + '</div></section>';
+  });
+  return h;
 }
-function salirModoLecturaGrupo(){
-  if(GRUPO_VIEW_ACTIVO === null) return;
-  GRUPO_VIEW_ACTIVO = null;
-  if(MISG_STATE_BACKUP){
-    document.getElementById('panel-proyecto-aula').innerHTML = MISG_STATE_BACKUP.proyectoAula;
-    document.getElementById('panel-simulador').innerHTML = MISG_STATE_BACKUP.simulador;
-    document.getElementById('panel-aula-viva').innerHTML = MISG_STATE_BACKUP.aulaViva;
-  }
-  document.getElementById('readonly-group-banner').classList.add('hidden');
+function misgVerRepo(id){
+  if(!MISG_REPOS[id]) return;
+  MISG_REPO_ABIERTO = id; MISG_REPO_TAB = 'todo';
   renderMisGrupos();
-  renderMiradaAula();
+  document.querySelector('.content').scrollTop = 0;
+}
+function misgCerrarRepo(){
+  MISG_REPO_ABIERTO = null;
+  renderMisGrupos();
+}
+function misgRepoTab(k){
+  MISG_REPO_TAB = k;
+  renderMisGrupos();
+}
+/* descarga de demostración: genera un archivo de ejemplo con el nombre real; en producción se sirve el archivo cargado por el grupo */
+function misgBajarBlob(blob, nombre){
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = nombre;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+}
+function misgContenidoDemo(f, g){
+  return 'DiversIA · archivo de demostración del prototipo\n\nArchivo: ' + f.nombre + '\nGrupo: ' + g.nombre + ' (' + g.periodo + ')\nCargado por: ' + f.por + ' el ' + f.fecha + '\n\nEn producción aquí se entrega el archivo original cargado por el grupo.\n';
+}
+function misgDescargar(id, k, i, btn){
+  var g = MIS_GRUPOS_DATA.find(function(x){ return x.id === id; });
+  var f = MISG_REPOS[id][k][i];
+  if(!g || !f) return;
+  misgBajarBlob(new Blob([misgContenidoDemo(f, g)], {type:'text/plain;charset=utf-8'}), f.nombre);
+  if(btn){ btn.classList.add('done'); btn.innerHTML = '<svg class="icon"><use href="#i-check"/></svg>Descargado'; }
+  toast('Descarga iniciada: ' + f.nombre + ' (archivo de ejemplo del prototipo)');
+}
+function misgCrc32(bytes){
+  var t = misgCrc32.tabla;
+  if(!t){ t = misgCrc32.tabla = []; for(var n = 0; n < 256; n++){ var c = n; for(var j = 0; j < 8; j++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; } }
+  var crc = 0xFFFFFFFF;
+  for(var i = 0; i < bytes.length; i++) crc = t[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+function misgZip(archivos){   // ZIP sin compresión (store)
+  var enc = new TextEncoder(), partes = [], central = [], off = 0;
+  var u16 = function(n){ return [n & 255, (n >> 8) & 255]; }, u32 = function(n){ return [n & 255, (n >> 8) & 255, (n >> 16) & 255, (n >>> 24) & 255]; };
+  archivos.forEach(function(a){
+    var nom = enc.encode(a.nombre), dat = enc.encode(a.contenido), crc = misgCrc32(dat);
+    var lh = [0x50,0x4B,0x03,0x04].concat(u16(20), u16(0x0800), u16(0), u16(0), u16(0x21), u32(crc), u32(dat.length), u32(dat.length), u16(nom.length), u16(0));
+    partes.push(new Uint8Array(lh), nom, dat);
+    central.push({nom:nom, crc:crc, len:dat.length, off:off});
+    off += lh.length + nom.length + dat.length;
+  });
+  var cdIni = off, cdTam = 0;
+  central.forEach(function(c){
+    var ch = [0x50,0x4B,0x01,0x02].concat(u16(20), u16(20), u16(0x0800), u16(0), u16(0), u16(0x21), u32(c.crc), u32(c.len), u32(c.len), u16(c.nom.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(c.off));
+    partes.push(new Uint8Array(ch), c.nom); cdTam += ch.length + c.nom.length;
+  });
+  partes.push(new Uint8Array([0x50,0x4B,0x05,0x06].concat(u16(0), u16(0), u16(central.length), u16(central.length), u32(cdTam), u32(cdIni), u16(0))));
+  return new Blob(partes, {type:'application/zip'});
+}
+function misgDescargarTodo(id){
+  var g = MIS_GRUPOS_DATA.find(function(x){ return x.id === id; });
+  var r = MISG_REPOS[id];
+  if(!g || !r) return;
+  var arch = misgArchivos(id).map(function(x){ return {nombre: AV_CARPETAS[x.carpeta].nombre + '/' + x.f.nombre, contenido: misgContenidoDemo(x.f, g)}; });
+  misgBajarBlob(misgZip(arch), 'Repositorio_' + g.nombre.split(' — ')[0].replace(/\s+/g, '') + '_' + g.periodo.split(' ')[0] + '.zip');
+  toast('Descargando ' + arch.length + ' archivos en un .zip (archivos de ejemplo del prototipo)');
 }
 
 /* ---- votación grupal de la propuesta: todos los integrantes deben coincidir ---- */
@@ -3436,7 +3378,7 @@ function ventanaBannerHtml(code, nota){
     + '</div>';
 }
 function ventanaAbierta(code){
-  if((window.__role || 'estudiante') !== 'estudiante' || GRUPO_VIEW_ACTIVO !== null) return true;
+  if((window.__role || 'estudiante') !== 'estudiante') return true;
   var v = ventanaAct(code);
   if(!v || v.estado === 'open') return true;
   toast(v.estado === 'pending'
@@ -3458,7 +3400,6 @@ function bloquearSeccion(sec, on){
   });
 }
 function renderVentanasMirada(){
-  if(GRUPO_VIEW_ACTIVO !== null) return;
   var est = miradaEstados(true);
   document.querySelectorAll('.substep-section[data-sub]').forEach(function(sec){
     var code = MIRADA_ACT[sec.dataset.sub];
@@ -3816,7 +3757,7 @@ function avRepoHtml(reveal){
   return h;
 }
 function renderAulaViva(reveal){
-  if(GRUPO_VIEW_ACTIVO !== null || avAbriendo) return;
+  if(avAbriendo) return;
   var root = document.getElementById('av-root');
   if(!root) return;
   var v = ventanaAct('ACT-EVIDENCIAS');
