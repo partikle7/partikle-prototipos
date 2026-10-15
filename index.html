@@ -3089,11 +3089,21 @@ function misgRepoTab(k){
 }
 /* descarga de demostración: genera un archivo de ejemplo con el nombre real; en producción se sirve el archivo cargado por el grupo */
 function misgBajarBlob(blob, nombre){
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url; a.download = nombre;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+  var directo = function(){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = nombre;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+  };
+  // dentro del visor de Artifacts la descarga pasa por la capacidad "downloads"; en GitHub Pages o en el PC, descarga directa
+  if(window.claude && typeof window.claude.use === 'function'){
+    window.claude.use('downloads').then(function(d){
+      if(d) d.save({filename:nombre, data:blob}).catch(function(){}); else directo();
+    }).catch(directo);
+    return;
+  }
+  directo();
 }
 function misgContenidoDemo(f, g){
   return 'DiversIA · archivo de demostración del prototipo\n\nArchivo: ' + f.nombre + '\nGrupo: ' + g.nombre + ' (' + g.periodo + ')\nCargado por: ' + f.por + ' el ' + f.fecha + '\n\nEn producción aquí se entrega el archivo original cargado por el grupo.\n';
