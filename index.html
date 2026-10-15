@@ -303,6 +303,14 @@ footer.site-footer{border-top:1px solid var(--border-soft);padding:26px 0 40px;f
 .mv-hero .btn-dl{background:#fff;color:#3b2d86;border:0;border-radius:14px;padding:12px 18px;font:inherit;font-weight:800;font-size:13.5px;display:inline-flex;align-items:center;gap:9px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.22);transition:transform .15s;}
 .mv-hero .btn-dl:hover{transform:translateY(-2px);}
 .mv-hero .btn-dl .icon{width:17px;height:17px;}
+.mv-zip{flex-basis:100%;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.26);border-radius:16px;padding:14px 18px;backdrop-filter:blur(6px);}
+.mv-zip .mz-top{display:flex;justify-content:space-between;gap:12px;font-size:13px;font-weight:700;margin-bottom:9px;}
+.mv-zip .mz-top span:last-child{opacity:.85;font-variant-numeric:tabular-nums;}
+.mv-zip .mz-bar{height:9px;border-radius:99px;background:rgba(255,255,255,.2);overflow:hidden;}
+.mv-zip .mz-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#c5f07f,#fbe985);transition:width .3s ease;}
+.mv-zip .mz-file{display:block;margin-top:8px;font-size:12px;opacity:.78;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mv-zip.done .mz-bar i{background:#c5f07f;}
+.mv-hero .btn-dl:disabled{opacity:.65;cursor:progress;transform:none;}
 .mv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0 22px;}
 .mv-stat{border:1px solid var(--border-soft);background:var(--panel);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;}
 .mv-stat b{font-size:22px;line-height:1.1;}
@@ -3053,7 +3061,7 @@ function misgRepoVistaHtml(id){
   var tabs = [{k:'todo', t:'Todo', n:misgArchivos(id).length}].concat(['documentos','producto','evidencias'].map(function(k){ return {k:k, t:AV_CARPETAS[k].nombre, n:r[k].length}; }));
   var h = '<button type="button" class="mv-back" id="mv-back" onclick="misgCerrarRepo()"><svg class="icon"><use href="#i-arrow"/></svg>Volver a mis grupos</button>';
   h += '<div class="mv-hero" id="mv-hero"><div class="mv-id"><span class="mv-vault"><svg class="icon"><use href="#i-unlock"/></svg></span><div><small>Repositorio del grupo · ' + (r.estado === 'completo' ? 'finalizado completo' : 'finalizado incompleto') + '</small><h3>' + g.nombre + '</h3><p>' + g.institucion + ' · ' + g.periodo + ' · finalizado el ' + fechaLarga(r.finalizado) + '</p></div></div>'
-    + '<button type="button" class="btn-dl" id="mv-dl-all" onclick="misgDescargarTodo(\'' + id + '\')"><svg class="icon"><use href="#i-download"/></svg>Descargar todo (.zip)</button></div>';
+    + '<button type="button" class="btn-dl" id="mv-dl-all" onclick="misgDescargarTodo(\'' + id + '\')"' + (MISG_ZIP ? ' disabled' : '') + '><svg class="icon"><use href="#i-download"/></svg>Descargar todo (.zip)</button>' + misgZipHtml() + '</div>';
   h += '<div class="mv-stats"><div class="mv-stat"><b>' + misgArchivos(id).length + '</b><span>archivos en total</span></div>'
     + ['documentos','producto','evidencias'].map(function(k){ return '<div class="mv-stat ' + AV_CARPETAS[k].acc.replace('lila','lila') + '"><b>' + r[k].length + '</b><span>' + AV_CARPETAS[k].nombre.toLowerCase() + '</span></div>'; }).join('')
     + '</div>';
@@ -3141,13 +3149,54 @@ function misgZip(archivos){   // ZIP sin compresión (store)
   partes.push(new Uint8Array([0x50,0x4B,0x05,0x06].concat(u16(0), u16(0), u16(central.length), u16(central.length), u32(cdTam), u32(cdIni), u16(0))));
   return new Blob(partes, {type:'application/zip'});
 }
+var MISG_ZIP = null;   // {pct, fase:'comprimiendo'|'listo', n, total, nombre}
+function misgZipHtml(){
+  if(!MISG_ZIP) return '';
+  var z = MISG_ZIP, listo = z.fase === 'listo';
+  return '<div class="mv-zip' + (listo ? ' done' : '') + '" id="mv-zip" role="status"><div class="mz-top"><span id="mz-txt">' + (listo ? 'Listo · el .zip se está descargando' : 'Comprimiendo archivos…') + '</span><span id="mz-pct">' + z.pct + '%</span></div>'
+    + '<div class="mz-bar"><i id="mz-fill" style="width:' + z.pct + '%"></i></div><span class="mz-file" id="mz-file">' + (listo ? z.total + ' archivos en ' + z.zip : 'Archivo ' + z.n + ' de ' + z.total + ' · ' + z.nombre) + '</span></div>';
+}
+function misgZipPintar(){
+  var z = MISG_ZIP, hero = document.getElementById('mv-hero');
+  if(!hero) return;
+  var cur = document.getElementById('mv-zip');
+  var btn = document.getElementById('mv-dl-all');
+  if(btn) btn.disabled = !!z;
+  if(!z){ if(cur) cur.remove(); return; }
+  if(!cur){ hero.insertAdjacentHTML('beforeend', misgZipHtml()); return; }
+  cur.classList.toggle('done', z.fase === 'listo');
+  document.getElementById('mz-txt').textContent = z.fase === 'listo' ? 'Listo · el .zip se está descargando' : 'Comprimiendo archivos…';
+  document.getElementById('mz-pct').textContent = z.pct + '%';
+  document.getElementById('mz-fill').style.width = z.pct + '%';
+  document.getElementById('mz-file').textContent = z.fase === 'listo' ? z.total + ' archivos en ' + z.zip : 'Archivo ' + z.n + ' de ' + z.total + ' · ' + z.nombre;
+}
 function misgDescargarTodo(id){
   var g = MIS_GRUPOS_DATA.find(function(x){ return x.id === id; });
   var r = MISG_REPOS[id];
-  if(!g || !r) return;
-  var arch = misgArchivos(id).map(function(x){ return {nombre: AV_CARPETAS[x.carpeta].nombre + '/' + x.f.nombre, contenido: misgContenidoDemo(x.f, g)}; });
-  misgBajarBlob(misgZip(arch), 'Repositorio_' + g.nombre.split(' — ')[0].replace(/\s+/g, '') + '_' + g.periodo.split(' ')[0] + '.zip');
-  toast('Descargando ' + arch.length + ' archivos en un .zip (archivos de ejemplo del prototipo)');
+  if(!g || !r || MISG_ZIP) return;
+  var lista = misgArchivos(id);
+  var zipNombre = 'Repositorio_' + g.nombre.split(' — ')[0].replace(/\s+/g, '') + '_' + g.periodo.split(' ')[0] + '.zip';
+  var paso = 0, total = lista.length;
+  MISG_ZIP = {pct:0, fase:'comprimiendo', n:1, total:total, nombre:lista[0].f.nombre, zip:zipNombre};
+  misgZipPintar();
+  (function siguiente(){
+    var x = lista[paso];
+    MISG_ZIP.n = paso + 1; MISG_ZIP.nombre = x.f.nombre;
+    MISG_ZIP.pct = Math.round(paso / total * 100);
+    misgZipPintar();
+    setTimeout(function(){
+      paso++;
+      MISG_ZIP.pct = Math.round(paso / total * 100);
+      misgZipPintar();
+      if(paso < total){ siguiente(); return; }
+      var arch = lista.map(function(y){ return {nombre: AV_CARPETAS[y.carpeta].nombre + '/' + y.f.nombre, contenido: misgContenidoDemo(y.f, g)}; });
+      MISG_ZIP.fase = 'listo'; MISG_ZIP.pct = 100;
+      misgZipPintar();
+      misgBajarBlob(misgZip(arch), zipNombre);
+      toast('Descargando ' + total + ' archivos en un .zip (archivos de ejemplo del prototipo)');
+      setTimeout(function(){ MISG_ZIP = null; misgZipPintar(); }, 2600);
+    }, 330);
+  })();
 }
 
 /* ---- votación grupal de la propuesta: todos los integrantes deben coincidir ---- */
