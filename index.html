@@ -631,6 +631,29 @@ tbody tr:hover{background:var(--bg-soft);}
 .modal-form h3{font-size:18px;margin-bottom:6px;}
 .modal-form p.sub{font-size:13px;margin-bottom:18px;}
 
+/* ---------- recuperar contraseña ---------- */
+.rec-link{display:block;text-align:right;font-size:12.5px;font-weight:700;margin-top:10px;color:var(--purple-ink);cursor:pointer;text-decoration:underline;background:none;border:0;margin-left:auto;font-family:inherit;}
+#modal-recuperar .modal-box{max-width:440px;}
+.rec-ico{width:54px;height:54px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(142,127,240,.2),rgba(238,127,229,.18));color:var(--purple-ink);margin-bottom:16px;}
+.rec-ico .icon{width:24px;height:24px;}
+.rec-step{display:none;}
+.rec-step.on{display:block;animation:recIn .3s both;}
+@keyframes recIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.rec-err{min-height:18px;font-size:12.5px;font-weight:600;color:#c0392b;margin-top:8px;}
+.rec-mail{font-weight:800;color:var(--ink);word-break:break-all;}
+.otp{display:flex;gap:10px;justify-content:center;margin:22px 0 4px;}
+.otp-box{width:48px;height:58px;border:1.5px solid var(--border);border-radius:14px;background:var(--panel);text-align:center;font:inherit;font-size:24px;font-weight:800;color:var(--ink);caret-color:var(--purple);transition:border-color .15s,box-shadow .15s,transform .15s;padding:0;}
+.otp-box:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 4px rgba(142,127,240,.2);transform:translateY(-2px);}
+.otp-box.fill{border-color:var(--purple);background:rgba(142,127,240,.08);}
+.otp.error .otp-box{border-color:#c0392b;background:rgba(192,57,43,.06);animation:otpShake .35s;}
+@keyframes otpShake{25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+.rec-actions{display:flex;flex-direction:column;gap:10px;margin-top:18px;}
+.rec-sub-actions{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12.5px;margin-top:4px;}
+.rec-sub-actions button{background:none;border:0;padding:4px 0;font:inherit;font-weight:700;color:var(--purple-ink);cursor:pointer;text-decoration:underline;}
+.rec-sub-actions button:disabled{color:var(--muted2);text-decoration:none;cursor:default;}
+.rec-demo{font-size:11.5px;color:var(--muted2);text-align:center;margin-top:12px;}
+@media(max-width:420px){.otp{gap:6px;}.otp-box{width:42px;height:52px;font-size:21px;}}
+
 /* ---------- estilo tipo Drive (aula viva / repositorio) ---------- */
 .drive-crumb{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted2);font-weight:700;margin-bottom:18px;}
 .drive-crumb span{cursor:pointer;}
@@ -936,6 +959,7 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
 <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
 <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></symbol>
 <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
 <symbol id="i-unlock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.6-1.7"/></symbol>
 <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
 <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
@@ -1023,6 +1047,7 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
         <input class="input" type="email" placeholder="nombre.apellido@americana.edu.co" value="partikle7@americana.edu.co" required>
         <label>Contraseña</label>
         <input class="input" type="password" placeholder="••••••••" value="••••••••" required>
+        <button type="button" class="rec-link" id="rec-open" onclick="recAbrir()">¿Olvidaste tu contraseña?</button>
         <button class="btn btn-primary" style="width:100%;margin-top:22px;" type="submit">Ingresar <svg class="icon" style="width:15px;height:15px;stroke:#171034"><use href="#i-arrow"/></svg></button>
       </form>
       <p style="font-size:12.5px;text-align:center;margin-top:18px;">¿Eres estudiante y no tienes cuenta? <a onclick="go('registro')" style="cursor:pointer;text-decoration:underline;font-weight:700;color:var(--purple-ink);">Regístrate aquí</a></p>
@@ -2445,6 +2470,48 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
       </div>
 
     </main>
+  </div>
+</div>
+
+<!-- ================= RECUPERAR CONTRASEÑA (3 pasos) ================= -->
+<div class="modal-overlay hidden" id="modal-recuperar" role="dialog" aria-modal="true" aria-labelledby="rec-titulo" onclick="if(event.target===this) recCerrar()">
+  <div class="modal-box">
+    <button type="button" class="modal-close" aria-label="Cerrar" onclick="recCerrar()"><svg class="icon" style="width:15px;height:15px"><use href="#i-x"/></svg></button>
+    <div class="modal-form">
+      <!-- 1. solo el correo -->
+      <form class="rec-step" id="rec-step-1" onsubmit="event.preventDefault(); recEnviarCodigo();">
+        <div class="rec-ico"><svg class="icon"><use href="#i-mail"/></svg></div>
+        <h3 id="rec-titulo">Recupera tu contraseña</h3>
+        <p class="sub">Escribe el correo de tu cuenta y te enviaremos un código de confirmación.</p>
+        <label for="rec-email">Correo electrónico</label>
+        <input class="input" type="email" id="rec-email" placeholder="nombre.apellido@americana.edu.co" autocomplete="email">
+        <div class="rec-err" id="rec-err-1" role="alert"></div>
+        <div class="rec-actions"><button class="btn btn-primary" type="submit" id="rec-enviar">Enviar código</button></div>
+      </form>
+      <!-- 2. solo el código, en 6 casillas -->
+      <form class="rec-step" id="rec-step-2" onsubmit="event.preventDefault(); recVerificar();">
+        <div class="rec-ico"><svg class="icon"><use href="#i-check"/></svg></div>
+        <h3>Ingresa el código</h3>
+        <p class="sub" id="rec-copy">Hemos enviado un código de confirmación de 6 dígitos al correo <span class="rec-mail" id="rec-mail-mask"></span></p>
+        <div class="otp" id="rec-otp" role="group" aria-label="Código de confirmación de 6 dígitos"></div>
+        <div class="rec-err" id="rec-err-2" role="alert" style="text-align:center;"></div>
+        <div class="rec-actions"><button class="btn btn-primary" type="submit" id="rec-verificar" disabled>Verificar código</button></div>
+        <div class="rec-sub-actions"><button type="button" id="rec-reenviar" onclick="recReenviar()">Reenviar código</button><button type="button" id="rec-otro" onclick="recPaso(1)">Usar otro correo</button></div>
+        <p class="rec-demo">(demo) El código de este prototipo es 123456</p>
+      </form>
+      <!-- 3. nueva contraseña -->
+      <form class="rec-step" id="rec-step-3" onsubmit="event.preventDefault(); recGuardar();">
+        <div class="rec-ico"><svg class="icon"><use href="#i-lock"/></svg></div>
+        <h3>Crea tu nueva contraseña</h3>
+        <p class="sub">Código verificado. Elige una contraseña de al menos 8 caracteres.</p>
+        <label for="rec-pass1">Nueva contraseña</label>
+        <input class="input" type="password" id="rec-pass1" placeholder="••••••••" autocomplete="new-password">
+        <label for="rec-pass2" style="margin-top:12px;display:block;">Confirmar contraseña</label>
+        <input class="input" type="password" id="rec-pass2" placeholder="••••••••" autocomplete="new-password">
+        <div class="rec-err" id="rec-err-3" role="alert"></div>
+        <div class="rec-actions"><button class="btn btn-primary" type="submit">Guardar contraseña</button></div>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -4395,6 +4462,134 @@ renderPeriodos();
 initActividadesPanel();
 renderVotacion();
 go('landing');
+
+/* ---- recuperar contraseña: 1) correo → 2) código en 6 casillas → 3) nueva contraseña ---- */
+var REC_CODIGO_DEMO = '123456';
+var recEmail = '';
+var recTimer = null;
+function recEnmascarar(email){
+  var p = String(email).trim().split('@'), loc = p[0] || '', dom = p.slice(1).join('@');
+  var n = loc.length, vis;
+  if(n <= 2) vis = loc.charAt(0) + '*'.repeat(Math.max(n - 1, 1));
+  else if(n <= 5) vis = loc.charAt(0) + '*'.repeat(n - 2) + loc.charAt(n - 1);
+  else vis = loc.slice(0, 3) + '*'.repeat(n - 5) + loc.slice(-2);
+  return vis + '@' + dom;
+}
+function recPaso(n){
+  [1,2,3].forEach(function(i){ document.getElementById('rec-step-' + i).classList.toggle('on', i === n); });
+  var foco = {1:'rec-email', 2:null, 3:'rec-pass1'}[n];
+  if(n === 2){ var b = document.querySelector('#rec-otp .otp-box'); if(b) b.focus(); }
+  else if(foco) setTimeout(function(){ var el = document.getElementById(foco); if(el) el.focus(); }, 50);
+  if(n !== 2 && recTimer){ clearInterval(recTimer); recTimer = null; }
+}
+function recAbrir(){
+  recEmail = '';
+  document.getElementById('rec-email').value = '';
+  ['rec-err-1','rec-err-2','rec-err-3'].forEach(function(id){ document.getElementById(id).textContent = ''; });
+  document.getElementById('rec-pass1').value = ''; document.getElementById('rec-pass2').value = '';
+  recArmarOtp();
+  document.getElementById('modal-recuperar').classList.remove('hidden');
+  recPaso(1);
+}
+function recCerrar(){
+  document.getElementById('modal-recuperar').classList.add('hidden');
+  if(recTimer){ clearInterval(recTimer); recTimer = null; }
+}
+function recEnviarCodigo(){
+  var v = document.getElementById('rec-email').value.trim();
+  var err = document.getElementById('rec-err-1');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){ err.textContent = 'Escribe un correo electrónico válido.'; return; }
+  err.textContent = '';
+  recEmail = v;
+  document.getElementById('rec-mail-mask').textContent = recEnmascarar(v);
+  recArmarOtp();
+  recPaso(2);
+  recIniciarReenvio();
+}
+function recArmarOtp(){
+  var box = document.getElementById('rec-otp');
+  box.classList.remove('error');
+  var h = '';
+  for(var i = 0; i < 6; i++) h += '<input class="otp-box" type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" data-i="' + i + '" autocomplete="' + (i === 0 ? 'one-time-code' : 'off') + '" aria-label="Dígito ' + (i + 1) + ' de 6">';
+  box.innerHTML = h;
+  document.getElementById('rec-verificar').disabled = true;
+  document.getElementById('rec-err-2').textContent = '';
+}
+function recOtpValor(){
+  return Array.prototype.map.call(document.querySelectorAll('#rec-otp .otp-box'), function(b){ return b.value; }).join('');
+}
+function recOtpActualizar(){
+  var cajas = document.querySelectorAll('#rec-otp .otp-box');
+  cajas.forEach(function(b){ b.classList.toggle('fill', !!b.value); });
+  document.getElementById('rec-verificar').disabled = recOtpValor().length !== 6;
+  document.getElementById('rec-otp').classList.remove('error');
+  document.getElementById('rec-err-2').textContent = '';
+}
+function recIniciarReenvio(){
+  var btn = document.getElementById('rec-reenviar'), seg = 30;
+  if(recTimer) clearInterval(recTimer);
+  btn.disabled = true; btn.textContent = 'Reenviar código en ' + seg + ' s';
+  recTimer = setInterval(function(){
+    seg--;
+    if(seg <= 0){ clearInterval(recTimer); recTimer = null; btn.disabled = false; btn.textContent = 'Reenviar código'; }
+    else btn.textContent = 'Reenviar código en ' + seg + ' s';
+  }, 1000);
+}
+function recReenviar(){
+  recArmarOtp();
+  recIniciarReenvio();
+  var b = document.querySelector('#rec-otp .otp-box'); if(b) b.focus();
+  toast('Te enviamos un nuevo código a ' + recEnmascarar(recEmail));
+}
+function recVerificar(){
+  var cod = recOtpValor();
+  if(cod.length !== 6) return;
+  if(cod !== REC_CODIGO_DEMO){
+    document.getElementById('rec-otp').classList.add('error');
+    document.getElementById('rec-err-2').textContent = 'El código no es correcto. Revísalo e inténtalo de nuevo.';
+    return;
+  }
+  recPaso(3);
+}
+function recGuardar(){
+  var a = document.getElementById('rec-pass1').value, b = document.getElementById('rec-pass2').value;
+  var err = document.getElementById('rec-err-3');
+  if(a.length < 8){ err.textContent = 'La contraseña debe tener al menos 8 caracteres.'; return; }
+  if(a !== b){ err.textContent = 'Las contraseñas no coinciden.'; return; }
+  recCerrar();
+  toast('Contraseña actualizada. Ya puedes iniciar sesión.');
+}
+(function(){
+  var cont = document.getElementById('rec-otp');
+  if(!cont) return;
+  var cajas = function(){ return cont.querySelectorAll('.otp-box'); };
+  cont.addEventListener('input', function(e){
+    var t = e.target; if(!t.classList.contains('otp-box')) return;
+    var d = t.value.replace(/\D/g, '');
+    t.value = d.slice(-1);
+    recOtpActualizar();
+    var i = +t.dataset.i;
+    if(t.value && i < 5) cajas()[i + 1].focus();
+  });
+  cont.addEventListener('keydown', function(e){
+    var t = e.target; if(!t.classList.contains('otp-box')) return;
+    var i = +t.dataset.i;
+    if(e.key === 'Backspace' && !t.value && i > 0){ cajas()[i - 1].value = ''; cajas()[i - 1].focus(); recOtpActualizar(); e.preventDefault(); }
+    else if(e.key === 'ArrowLeft' && i > 0){ cajas()[i - 1].focus(); e.preventDefault(); }
+    else if(e.key === 'ArrowRight' && i < 5){ cajas()[i + 1].focus(); e.preventDefault(); }
+  });
+  cont.addEventListener('paste', function(e){
+    var txt = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+    if(!txt) return;
+    e.preventDefault();
+    var cs = cajas();
+    for(var k = 0; k < 6; k++) cs[k].value = txt.charAt(k) || '';
+    recOtpActualizar();
+    cs[Math.min(txt.length, 5)].focus();
+  });
+  cont.addEventListener('focusin', function(e){ if(e.target.classList.contains('otp-box')) e.target.select(); });
+})();
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !document.getElementById('modal-recuperar').classList.contains('hidden')) recCerrar(); });
 </script>
 </body>
 </html>
