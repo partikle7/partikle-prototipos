@@ -4465,6 +4465,8 @@ go('landing');
 
 /* ---- recuperar contraseña: 1) correo → 2) código en 6 casillas → 3) nueva contraseña ---- */
 var REC_CODIGO_DEMO = '123456';
+var REC_AUTOFILL = true;      // demo: los datos del flujo se rellenan solos para no tener que escribir
+var REC_PASS_DEMO = 'NuevaClave2026';
 var recEmail = '';
 var recTimer = null;
 function recEnmascarar(email){
@@ -4484,7 +4486,8 @@ function recPaso(n){
 }
 function recAbrir(){
   recEmail = '';
-  document.getElementById('rec-email').value = '';
+  var login = document.querySelector('#screen-login input[type=email]');
+  document.getElementById('rec-email').value = REC_AUTOFILL ? ((login && login.value) || 'partikle7@americana.edu.co') : '';
   ['rec-err-1','rec-err-2','rec-err-3'].forEach(function(id){ document.getElementById(id).textContent = ''; });
   document.getElementById('rec-pass1').value = ''; document.getElementById('rec-pass2').value = '';
   recArmarOtp();
@@ -4505,6 +4508,7 @@ function recEnviarCodigo(){
   recArmarOtp();
   recPaso(2);
   recIniciarReenvio();
+  recAutollenarCodigo();
 }
 function recArmarOtp(){
   var box = document.getElementById('rec-otp');
@@ -4514,6 +4518,18 @@ function recArmarOtp(){
   box.innerHTML = h;
   document.getElementById('rec-verificar').disabled = true;
   document.getElementById('rec-err-2').textContent = '';
+}
+function recAutollenarCodigo(){
+  if(!REC_AUTOFILL) return;
+  var i = 0, cajas = document.querySelectorAll('#rec-otp .otp-box');
+  (function paso(){
+    if(i >= 6 || document.getElementById('modal-recuperar').classList.contains('hidden')) return;
+    var c = document.querySelectorAll('#rec-otp .otp-box');
+    if(c !== cajas && c[0] !== cajas[0]) return;   // se rearmó el campo: otro llenado se encarga
+    c[i].value = REC_CODIGO_DEMO.charAt(i); i++;
+    recOtpActualizar();
+    if(i < 6) setTimeout(paso, 110); else document.getElementById('rec-verificar').focus();
+  })();
 }
 function recOtpValor(){
   return Array.prototype.map.call(document.querySelectorAll('#rec-otp .otp-box'), function(b){ return b.value; }).join('');
@@ -4538,6 +4554,7 @@ function recIniciarReenvio(){
 function recReenviar(){
   recArmarOtp();
   recIniciarReenvio();
+  recAutollenarCodigo();
   var b = document.querySelector('#rec-otp .otp-box'); if(b) b.focus();
   toast('Te enviamos un nuevo código a ' + recEnmascarar(recEmail));
 }
@@ -4550,6 +4567,7 @@ function recVerificar(){
     return;
   }
   recPaso(3);
+  if(REC_AUTOFILL){ document.getElementById('rec-pass1').value = REC_PASS_DEMO; document.getElementById('rec-pass2').value = REC_PASS_DEMO; }
 }
 function recGuardar(){
   var a = document.getElementById('rec-pass1').value, b = document.getElementById('rec-pass2').value;
