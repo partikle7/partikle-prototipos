@@ -616,6 +616,51 @@ tbody tr:hover{background:var(--bg-soft);}
 .filter-row .input{max-width:280px;}
 .mini-bar{width:56px;height:5px;border-radius:100px;background:rgba(25,22,40,0.1);overflow:hidden;}
 .mini-bar>span{display:block;height:100%;}
+.tag-new{background:rgba(142,127,240,0.18);color:var(--purple-ink);}
+
+/* ============ Auditoría (bitácora de actividad) ============ */
+.aud-log-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.aud-log-kpi{background:var(--panel);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:16px 18px;display:flex;align-items:center;gap:13px;}
+.aud-log-kpi .alk-ico{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.aud-log-kpi .alk-ico svg{width:18px;height:18px;}
+.aud-log-kpi .alk-v{font-size:22px;font-weight:700;line-height:1.1;color:var(--ink);}
+.aud-log-kpi .alk-l{font-size:12px;color:var(--muted);margin-top:2px;}
+@media(max-width:900px){.aud-log-kpis{grid-template-columns:repeat(2,1fr);}}
+
+.aud-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px;}
+.aud-toolbar .input{max-width:260px;}
+.aud-toolbar .sel{max-width:190px;}
+.aud-chips{display:flex;gap:7px;flex-wrap:wrap;margin-left:auto;}
+.aud-chip{border:1px solid var(--border);background:var(--panel);color:var(--muted);font-size:12px;font-weight:700;padding:7px 13px;border-radius:100px;cursor:pointer;font-family:inherit;transition:background .15s,color .15s,border-color .15s;}
+.aud-chip:hover{background:var(--bg-soft);}
+.aud-chip.active{background:var(--purple-ink);border-color:var(--purple-ink);color:#fff;}
+.aud-vista-toggle{display:flex;gap:6px;background:var(--bg-soft);border:1px solid var(--border-soft);border-radius:100px;padding:3px;}
+.aud-vista-toggle button{border-radius:100px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--muted);font-family:inherit;}
+.aud-vista-toggle button.active{background:var(--panel);color:var(--ink);box-shadow:var(--shadow-sm);}
+
+.aud-legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:18px;padding:12px 16px;border-radius:var(--radius-sm);background:var(--bg-soft);border:1px solid var(--border-soft);}
+.aud-legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);}
+.aud-legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+
+.aud-feed{position:relative;}
+.aud-day{margin-bottom:26px;}
+.aud-day:last-child{margin-bottom:0;}
+.aud-day-label{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted2);margin-bottom:12px;padding-left:2px;}
+.aud-item{display:flex;gap:14px;position:relative;padding-bottom:18px;}
+.aud-item::before{content:'';position:absolute;left:18px;top:38px;bottom:-4px;width:2px;background:var(--border-soft);}
+.aud-day .aud-item:last-child::before{display:none;}
+.aud-ico{width:37px;height:37px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;box-shadow:0 0 0 4px var(--panel);}
+.aud-ico svg{width:17px;height:17px;}
+.aud-card{flex:1;background:var(--panel);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:13px 16px;min-width:0;}
+.aud-card-top{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:5px;}
+.aud-actor{font-weight:700;font-size:13.5px;color:var(--ink);}
+.aud-time{margin-left:auto;font-size:11.5px;color:var(--muted2);white-space:nowrap;}
+.aud-desc{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:9px;}
+.aud-desc b{color:var(--ink);font-weight:600;}
+.aud-meta-row{display:flex;flex-wrap:wrap;gap:8px;}
+.aud-meta-pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted2);background:var(--bg-soft);border:1px solid var(--border-soft);padding:4px 10px;border-radius:100px;}
+.aud-meta-pill svg{width:11px;height:11px;}
+.aud-empty{text-align:center;padding:50px 20px;color:var(--muted);font-size:13.5px;}
 
 /* profesor revisión detail */
 .revision-tree{border:1px solid var(--border-soft);border-radius:var(--radius);padding:22px;background:var(--bg-soft);}
@@ -1038,6 +1083,8 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
 <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
 <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
 <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+<symbol id="i-pulse" viewBox="0 0 24 24"><path d="M2 12h4l2.2-7 3.6 14L14.4 9l1.8 3H22"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.1 7-11.5A7 7 0 0 0 5 9.5C5 14.9 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.4"/></symbol>
 </defs>
 </svg>
 
@@ -1206,6 +1253,7 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
     <button class="nav-item" data-role="profesor,coordinador,admin" data-panel="admin-grupos" onclick="setPanel('admin-grupos')"><svg class="icon"><use href="#i-users"/></svg> Grupos de proyecto</button>
     <button class="nav-item" data-role="profesor,coordinador,admin" data-panel="staff-aula-viva" onclick="setPanel('staff-aula-viva')"><svg class="icon"><use href="#i-folder"/></svg> Aula Viva de los grupos</button>
     <button class="nav-item" data-role="profesor,coordinador,admin" data-panel="staff-reporte" onclick="setPanel('staff-reporte')"><svg class="icon"><use href="#i-chart"/></svg> Reporte de avance</button>
+    <button class="nav-item" data-role="profesor,coordinador,admin" data-panel="auditoria" onclick="setPanel('auditoria'); renderAuditoria();"><svg class="icon"><use href="#i-pulse"/></svg> Auditoría <span class="tag tag-new">nuevo</span></button>
     <button class="nav-item" data-role="coordinador,admin" data-panel="admin-usuarios" onclick="setPanel('admin-usuarios')"><svg class="icon"><use href="#i-users"/></svg> Usuarios</button>
     <button class="nav-item" data-role="coordinador,admin" data-panel="admin-periodos" onclick="setPanel('admin-periodos')"><svg class="icon"><use href="#i-clock"/></svg> Periodos y Cortes</button>
     <button class="nav-item" data-role="coordinador,admin" data-panel="profesor-actividades" onclick="setPanel('profesor-actividades'); initActividadesPanel();"><svg class="icon"><use href="#i-layers"/></svg> Parametrización de Actividades</button>
@@ -2469,6 +2517,59 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
         </div>
       </div>
 
+      <!-- ============ AUDITORÍA: bitácora de actividad (docente, coordinador, admin) ============ -->
+      <div class="panel" id="panel-auditoria">
+        <div class="panel-head">
+          <div><h2>Auditoría</h2><p>Quién hizo qué, cuándo y desde dónde. Trazabilidad completa de la actividad en la plataforma, para resolver dudas o incidentes con evidencia exacta.</p></div>
+          <button class="btn btn-ghost btn-sm" onclick="toast('Esto exportaría la bitácora filtrada a un archivo CSV')"><svg class="icon" style="width:14px;height:14px"><use href="#i-download"/></svg> Exportar CSV</button>
+        </div>
+
+        <div class="aud-log-kpis" id="aud-log-kpis"></div>
+
+        <div class="aud-toolbar">
+          <input class="input" id="aud-log-buscar" placeholder="Buscar por persona, acción o grupo…" oninput="renderAuditoria()">
+          <select class="sel" id="aud-log-rol" onchange="renderAuditoria()">
+            <option value="">Todos los roles</option>
+            <option value="estudiante">Estudiante</option>
+            <option value="profesor">Profesor</option>
+            <option value="coordinador">Coordinador</option>
+            <option value="admin">Admin</option>
+            <option value="sistema">Sistema</option>
+          </select>
+          <select class="sel" id="aud-log-categoria" onchange="renderAuditoria()">
+            <option value="">Todas las acciones</option>
+            <option value="acceso">Acceso a la plataforma</option>
+            <option value="revision">Revisión académica</option>
+            <option value="creacion">Creación</option>
+            <option value="edicion">Edición</option>
+            <option value="eliminacion">Eliminación</option>
+            <option value="descarga">Descarga / exportación</option>
+            <option value="seguridad">Seguridad de cuenta</option>
+            <option value="config">Configuración</option>
+          </select>
+          <div class="aud-chips" id="aud-log-rango">
+            <button type="button" class="aud-chip active" data-rango="7" onclick="audLogSetRango(this,'7')">Últimos 7 días</button>
+            <button type="button" class="aud-chip" data-rango="1" onclick="audLogSetRango(this,'1')">Hoy</button>
+            <button type="button" class="aud-chip" data-rango="todo" onclick="audLogSetRango(this,'todo')">Todo</button>
+          </div>
+        </div>
+
+        <div class="aud-vista-toggle" style="margin-bottom:16px;width:fit-content;">
+          <button type="button" class="active" id="aud-log-btn-feed" onclick="audLogSetVista('feed')">Vista cronológica</button>
+          <button type="button" id="aud-log-btn-tabla" onclick="audLogSetVista('tabla')">Vista de tabla</button>
+        </div>
+
+        <div class="aud-legend" id="aud-log-legend"></div>
+
+        <div id="aud-log-feed" class="aud-feed"></div>
+        <div id="aud-log-tabla" class="table-wrap hidden" style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Fecha y hora</th><th>Persona</th><th>Rol</th><th>Acción</th><th>Dónde</th><th>Origen</th></tr></thead>
+            <tbody id="aud-log-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -2591,7 +2692,8 @@ var panelTitles = {
   'admin-periodos':'Periodos y Cortes',
   'admin-grupos':'Grupos de proyecto',
   'staff-aula-viva':'Aula Viva de los grupos',
-  'staff-reporte':'Reporte de avance'
+  'staff-reporte':'Reporte de avance',
+  'auditoria':'Auditoría'
 };
 function setPanel(name){
   if(typeof auditActivo === 'function' && auditActivo() && AUDIT_PANELES[name]) name = AUDIT_PANELES[name];   // el docente ve los módulos del grupo auditado, en solo visualización
@@ -5034,6 +5136,164 @@ function recGuardar(){
   cont.addEventListener('focusin', function(e){ if(e.target.classList.contains('otp-box')) e.target.select(); });
 })();
 document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !document.getElementById('modal-recuperar').classList.contains('hidden')) recCerrar(); });
+
+/* ============ Auditoría: bitácora de actividad ============ */
+var AUD_CATS = {
+  acceso:      {label:'Acceso a la plataforma',   ink:'var(--blue-ink)',   bg:'rgba(160,191,231,0.32)', icon:'i-unlock'},
+  revision:    {label:'Revisión académica',        ink:'var(--purple-ink)', bg:'rgba(142,127,240,0.22)', icon:'i-check'},
+  creacion:    {label:'Creación',                  ink:'var(--green2-ink)', bg:'rgba(197,240,127,0.45)', icon:'i-plus'},
+  edicion:     {label:'Edición',                   ink:'var(--yellow-ink)', bg:'rgba(251,233,133,0.45)', icon:'i-layers'},
+  eliminacion: {label:'Eliminación',                ink:'var(--pink-ink)',   bg:'rgba(238,127,229,0.24)', icon:'i-x'},
+  descarga:    {label:'Descarga / exportación',    ink:'var(--blue-ink)',   bg:'rgba(160,191,231,0.32)', icon:'i-download'},
+  seguridad:   {label:'Seguridad de cuenta',        ink:'var(--pink-ink)',   bg:'rgba(238,127,229,0.24)', icon:'i-lock'},
+  config:      {label:'Configuración',             ink:'var(--yellow-ink)', bg:'rgba(251,233,133,0.45)', icon:'i-clock'}
+};
+var AUD_ROLES = {
+  estudiante:  {label:'Estudiante',  bg:'rgba(142,127,240,0.12)', ink:'var(--purple-ink)'},
+  profesor:    {label:'Profesor',    bg:'rgba(160,191,231,0.28)', ink:'var(--blue-ink)'},
+  coordinador: {label:'Coordinador', bg:'rgba(197,240,127,0.45)', ink:'var(--green2-ink)'},
+  admin:       {label:'Admin',       bg:'rgba(238,127,229,0.22)', ink:'var(--pink-ink)'},
+  sistema:     {label:'Sistema',     bg:'rgba(25,22,40,0.06)',    ink:'var(--muted)'}
+};
+/* fecha ISO · hora mostrada · actor · rol · categoría · acción (admite <b>) · dónde (módulo) · origen (dispositivo/ciudad) — ordenado del más reciente al más antiguo */
+var AUD_LOG = [
+  {fecha:'2026-04-15', hora:'09:12 a.m.', actor:'Prof. Andrés Molina', rol:'profesor', cat:'revision', accion:'Aceptó el <b>Árbol de Problematización</b> del', obj:'Grupo 5 — Voces del Aula', modulo:'Árboles por revisar', origen:'Web · Chrome · Bogotá, D.C.'},
+  {fecha:'2026-04-15', hora:'08:47 a.m.', actor:'Diana Castañeda', rol:'coordinador', cat:'config', accion:'Actualizó las fechas de corte del', obj:'Periodo 2026-1', modulo:'Periodos y Cortes', origen:'Web · Edge · Bogotá, D.C.'},
+  {fecha:'2026-04-15', hora:'08:30 a.m.', actor:'Valentina Rojas', rol:'estudiante', cat:'acceso', accion:'Inició sesión en', obj:'DiversIA', modulo:'Acceso', origen:'Web · Chrome · Soacha, Cundinamarca'},
+  {fecha:'2026-04-15', hora:'08:05 a.m.', actor:'Laura Torres', rol:'admin', cat:'seguridad', accion:'Bloqueó la cuenta de', obj:'Camila Andrea Gómez', modulo:'Usuarios', origen:'Web · Chrome · Bogotá, D.C.'},
+  {fecha:'2026-04-15', hora:'07:58 a.m.', actor:'Sistema', rol:'sistema', cat:'config', accion:'Envió recordatorio automático de cierre de corte a', obj:'3 grupos del Periodo 2026-1', modulo:'Periodos y Cortes', origen:'Proceso automático'},
+  {fecha:'2026-04-14', hora:'06:40 p.m.', actor:'Juan David Peña', rol:'estudiante', cat:'creacion', accion:'Cargó el documento', obj:'"Formato de Caracterización v2.pdf"', modulo:'Aula Viva · Grupo 3', origen:'Web · Chrome · Bogotá, D.C.'},
+  {fecha:'2026-04-14', hora:'05:15 p.m.', actor:'Prof. Andrés Molina', rol:'profesor', cat:'revision', accion:'Solicitó ajustes al Árbol de Problematización del', obj:'Grupo 7 — Mundo Diverso', modulo:'Árboles por revisar', origen:'Web · Chrome · Bogotá, D.C.'},
+  {fecha:'2026-04-14', hora:'03:02 p.m.', actor:'Diana Castañeda', rol:'coordinador', cat:'creacion', accion:'Creó el grupo de proyecto', obj:'Grupo 15 — Semillas del Futuro', modulo:'Grupos de proyecto', origen:'Web · Chrome · Bogotá, D.C.'},
+  {fecha:'2026-04-14', hora:'11:20 a.m.', actor:'Laura Torres', rol:'admin', cat:'eliminacion', accion:'Eliminó la cuenta de', obj:'un estudiante retirado', modulo:'Usuarios', origen:'Web · Chrome · Bogotá, D.C.'},
+  {fecha:'2026-04-14', hora:'09:40 a.m.', actor:'María Alejandra Ruiz', rol:'estudiante', cat:'descarga', accion:'Descargó el repositorio del', obj:'Grupo 3 — Semilleros de Cambio', modulo:'Mis Grupos', origen:'Web · Safari · Bogotá, D.C.'},
+  {fecha:'2026-04-11', hora:'04:30 p.m.', actor:'Diana Castañeda', rol:'coordinador', cat:'edicion', accion:'Editó la parametrización de', obj:'Actividades del Momento 2', modulo:'Parametrización de Actividades', origen:'Web · Chrome · Bogotá, D.C.'},
+  {fecha:'2026-04-11', hora:'10:05 a.m.', actor:'Prof. Andrés Molina', rol:'profesor', cat:'acceso', accion:'Inició sesión en', obj:'DiversIA', modulo:'Acceso', origen:'Web · Chrome · Bogotá, D.C.'},
+  {fecha:'2026-04-09', hora:'02:18 p.m.', actor:'Laura Torres', rol:'admin', cat:'config', accion:'Creó el periodo', obj:'2026-2', modulo:'Periodos y Cortes', origen:'Web · Chrome · Bogotá, D.C.'},
+  {fecha:'2026-04-09', hora:'08:55 a.m.', actor:'Camila Andrea Gómez', rol:'estudiante', cat:'seguridad', accion:'Cambió la contraseña de', obj:'su cuenta', modulo:'Seguridad de cuenta', origen:'Web · Chrome · Bogotá, D.C.'},
+  {fecha:'2026-04-07', hora:'05:50 p.m.', actor:'Sistema', rol:'sistema', cat:'descarga', accion:'Generó el reporte consolidado de avance del', obj:'Periodo 2026-1', modulo:'Reporte de avance', origen:'Proceso automático'}
+];
+var MESES_CORTOS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function audLogDiasDesdeHoy(fechaIso){
+  var hoy = new Date(DEMO_HOY + 'T00:00:00');
+  var d = new Date(fechaIso + 'T00:00:00');
+  return Math.round((hoy - d) / 86400000);
+}
+function audLogEtiquetaDia(fechaIso){
+  var dif = audLogDiasDesdeHoy(fechaIso);
+  if(dif === 0) return 'Hoy';
+  if(dif === 1) return 'Ayer';
+  var d = new Date(fechaIso + 'T00:00:00');
+  return d.getDate() + ' de ' + MESES_CORTOS[d.getMonth()] + '. · hace ' + dif + ' días';
+}
+var audLogState = {vista:'feed', rango:'7'};
+function audLogSetRango(btn, val){
+  audLogState.rango = val;
+  document.querySelectorAll('#aud-log-rango .aud-chip').forEach(c=>c.classList.toggle('active', c===btn));
+  renderAuditoria();
+}
+function audLogSetVista(v){
+  audLogState.vista = v;
+  document.getElementById('aud-log-btn-feed').classList.toggle('active', v==='feed');
+  document.getElementById('aud-log-btn-tabla').classList.toggle('active', v==='tabla');
+  document.getElementById('aud-log-feed').classList.toggle('hidden', v!=='feed');
+  document.getElementById('aud-log-tabla').classList.toggle('hidden', v!=='tabla');
+}
+function audLogSetCategoria(cat){
+  document.getElementById('aud-log-categoria').value = cat;
+  renderAuditoria();
+}
+function audLogFiltrados(){
+  var q = (document.getElementById('aud-log-buscar').value || '').toLowerCase().trim();
+  var rol = document.getElementById('aud-log-rol').value;
+  var cat = document.getElementById('aud-log-categoria').value;
+  var rango = audLogState.rango;
+  return AUD_LOG.filter(function(e){
+    if(rol && e.rol !== rol) return false;
+    if(cat && e.cat !== cat) return false;
+    if(rango !== 'todo'){
+      var dif = audLogDiasDesdeHoy(e.fecha);
+      if(rango === '1' && dif !== 0) return false;
+      if(rango === '7' && dif > 6) return false;
+    }
+    if(q){
+      var texto = (e.actor + ' ' + e.accion + ' ' + e.obj + ' ' + e.modulo).toLowerCase().replace(/<\/?b>/g, '');
+      if(texto.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+}
+function audLogItemHtml(e){
+  var c = AUD_CATS[e.cat], r = AUD_ROLES[e.rol];
+  return '<div class="aud-item">'
+    + '<div class="aud-ico" style="background:' + c.bg + ';color:' + c.ink + ';"><svg class="icon"><use href="#' + c.icon + '"/></svg></div>'
+    + '<div class="aud-card">'
+      + '<div class="aud-card-top">'
+        + '<span class="aud-actor">' + escaparHtml(e.actor) + '</span>'
+        + '<span class="pill" style="background:' + r.bg + ';color:' + r.ink + ';">' + r.label + '</span>'
+        + '<span class="pill" style="background:' + c.bg + ';color:' + c.ink + ';">' + c.label + '</span>'
+        + '<span class="aud-time">' + e.hora + '</span>'
+      + '</div>'
+      + '<div class="aud-desc">' + e.accion + ' <b>' + escaparHtml(e.obj) + '</b></div>'
+      + '<div class="aud-meta-row">'
+        + '<span class="aud-meta-pill"><svg class="icon"><use href="#i-pin"/></svg>' + escaparHtml(e.modulo) + '</span>'
+        + '<span class="aud-meta-pill"><svg class="icon"><use href="#i-external"/></svg>' + escaparHtml(e.origen) + '</span>'
+      + '</div>'
+    + '</div>'
+  + '</div>';
+}
+function audLogFilaTablaHtml(e){
+  var c = AUD_CATS[e.cat], r = AUD_ROLES[e.rol];
+  var accionTexto = (e.accion + ' ' + e.obj).replace(/<\/?b>/g, '');
+  return '<tr>'
+    + '<td class="mono-note">' + audLogEtiquetaDia(e.fecha) + ' · ' + e.hora + '</td>'
+    + '<td>' + escaparHtml(e.actor) + '</td>'
+    + '<td><span class="pill" style="background:' + r.bg + ';color:' + r.ink + ';">' + r.label + '</span></td>'
+    + '<td>' + escaparHtml(accionTexto) + '</td>'
+    + '<td class="mono-note" style="text-transform:none;">' + escaparHtml(e.modulo) + '</td>'
+    + '<td class="mono-note" style="text-transform:none;">' + escaparHtml(e.origen) + '</td>'
+  + '</tr>';
+}
+function renderAuditoria(){
+  var kpisBox = document.getElementById('aud-log-kpis');
+  if(!kpisBox) return;
+  var eventosHoy = AUD_LOG.filter(function(e){ return audLogDiasDesdeHoy(e.fecha) === 0; }).length;
+  var usuariosActivosHoy = new Set(AUD_LOG.filter(function(e){ return audLogDiasDesdeHoy(e.fecha) === 0 && e.rol !== 'sistema'; }).map(function(e){ return e.actor; })).size;
+  var criticas7d = AUD_LOG.filter(function(e){ return audLogDiasDesdeHoy(e.fecha) <= 6 && (e.cat === 'eliminacion' || e.cat === 'seguridad'); }).length;
+  var ultimo = AUD_LOG[0];
+  kpisBox.innerHTML =
+    '<div class="aud-log-kpi"><div class="alk-ico" style="background:rgba(160,191,231,0.32);color:var(--blue-ink);"><svg class="icon"><use href="#i-pulse"/></svg></div><div><div class="alk-v">' + eventosHoy + '</div><div class="alk-l">Eventos registrados hoy</div></div></div>'
+  + '<div class="aud-log-kpi"><div class="alk-ico" style="background:rgba(142,127,240,0.22);color:var(--purple-ink);"><svg class="icon"><use href="#i-users"/></svg></div><div><div class="alk-v">' + usuariosActivosHoy + '</div><div class="alk-l">Personas activas hoy</div></div></div>'
+  + '<div class="aud-log-kpi"><div class="alk-ico" style="background:rgba(238,127,229,0.24);color:var(--pink-ink);"><svg class="icon"><use href="#i-shield"/></svg></div><div><div class="alk-v">' + criticas7d + '</div><div class="alk-l">Acciones críticas · 7 días</div></div></div>'
+  + '<div class="aud-log-kpi"><div class="alk-ico" style="background:rgba(197,240,127,0.45);color:var(--green2-ink);"><svg class="icon"><use href="#i-clock"/></svg></div><div><div class="alk-v" style="font-size:15px;">' + ultimo.hora + '</div><div class="alk-l">Último evento · ' + escaparHtml(ultimo.actor) + '</div></div></div>';
+
+  var legend = document.getElementById('aud-log-legend');
+  var catActiva = document.getElementById('aud-log-categoria').value;
+  legend.innerHTML = Object.keys(AUD_CATS).map(function(key){
+    var c = AUD_CATS[key];
+    var activa = catActiva === key;
+    return '<button type="button" class="aud-legend-item" style="border:none;background:none;cursor:pointer;padding:0;font-family:inherit;' + (activa ? 'font-weight:800;color:var(--ink);' : '') + '" onclick="audLogSetCategoria(\'' + (activa ? '' : key) + '\')"><span class="aud-legend-dot" style="background:' + c.ink + ';"></span>' + c.label + '</button>';
+  }).join('');
+
+  var lista = audLogFiltrados();
+  var feedBox = document.getElementById('aud-log-feed');
+  var tbody = document.getElementById('aud-log-tbody');
+  if(!lista.length){
+    feedBox.innerHTML = '<div class="aud-empty">No hay eventos que coincidan con estos filtros.</div>';
+    tbody.innerHTML = '<tr><td colspan="6" class="aud-empty">No hay eventos que coincidan con estos filtros.</td></tr>';
+    return;
+  }
+  var dias = [];
+  var porDia = {};
+  lista.forEach(function(e){
+    if(!porDia[e.fecha]){ porDia[e.fecha] = []; dias.push(e.fecha); }
+    porDia[e.fecha].push(e);
+  });
+  feedBox.innerHTML = dias.map(function(fecha){
+    return '<div class="aud-day"><div class="aud-day-label">' + audLogEtiquetaDia(fecha) + '</div>' + porDia[fecha].map(audLogItemHtml).join('') + '</div>';
+  }).join('');
+  tbody.innerHTML = lista.map(audLogFilaTablaHtml).join('');
+}
 </script>
 </body>
 </html>
