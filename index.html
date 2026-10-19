@@ -372,6 +372,14 @@ body.auditing .nav-group.aud-nav{display:block;}
 .aud-bar .aud-head{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin-bottom:-4px;}
 .aud-bar .aud-head h4{margin:0;font-size:15px;}
 .aud-bar .aud-head .icon{width:18px;height:18px;stroke:var(--purple-ink);}
+.aud-bar .aud-head .aud-resumen{margin-left:6px;font-size:13px;color:var(--muted);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none;}
+.aud-bar.collapsed .aud-head .aud-resumen{display:block;}
+.aud-bar .aud-head .aud-toggle{margin-left:auto;display:inline-flex;align-items:center;gap:6px;flex:none;}
+.aud-bar.collapsed .aud-head .aud-toggle{margin-left:0;}
+.aud-bar .aud-toggle .aud-chev{width:14px;height:14px;transition:transform .2s;}
+.aud-bar:not(.collapsed) .aud-toggle .aud-chev{transform:rotate(180deg);}
+.aud-bar.collapsed{padding:12px 22px;grid-template-columns:1fr;}
+.aud-bar.collapsed .aud-body{display:none !important;}
 .aud-bar select.input{width:100%;}
 .aud-bar .aud-sel label{display:block;margin-bottom:6px;}
 .aud-info-row{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-top:14px;border-top:1px dashed rgba(174,127,240,.35);}
@@ -381,6 +389,37 @@ body.auditing .nav-group.aud-nav{display:block;}
 .aud-inst span{color:var(--muted);font-size:12.5px;}
 .aud-members{display:flex;gap:8px;flex-wrap:wrap;}
 @media(max-width:900px){.aud-bar{grid-template-columns:1fr;}}
+/* ---- Reportes generales (docente) ---- */
+.repgen{margin-top:26px;position:relative;}
+.repgen-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.repgen-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;}
+.rg-kpi{background:var(--panel);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:16px 18px;}
+.rg-kpi .rg-v{font-size:30px;font-weight:700;line-height:1.1;color:var(--ink);}
+.rg-kpi .rg-v small{font-size:14px;font-weight:500;color:var(--muted);margin-left:4px;}
+.rg-kpi .rg-l{font-size:12.5px;color:var(--muted);margin-top:6px;}
+.repgen-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;}
+.rg-card{background:var(--panel);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:18px 20px;}
+.rg-card h4{margin:0 0 4px;font-size:15px;}
+.rg-card .rg-sub{font-size:12.5px;color:var(--muted);margin-bottom:16px;}
+.rg-row{display:grid;grid-template-columns:150px 1fr 44px;align-items:center;gap:12px;padding:6px 0;}
+.rg-row .rg-name{font-size:13px;color:var(--ink);}
+.rg-track{height:12px;border-radius:4px;background:rgba(25,22,40,.07);overflow:hidden;}
+.rg-fill{display:block;height:100%;border-radius:0 4px 4px 0;background:var(--purple-ink);min-width:2px;}
+.rg-row .rg-val{font-size:13px;font-weight:600;text-align:right;color:var(--ink);}
+.rg-row:hover .rg-track,.rg-row:focus-visible .rg-track{background:rgba(25,22,40,.12);}
+.rg-row:focus-visible{outline:2px solid var(--purple-ink);outline-offset:2px;border-radius:6px;}
+.rg-seg{display:flex;gap:2px;height:22px;margin-bottom:16px;}
+.rg-seg span{display:block;border-radius:4px;min-width:6px;}
+.rg-leg{display:flex;flex-direction:column;gap:10px;}
+.rg-leg-i{display:flex;align-items:center;gap:10px;font-size:13px;padding:2px 0;}
+.rg-leg-i .dot{width:10px;height:10px;border-radius:3px;flex:none;}
+.rg-leg-i b{margin-left:auto;font-size:14px;}
+.rg-leg-i .rg-gs{color:var(--muted);font-size:12px;}
+.repgen-tabla table{width:100%;}
+.repgen-tip{position:absolute;pointer-events:none;z-index:5;background:#191628;color:#fff;font-size:12.5px;padding:7px 10px;border-radius:8px;opacity:0;transition:opacity .12s;max-width:240px;box-shadow:0 6px 18px rgba(25,22,40,.25);}
+.repgen-tip.on{opacity:1;}
+@media(max-width:900px){.repgen-kpis{grid-template-columns:repeat(2,1fr);}.repgen-grid{grid-template-columns:1fr;}.rg-row{grid-template-columns:110px 1fr 40px;}}
+
 .ro-block{border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:18px 20px;margin-bottom:14px;background:var(--panel);}
 .ro-block h5{font-size:14px;margin-bottom:10px;}
 .ro-branch{padding:10px 0;border-top:1px dashed var(--border-soft);font-size:13px;}
@@ -1152,10 +1191,6 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
 
     <div class="nav-group">Panel</div>
     <button class="nav-item" data-role="estudiante,profesor,coordinador,admin" data-panel="panel-inicio" onclick="setPanel('panel-inicio')"><svg class="icon"><use href="#i-home"/></svg> Panel principal</button>
-    <div class="nav-group aud-nav" data-role="profesor" id="aud-nav-label">Auditoría</div>
-    <button class="nav-item aud-nav" data-role="profesor" data-panel="aud-proyecto" onclick="abrirMiradaDesdeSidebar()"><svg class="icon"><use href="#i-tree"/></svg> Una mirada al aula</button>
-    <button class="nav-item aud-nav" data-role="profesor" data-panel="aud-simulador" onclick="setPanel('simulador')"><svg class="icon"><use href="#i-chat"/></svg> Evoluciona tu aula</button>
-    <button class="nav-item aud-nav" data-role="profesor" data-panel="aud-aulaviva" onclick="setPanel('aula-viva')"><svg class="icon"><use href="#i-folder"/></svg> Aula Viva de Experiencia</button>
 
     <div class="nav-group" data-role="estudiante">Mi proyecto de aula</div>
     <button class="nav-item" data-role="estudiante" data-panel="proyecto-aula" onclick="abrirMiradaDesdeSidebar()"><svg class="icon"><use href="#i-tree"/></svg> Una mirada al aula</button>
@@ -1174,6 +1209,11 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
     <button class="nav-item" data-role="coordinador,admin" data-panel="admin-usuarios" onclick="setPanel('admin-usuarios')"><svg class="icon"><use href="#i-users"/></svg> Usuarios</button>
     <button class="nav-item" data-role="coordinador,admin" data-panel="admin-periodos" onclick="setPanel('admin-periodos')"><svg class="icon"><use href="#i-clock"/></svg> Periodos y Cortes</button>
     <button class="nav-item" data-role="coordinador,admin" data-panel="profesor-actividades" onclick="setPanel('profesor-actividades'); initActividadesPanel();"><svg class="icon"><use href="#i-layers"/></svg> Parametrización de Actividades</button>
+
+    <div class="nav-group aud-nav" data-role="profesor" id="aud-nav-label">Auditoría</div>
+    <button class="nav-item aud-nav" data-role="profesor" data-panel="aud-proyecto" onclick="abrirMiradaDesdeSidebar()"><svg class="icon"><use href="#i-tree"/></svg> Una mirada al aula</button>
+    <button class="nav-item aud-nav" data-role="profesor" data-panel="aud-simulador" onclick="setPanel('simulador')"><svg class="icon"><use href="#i-chat"/></svg> Evoluciona tu aula</button>
+    <button class="nav-item aud-nav" data-role="profesor" data-panel="aud-aulaviva" onclick="setPanel('aula-viva')"><svg class="icon"><use href="#i-folder"/></svg> Aula Viva de Experiencia</button>
 
     <div class="sidebar-footer">
       <div class="demo-clock" data-role="estudiante" id="demo-clock">
@@ -1291,60 +1331,26 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
 
         <!-- vista profesor -->
         <div id="inicio-profesor" class="hidden">
-          <div class="card aud-bar" id="aud-bar">
-            <div class="aud-head"><svg class="icon"><use href="#i-eye"/></svg><h4>Auditoría de grupos</h4><span class="pill info">Solo visualización</span></div>
-            <div class="aud-sel"><label class="field-label" for="aud-periodo">Periodo</label><select class="input" id="aud-periodo" onchange="auditCambiarPeriodo(this.value)"></select></div>
-            <div class="aud-sel"><label class="field-label" for="aud-grupo">Grupo a auditar</label><select class="input" id="aud-grupo" onchange="auditCambiarGrupo(this.value)"></select></div>
-            <div></div>
-            <div class="aud-info-row" id="aud-info"></div>
+          <div class="card aud-bar collapsed" id="aud-bar">
+            <div class="aud-head"><svg class="icon"><use href="#i-eye"/></svg><h4>Auditoría de grupos</h4><span class="pill info">Solo visualización</span><span class="aud-resumen" id="aud-resumen"></span><button type="button" class="btn btn-ghost btn-sm aud-toggle" id="aud-toggle" aria-expanded="false" aria-controls="aud-body" onclick="auditToggleBar()"><span id="aud-toggle-txt">Cambiar grupo</span><svg class="icon aud-chev"><use href="#i-chev"/></svg></button></div>
+            <div class="aud-sel aud-body"><label class="field-label" for="aud-periodo">Periodo</label><select class="input" id="aud-periodo" onchange="auditCambiarPeriodo(this.value)"></select></div>
+            <div class="aud-sel aud-body"><label class="field-label" for="aud-grupo">Grupo a auditar</label><select class="input" id="aud-grupo" onchange="auditCambiarGrupo(this.value)"></select></div>
+            <div class="aud-body"></div>
+            <div class="aud-info-row aud-body" id="aud-info"></div>
           </div>
           <h3 style="font-size:15px;margin-bottom:14px;color:var(--muted);">Avance del grupo auditado — toca una card para consultar el módulo</h3>
           <div class="launch-collage" id="aud-collage"></div>
           <div class="stats-rail" id="aud-rail"></div>
-          <h3 style="font-size:15px;margin:8px 0 14px;color:var(--muted);">Tu resumen de supervisión — toca una card para entrar al módulo</h3>
-          <div class="launch-collage">
-            <button type="button" class="launch-card c-pink st-current" onclick="setPanel('profesor-cola')">
-              <div class="lc-shard"></div>
-              <div class="lc-icon-wrap" style="color:var(--pink-ink)"><svg class="icon"><use href="#i-shield"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--pink-ink)">Supervisión</span><span class="lc-title">Árboles por revisar</span></div>
-            </button>
-            <button type="button" class="launch-card c-lila" onclick="setPanel('admin-grupos')">
-              <div class="lc-shard"></div>
-              <div class="lc-icon-wrap" style="color:var(--lila-ink)"><svg class="icon"><use href="#i-users"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--lila-ink)">Grupos</span><span class="lc-title">Grupos de proyecto</span></div>
-            </button>
-            <button type="button" class="launch-card c-blue" onclick="setPanel('staff-aula-viva')">
-              <div class="lc-shard"></div>
-              <div class="lc-icon-wrap" style="color:var(--blue-ink)"><svg class="icon"><use href="#i-folder"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--blue-ink)">Aula Viva</span><span class="lc-title">Aula Viva de los grupos</span></div>
-            </button>
-            <button type="button" class="launch-card c-yellow" onclick="setPanel('staff-reporte')">
-              <div class="lc-shard"></div>
-              <div class="lc-icon-wrap" style="color:var(--yellow-ink)"><svg class="icon"><use href="#i-chart"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--yellow-ink)">Seguimiento</span><span class="lc-title">Reporte de avance</span></div>
-            </button>
-          </div>
 
-          <div class="stats-rail">
-            <div class="rail-stat">
-              <div class="rail-ring" style="--pct:100;--rc:var(--pink-ink)"><span class="rv">4</span></div>
-              <div class="rail-txt"><b>Árboles por revisar</b><span>4 grupos esperando tu revisión · 9 ya aceptados y 2 en ajuste</span></div>
-            </div>
-            <div class="rail-stat">
-              <div class="rail-ring" style="--pct:100;--rc:var(--lila-ink)"><span class="rv">15</span></div>
-              <div class="rail-txt"><b>Grupos de proyecto</b><span>15 grupos de proyecto activos en la cohorte 2026-1</span></div>
-            </div>
-            <div class="rail-stat">
-              <div class="rail-ring" style="--pct:12;--rc:var(--blue-ink)"><span class="rv">12%</span></div>
-              <div class="rail-txt"><b>Aula Viva de los grupos</b><span>Avance promedio de cargue de documentos, producto y evidencias</span></div>
-            </div>
-            <div class="rail-stat">
-              <div class="rail-ring" style="--pct:100;--rc:var(--yellow-ink)"><span class="rv">4</span></div>
-              <div class="rail-txt"><b>Reporte de avance</b><span>4 grupos con seguimiento disponible en tiempo real</span></div>
-            </div>
-          </div>
+          <section class="repgen" id="rep-gen" aria-labelledby="repgen-title">
+            <div class="panel-head" style="margin-top:6px;"><div><h2 id="repgen-title" style="font-size:18px;">Reportes generales</h2><p>Vista consolidada de todos los grupos que acompañas en el periodo 2026-1.</p></div><div class="repgen-actions"><button type="button" class="btn btn-ghost btn-sm" id="repgen-vista" onclick="repGenVista()">Ver como tabla</button><button type="button" class="btn btn-primary btn-sm" onclick="setPanel('staff-reporte')">Reporte completo por grupo</button></div></div>
+            <div class="repgen-kpis" id="repgen-kpis"></div>
+            <div class="repgen-grid" id="repgen-charts"></div>
+            <div class="repgen-tabla hidden" id="repgen-tabla"></div>
+            <div class="repgen-tip" id="repgen-tip" role="status"></div>
+          </section>
 
-          <div class="panel-head" style="margin-top:10px;"><div><h2 style="font-size:18px;">Árboles pendientes de revisión</h2></div><button class="btn btn-ghost btn-sm" onclick="setPanel('profesor-cola')">Ver todos</button></div>
+          <div class="panel-head" style="margin-top:22px;"><div><h2 style="font-size:18px;">Árboles pendientes de revisión</h2></div><button class="btn btn-ghost btn-sm" onclick="setPanel('profesor-cola')">Ver todos</button></div>
           <div class="table-wrap">
             <table>
               <thead><tr><th>Grupo</th><th>Institución</th><th>Enviado</th><th>Estado</th><th></th></tr></thead>
@@ -3544,6 +3550,7 @@ function auditCambiarGrupo(id){
 }
 function auditRenderTodo(){
   auditRenderSelector();
+  repGenRender();
   auditRenderCards();
   auditRenderPaneles();
   var g = auditGrupo();
@@ -3559,6 +3566,7 @@ function auditRenderSelector(){
   var grupos = AUDIT_GRUPOS.filter(function(g){ return g.periodo === AUDIT_PERIODO; });
   selG.innerHTML = grupos.map(function(g){ return '<option value="' + g.id + '"' + (g.id === AUDIT_GRUPO ? ' selected' : '') + '>' + g.nombre + '</option>'; }).join('');
   var g = auditGrupo(), info = document.getElementById('aud-info');
+  var rs = document.getElementById('aud-resumen'); if(rs) rs.textContent = g ? 'Auditando · ' + g.nombre + ' · ' + g.periodoTxt : '';
   if(info) info.innerHTML = g ? '<div class="aud-inst"><svg class="icon"><use href="#i-folder"/></svg><div><b>' + g.institucion + '</b><span>' + g.integrantes.length + ' integrantes · periodo ' + g.periodoTxt + '</span></div></div>'
       + '<div class="aud-members">' + g.integrantes.map(function(m){ return '<span class="member-chip" title="' + m.nombre + '"><span class="av">' + m.av + '</span>' + m.nombre.split(' ')[0] + '</span>'; }).join('') + '</div>' : '';
 }
@@ -3673,7 +3681,89 @@ function auditActualizarBanner(nombrePanel){
     document.getElementById('aud-b-periodo').textContent = '· ' + auditPeriodoEtiqueta(g.periodo);
   }
 }
-function auditIrAlInicio(){ setPanel('panel-inicio'); }
+function auditIrAlInicio(){ setPanel('panel-inicio'); auditToggleBar(true); }
+/* ---- selector de auditoría plegable ---- */
+var AUDIT_BAR_ABIERTA = false;
+function auditToggleBar(abrir){
+  AUDIT_BAR_ABIERTA = (typeof abrir === 'boolean') ? abrir : !AUDIT_BAR_ABIERTA;
+  var bar = document.getElementById('aud-bar'); if(!bar) return;
+  bar.classList.toggle('collapsed', !AUDIT_BAR_ABIERTA);
+  var t = document.getElementById('aud-toggle'); if(t) t.setAttribute('aria-expanded', AUDIT_BAR_ABIERTA ? 'true' : 'false');
+  var tx = document.getElementById('aud-toggle-txt'); if(tx) tx.textContent = AUDIT_BAR_ABIERTA ? 'Ocultar' : 'Cambiar grupo';
+}
+
+/* ---- Reportes generales (docente): datos consolidados de los grupos del periodo ---- */
+var REPGEN_GRUPOS = [
+  {n:'Grupo 3', nombre:'Semilleros de Cambio', carac:100, arbol:100, proy:65, av:40, usos:2, estado:'ok'},
+  {n:'Grupo 5', nombre:'Voces del Aula',       carac:100, arbol:100, proy:0,  av:0,  usos:0, estado:'pend'},
+  {n:'Grupo 7', nombre:'Mundo Diverso',        carac:85,  arbol:70,  proy:0,  av:0,  usos:1, estado:'ajuste'},
+  {n:'Grupo 9', nombre:'Raíces y Alas',        carac:95,  arbol:100, proy:0,  av:10, usos:0, estado:'pend'}
+];
+var REPGEN_ESTADOS = {
+  ok:{txt:'Aceptado', color:'#428048', ico:'✓'},
+  pend:{txt:'Pendiente de revisión', color:'#7e7442', ico:'◔'},
+  ajuste:{txt:'En ajuste', color:'#9b5395', ico:'!'}
+};
+var REPGEN_TABLA = false;
+function repGenProm(k){ return Math.round(REPGEN_GRUPOS.reduce(function(a,g){ return a + g[k]; }, 0) / REPGEN_GRUPOS.length); }
+function repGenRender(){
+  var box = document.getElementById('repgen-kpis'); if(!box) return;
+  var G = REPGEN_GRUPOS, n = G.length;
+  var aceptados = G.filter(function(g){ return g.estado === 'ok'; }).length;
+  var pend = G.filter(function(g){ return g.estado === 'pend'; }).length;
+  var usos = G.reduce(function(a,g){ return a + g.usos; }, 0);
+  var global = Math.round((repGenProm('carac') + repGenProm('arbol') + repGenProm('proy') + repGenProm('av')) / 4);
+  var kp = function(v, sm, l){ return '<div class="rg-kpi"><div class="rg-v">' + v + (sm ? '<small>' + sm + '</small>' : '') + '</div><div class="rg-l">' + l + '</div></div>'; };
+  box.innerHTML = kp(n, '', 'Grupos activos en el periodo')
+    + kp(global + '%', '', 'Avance promedio general')
+    + kp(pend, 'de ' + n, 'Árboles esperando tu revisión')
+    + kp(usos, usos === 1 ? 'uso' : 'usos', 'De Evoluciona tu aula en total');
+  var forms = [['Caracterización','carac'],['Árbol de Problematización','arbol'],['Proyecto Pedagógico','proy'],['Aula Viva','av']];
+  var barras = forms.map(function(f){
+    var v = repGenProm(f[1]);
+    return '<div class="rg-row" tabindex="0" data-tip="' + f[0] + ': ' + v + '% de avance promedio en ' + n + ' grupos">'
+      + '<span class="rg-name">' + f[0] + '</span><span class="rg-track"><span class="rg-fill" style="width:' + v + '%"></span></span><span class="rg-val">' + v + '%</span></div>';
+  }).join('');
+  var orden = ['ok','pend','ajuste'];
+  var seg = orden.map(function(k){
+    var c = G.filter(function(g){ return g.estado === k; }).length; if(!c) return '';
+    return '<span style="flex:' + c + ';background:' + REPGEN_ESTADOS[k].color + '" data-tip="' + REPGEN_ESTADOS[k].txt + ': ' + c + (c === 1 ? ' grupo' : ' grupos') + '"></span>';
+  }).join('');
+  var leg = orden.map(function(k){
+    var gs = G.filter(function(g){ return g.estado === k; });
+    return '<div class="rg-leg-i" tabindex="0" data-tip="' + REPGEN_ESTADOS[k].txt + ': ' + gs.length + '"><span class="dot" style="background:' + REPGEN_ESTADOS[k].color + '"></span><span>' + REPGEN_ESTADOS[k].ico + ' ' + REPGEN_ESTADOS[k].txt
+      + '<br><span class="rg-gs">' + (gs.map(function(g){ return g.n; }).join(', ') || '—') + '</span></span><b>' + gs.length + '</b></div>';
+  }).join('');
+  document.getElementById('repgen-charts').innerHTML =
+    '<div class="rg-card"><h4>Avance promedio por formato</h4><div class="rg-sub">Promedio de los ' + n + ' grupos, de 0 a 100 %</div>' + barras + '</div>'
+    + '<div class="rg-card"><h4>Estado de los Árboles de Problematización</h4><div class="rg-sub">Único punto de control docente en el Momento 1</div><div class="rg-seg" role="img" aria-label="Distribución de estados de los árboles">' + seg + '</div><div class="rg-leg">' + leg + '</div></div>';
+  document.getElementById('repgen-tabla').innerHTML = '<div class="table-wrap"><table><thead><tr><th>Grupo</th><th>Caracterización</th><th>Árbol</th><th>Proyecto Pedagógico</th><th>Aula Viva</th><th>Usos Evoluciona</th><th>Estado del árbol</th></tr></thead><tbody>'
+    + G.map(function(g){ return '<tr><td>' + g.n + ' — ' + g.nombre + '</td><td>' + g.carac + '%</td><td>' + g.arbol + '%</td><td>' + g.proy + '%</td><td>' + g.av + '%</td><td>' + g.usos + '</td><td>' + REPGEN_ESTADOS[g.estado].ico + ' ' + REPGEN_ESTADOS[g.estado].txt + '</td></tr>'; }).join('')
+    + '<tr><td><b>Promedio</b></td><td><b>' + repGenProm('carac') + '%</b></td><td><b>' + repGenProm('arbol') + '%</b></td><td><b>' + repGenProm('proy') + '%</b></td><td><b>' + repGenProm('av') + '%</b></td><td><b>' + usos + '</b></td><td></td></tr></tbody></table></div>';
+}
+function repGenVista(){
+  REPGEN_TABLA = !REPGEN_TABLA;
+  document.getElementById('repgen-tabla').classList.toggle('hidden', !REPGEN_TABLA);
+  document.getElementById('repgen-charts').classList.toggle('hidden', REPGEN_TABLA);
+  document.getElementById('repgen-vista').textContent = REPGEN_TABLA ? 'Ver como gráficas' : 'Ver como tabla';
+}
+(function(){
+  var sec = document.getElementById('rep-gen'), tip = document.getElementById('repgen-tip');
+  if(!sec || !tip) return;
+  function show(el){
+    var t = el.getAttribute('data-tip'); if(!t) return;
+    tip.textContent = t;
+    var a = sec.getBoundingClientRect(), b = el.getBoundingClientRect();
+    tip.style.left = Math.max(4, Math.min(a.width - 250, b.left - a.left + 12)) + 'px';
+    tip.style.top = (b.top - a.top - 40) + 'px';
+    tip.classList.add('on');
+  }
+  sec.addEventListener('mouseover', function(e){ var el = e.target.closest('[data-tip]'); if(el) show(el); else tip.classList.remove('on'); });
+  sec.addEventListener('mouseleave', function(){ tip.classList.remove('on'); });
+  sec.addEventListener('focusin', function(e){ var el = e.target.closest('[data-tip]'); if(el) show(el); });
+  sec.addEventListener('focusout', function(){ tip.classList.remove('on'); });
+})();
+
 
 /* ---- votación grupal de la propuesta: todos los integrantes deben coincidir ---- */
 var GRUPO_MIEMBROS = ['Valentina Rojas','Juan David Peña','María Alejandra Ruiz'];
