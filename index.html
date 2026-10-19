@@ -1349,18 +1349,6 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
             <div class="repgen-tabla hidden" id="repgen-tabla"></div>
             <div class="repgen-tip" id="repgen-tip" role="status"></div>
           </section>
-
-          <div class="panel-head" style="margin-top:22px;"><div><h2 style="font-size:18px;">Árboles pendientes de revisión</h2></div><button class="btn btn-ghost btn-sm" onclick="setPanel('profesor-cola')">Ver todos</button></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Grupo</th><th>Institución</th><th>Enviado</th><th>Estado</th><th></th></tr></thead>
-              <tbody>
-                <tr><td>Grupo 3 — Semilleros de Cambio</td><td>I.E. Distrital La Luz</td><td>4 mar 2026</td><td><span class="pill on">Aceptado</span></td><td><button class="btn btn-ghost btn-sm" onclick="setPanel('profesor-revision')">Ver</button></td></tr>
-                <tr><td>Grupo 5 — Voces del Aula</td><td>Jardín Infantil Semillas</td><td>9 mar 2026</td><td><span class="pill warn">Pendiente</span></td><td><button class="btn btn-primary btn-sm" onclick="setPanel('profesor-revision')">Revisar</button></td></tr>
-                <tr><td>Grupo 7 — Mundo Diverso</td><td>I.E. Nueva Esperanza</td><td>8 mar 2026</td><td><span class="pill danger">En ajuste</span></td><td><button class="btn btn-ghost btn-sm" onclick="setPanel('profesor-revision')">Ver</button></td></tr>
-              </tbody>
-            </table>
-          </div>
         </div>
 
         <!-- vista admin -->
@@ -1400,66 +1388,6 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
           </div>
         </div>
 
-        <!-- vista coordinador -->
-        <div id="inicio-coordinador" class="hidden">
-          <h3 style="font-size:15px;margin-bottom:14px;color:var(--muted);">Tu resumen de coordinación — toca una card para entrar al módulo</h3>
-          <div class="launch-collage">
-            <button type="button" class="launch-card c-lila" onclick="setPanel('admin-usuarios')">
-              <div class="lc-shard"></div>
-              <div class="lc-icon-wrap" style="color:var(--lila-ink)"><svg class="icon"><use href="#i-users"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--lila-ink)">Cuentas</span><span class="lc-title">Gestión de usuarios</span></div>
-            </button>
-            <button type="button" class="launch-card c-green" onclick="setPanel('admin-grupos')">
-              <div class="lc-shard"></div>
-              <div class="lc-icon-wrap" style="color:var(--green-ink)"><svg class="icon"><use href="#i-users"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--green-ink)">Proyectos</span><span class="lc-title">Gestión de grupos de proyectos</span></div>
-            </button>
-            <button type="button" class="launch-card c-blue" onclick="setPanel('admin-periodos')">
-              <div class="lc-shard"></div>
-              <div class="lc-icon-wrap" style="color:var(--blue-ink)"><svg class="icon"><use href="#i-clock"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--blue-ink)">Calendario</span><span class="lc-title">Gestión de periodos y cortes</span></div>
-            </button>
-            <button type="button" class="launch-card c-yellow" onclick="setPanel('profesor-actividades'); initActividadesPanel();">
-              <div class="lc-shard"></div>
-              <div class="lc-icon-wrap" style="color:var(--yellow-ink)"><svg class="icon"><use href="#i-layers"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--yellow-ink)">Parametrización</span><span class="lc-title">Parametrización de actividades</span></div>
-            </button>
-            <button type="button" class="launch-card c-pink st-current" onclick="setPanel('profesor-cola')">
-              <div class="lc-shard"></div>
-              <div class="lc-icon-wrap" style="color:var(--pink-ink)"><svg class="icon"><use href="#i-shield"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--pink-ink)">Supervisión</span><span class="lc-title">Árboles por revisar</span></div>
-            </button>
-            <button type="button" class="launch-card c-blue" onclick="setPanel('staff-aula-viva')">
-              <div class="lc-shard"></div>
-              <div class="lc-icon-wrap" style="color:var(--blue-ink)"><svg class="icon"><use href="#i-folder"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--blue-ink)">Aula Viva</span><span class="lc-title">Aula Viva de los grupos</span></div>
-            </button>
-            <button type="button" class="launch-card c-green" onclick="setPanel('staff-reporte')">
-              <div class="lc-shard"></div>
-              <div class="lc-icon-wrap" style="color:var(--green2-ink)"><svg class="icon"><use href="#i-chart"/></svg></div>
-              <div class="lc-badge"><span class="lc-mom" style="color:var(--green2-ink)">Seguimiento</span><span class="lc-title">Reporte de avance de cada grupo</span></div>
-            </button>
-          </div>
-
-          <div class="stats-rail">
-            <div class="rail-stat">
-              <div class="rail-ring" style="--pct:100;--rc:var(--lila-ink)"><span class="rv">6</span></div>
-              <div class="rail-txt"><b>Usuarios</b><span>6 cuentas registradas entre estudiantes, docentes y admin</span></div>
-            </div>
-            <div class="rail-stat">
-              <div class="rail-ring" style="--pct:100;--rc:var(--green-ink)"><span class="rv">15</span></div>
-              <div class="rail-txt"><b>Grupos de proyecto</b><span>15 grupos activos · 47 estudiantes con 3 docentes</span></div>
-            </div>
-            <div class="rail-stat">
-              <div class="rail-ring" style="--pct:100;--rc:var(--pink-ink)"><span class="rv">4</span></div>
-              <div class="rail-txt"><b>Árboles por revisar</b><span>4 grupos esperando revisión docente · 9 ya aceptados</span></div>
-            </div>
-            <div class="rail-stat">
-              <div class="rail-ring" style="--pct:12;--rc:var(--blue-ink)"><span class="rv">12%</span></div>
-              <div class="rail-txt"><b>Aula Viva de los grupos</b><span>Avance promedio de cargue de documentos, producto y evidencias</span></div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- ============ AUDITORÍA DOCENTE: módulos del grupo auditado (solo visualización) ============ -->
@@ -2623,10 +2551,9 @@ function setRole(role){
     el.classList.toggle('hidden', roles.indexOf(role) === -1);
   });
   document.getElementById('inicio-estudiante').classList.toggle('hidden', role!=='estudiante');
-  document.getElementById('inicio-profesor').classList.toggle('hidden', role!=='profesor');
-  document.getElementById('inicio-coordinador').classList.toggle('hidden', role!=='coordinador');
+  document.getElementById('inicio-profesor').classList.toggle('hidden', role!=='profesor' && role!=='coordinador');
   document.getElementById('inicio-admin').classList.toggle('hidden', role!=='admin');
-  if(role==='profesor') auditInit(); else auditSalir();
+  if(role==='profesor' || role==='coordinador') auditInit(); else auditSalir();
 
   var info = {
     estudiante: {name:'Valentina Rojas', role:'Grupo 3 · Estudiante', av:'VR', badge:'Grupo 3 · Semilleros de Cambio'},
