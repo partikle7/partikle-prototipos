@@ -1473,6 +1473,7 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
           <div><h2>Una mirada al aula</h2><p id="mirada-sub">Sigue el flujo paso a paso: de la Caracterización del aula al Formato de Proyecto Pedagógico de Aula. Solo puedes entrar a los pasos que ya completaste o en los que estás ahora.</p></div>
           <span class="pill info" id="mirada-progress-pill">2 de 5 pasos completados</span>
         </div>
+        <div id="mirada-aud-bar"></div>
         <div class="flow-legend">
           <span><i class="lg done"></i> Completado</span>
           <span><i class="lg current"></i> En curso</span>
@@ -2983,6 +2984,9 @@ window.addEventListener('resize', function(){
 function renderMiradaAula(){
   var live = miradaEstados(true);
   var vista = miradaEstados();
+
+  var audBar = document.getElementById('mirada-aud-bar');
+  if(audBar) audBar.innerHTML = auditActivo() ? (auditSelectorBarHtml('flujo') + auditMomentosNavHtml('proyecto')) : '';
 
   // --- flujograma ---
   var flow = document.getElementById('mirada-flow');
