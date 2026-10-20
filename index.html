@@ -1376,14 +1376,6 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
           <h3 style="font-size:15px;margin-bottom:14px;color:var(--muted);">Avance del grupo auditado — toca una card para consultar el módulo. Para cambiar de grupo, entra a Una mirada al aula o a Evoluciona tu aula.</h3>
           <div class="launch-collage" id="aud-collage"></div>
           <div class="stats-rail" id="aud-rail"></div>
-
-          <section class="repgen" id="rep-gen" aria-labelledby="repgen-title">
-            <div class="panel-head" style="margin-top:6px;"><div><h2 id="repgen-title" style="font-size:18px;">Reportes generales</h2><p>Vista consolidada de todos los grupos que acompañas en el periodo 2026-1.</p></div><div class="repgen-actions"><button type="button" class="btn btn-ghost btn-sm" id="repgen-vista" onclick="repGenVista()">Ver como tabla</button><button type="button" class="btn btn-primary btn-sm" onclick="setPanel('staff-reporte')">Reporte completo por grupo</button></div></div>
-            <div class="repgen-kpis" id="repgen-kpis"></div>
-            <div class="repgen-grid" id="repgen-charts"></div>
-            <div class="repgen-tabla hidden" id="repgen-tabla"></div>
-            <div class="repgen-tip" id="repgen-tip" role="status"></div>
-          </section>
         </div>
 
         <!-- vista admin -->
@@ -2401,6 +2393,14 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
             </tbody>
           </table>
         </div>
+
+        <section class="repgen" id="rep-gen" aria-labelledby="repgen-title">
+          <div class="panel-head" style="margin-top:6px;"><div><h2 id="repgen-title" style="font-size:18px;">Reportes generales</h2><p>Vista consolidada de todos los grupos del periodo 2026-1.</p></div><div class="repgen-actions"><button type="button" class="btn btn-ghost btn-sm" id="repgen-vista" onclick="repGenVista()">Ver como tabla</button><button type="button" class="btn btn-primary btn-sm" onclick="setPanel('staff-reporte')">Reporte completo por grupo</button></div></div>
+          <div class="repgen-kpis" id="repgen-kpis"></div>
+          <div class="repgen-grid" id="repgen-charts"></div>
+          <div class="repgen-tabla hidden" id="repgen-tabla"></div>
+          <div class="repgen-tip" id="repgen-tip" role="status"></div>
+        </section>
       </div>
 
       <!-- ============ GESTIÓN ACADÉMICA: aula viva de los grupos (solo lectura, docente/coordinador/admin) ============ -->
@@ -2694,6 +2694,7 @@ function setPanel(name){
   document.getElementById('topbar-title').textContent = title;
   document.getElementById('topbar-crumb').textContent = 'DiversIA / ' + title + (name==='proyecto-aula' ? ' / Paso a paso' : '');
   if(name==='mirada-aula' && typeof renderMiradaAula==='function') renderMiradaAula();
+  if(name==='admin-grupos' && typeof repGenRender==='function') repGenRender();
   var bf = document.getElementById('btn-ver-flujo');
   if(bf) bf.classList.toggle('hidden', !(name==='proyecto-aula' && miradaVieneDelHub));
   if(typeof renderVentanas === 'function') renderVentanas();
