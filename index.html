@@ -360,14 +360,6 @@ footer.site-footer{border-top:1px solid var(--border-soft);padding:26px 0 40px;f
 .aud-nav{display:none;}
 body.auditing .aud-nav{display:flex;}
 body.auditing .nav-group.aud-nav{display:block;}
-.aud-banner{position:sticky;top:-32px;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 20px;margin:-32px -32px 26px;background-color:#fff;background-image:linear-gradient(120deg,rgba(142,127,240,0.14),rgba(238,127,229,0.08));border-bottom:1px solid rgba(174,127,240,0.35);}
-.aud-banner.hidden{display:none;}
-.aud-b-info{display:flex;align-items:center;gap:12px;}
-.aud-b-info .icon{width:18px;height:18px;stroke:var(--purple-ink);}
-.aud-b-info>div{display:flex;flex-direction:column;gap:2px;font-size:13px;}
-.aud-b-info b{font-size:13.5px;}
-.aud-b-info span.mono-note{font-weight:600;color:var(--purple-ink);text-transform:none;}
-.aud-b-info>div>span:last-child{color:var(--muted);font-size:12.5px;}
 .aud-bar{display:grid;grid-template-columns:1fr 1.4fr auto;gap:18px;align-items:end;padding:20px 22px;margin-bottom:22px;border:1.5px solid rgba(174,127,240,.4);background:linear-gradient(120deg,rgba(142,127,240,.10),rgba(238,127,229,.05));}
 .aud-bar .aud-head{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin-bottom:-4px;}
 .aud-bar .aud-head h4{margin:0;font-size:15px;}
@@ -1326,18 +1318,6 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
     </header>
 
     <main class="content">
-
-      <!-- Banner: auditoría de un grupo (docente, solo visualización) -->
-      <div class="aud-banner hidden" id="aud-banner">
-        <div class="aud-b-info">
-          <svg class="icon"><use href="#i-eye"/></svg>
-          <div>
-            <b>Auditando <span id="aud-b-nombre">—</span> <span class="mono-note" id="aud-b-periodo">—</span></b>
-            <span>Solo visualización — puedes consultar todo, pero no modificar nada.</span>
-          </div>
-        </div>
-        <button type="button" class="btn btn-ghost btn-sm" id="aud-b-cambiar" onclick="auditIrACambiarGrupo()">Cambiar periodo o grupo</button>
-      </div>
 
       <!-- ============ PANEL INICIO (rol-dependiente) ============ -->
       <div class="panel active" id="panel-panel-inicio">
@@ -2717,7 +2697,6 @@ function setPanel(name){
   var bf = document.getElementById('btn-ver-flujo');
   if(bf) bf.classList.toggle('hidden', !(name==='proyecto-aula' && miradaVieneDelHub));
   if(typeof renderVentanas === 'function') renderVentanas();
-  if(typeof auditActualizarBanner === 'function') auditActualizarBanner(name);
   document.querySelector('.content').scrollTop = 0;
 }
 
@@ -3596,7 +3575,6 @@ function auditRenderTodo(){
   var lbl = document.getElementById('aud-nav-label');
   if(lbl) lbl.textContent = g ? 'Auditando · ' + g.nombre.split(' — ')[0] : 'Auditoría';
   if(document.getElementById('panel-mirada-aula').classList.contains('active')) renderMiradaAula();
-  auditActualizarBanner();
 }
 /* ---- barra de cambio de grupo, embebida en Momento 1 y Momento 3 (ya no vive en el Panel principal) ---- */
 function auditSelectorBarHtml(suffix){
@@ -3784,19 +3762,6 @@ function auditRenderPaneles(){
   set('panel-aud-aulaviva', auditAulaVivaHtml());
 }
 var AUDIT_PANELES = {'proyecto-aula':'aud-proyecto', 'simulador':'aud-simulador', 'aula-viva':'aud-aulaviva'};
-function auditActualizarBanner(nombrePanel){
-  var b = document.getElementById('aud-banner');
-  if(!b) return;
-  var name = nombrePanel || (document.querySelector('.panel.active') || {id:''}).id.replace(/^panel-/, '');
-  var g = auditGrupo();
-  var visible = auditActivo() && g && ['mirada-aula','biblioteca'].indexOf(name) !== -1;
-  b.classList.toggle('hidden', !visible);
-  if(visible){
-    document.getElementById('aud-b-nombre').textContent = g.nombre;
-    document.getElementById('aud-b-periodo').textContent = '· ' + auditPeriodoEtiqueta(g.periodo);
-  }
-}
-function auditIrACambiarGrupo(){ setPanel('proyecto-aula'); }
 
 /* ---- Reportes generales (docente): datos consolidados de los grupos del periodo ---- */
 var REPGEN_GRUPOS = [
