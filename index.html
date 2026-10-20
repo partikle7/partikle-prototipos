@@ -389,6 +389,20 @@ body.auditing .nav-group.aud-nav{display:block;}
 .aud-inst span{color:var(--muted);font-size:12.5px;}
 .aud-members{display:flex;gap:8px;flex-wrap:wrap;}
 @media(max-width:900px){.aud-bar{grid-template-columns:1fr;}}
+.aud-momentos-nav{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;}
+.aud-momento-btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);background:var(--panel);color:var(--muted);font-size:12.5px;font-weight:700;padding:9px 15px;border-radius:100px;font-family:inherit;cursor:pointer;}
+.aud-momento-btn:hover{background:var(--bg-soft);}
+.aud-momento-btn .icon{width:13px;height:13px;}
+.aud-momento-btn.active{background:rgba(142,127,240,0.14);border-color:rgba(142,127,240,0.4);color:var(--purple-ink);cursor:default;}
+.av-folder-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+.av-folder-card{display:flex;flex-direction:column;gap:10px;align-items:flex-start;text-align:left;background:var(--panel);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:18px;font-family:inherit;cursor:pointer;transition:border-color .15s,box-shadow .15s;}
+.av-folder-card:hover{border-color:rgba(142,127,240,0.45);box-shadow:var(--shadow-sm);}
+.av-folder-ico{width:44px;height:44px;border-radius:12px;background:rgba(251,233,133,0.4);display:flex;align-items:center;justify-content:center;color:var(--yellow-ink);}
+.av-folder-ico .icon{width:22px;height:22px;}
+.av-folder-body{display:flex;flex-direction:column;gap:5px;}
+.av-folder-body b{font-size:13.5px;color:var(--ink);}
+.av-folder-body span:not(.pill){font-size:12px;color:var(--muted);}
+.av-folder-body .pill{align-self:flex-start;margin-top:2px;}
 /* ---- Reportes generales (docente) ---- */
 .repgen{margin-top:26px;position:relative;}
 .repgen-actions{display:flex;gap:8px;flex-wrap:wrap;}
@@ -1261,7 +1275,7 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
     <div class="nav-group aud-nav" data-role="profesor" id="aud-nav-label">Auditoría</div>
     <button class="nav-item aud-nav" data-role="profesor" data-panel="aud-proyecto" onclick="abrirMiradaDesdeSidebar()"><svg class="icon"><use href="#i-tree"/></svg> Una mirada al aula</button>
     <button class="nav-item aud-nav" data-role="profesor" data-panel="aud-simulador" onclick="setPanel('simulador')"><svg class="icon"><use href="#i-chat"/></svg> Evoluciona tu aula</button>
-    <button class="nav-item aud-nav" data-role="profesor" data-panel="aud-aulaviva" onclick="setPanel('aula-viva')"><svg class="icon"><use href="#i-folder"/></svg> Aula Viva de Experiencia</button>
+    <button class="nav-item aud-nav" data-role="profesor" data-panel="aud-aulaviva" onclick="setPanel('aula-viva')"><svg class="icon"><use href="#i-folder"/></svg> Aula Viva de los grupos</button>
 
     <div class="sidebar-footer">
       <div class="demo-clock" data-role="estudiante" id="demo-clock">
@@ -1322,7 +1336,7 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
             <span>Solo visualización — puedes consultar todo, pero no modificar nada.</span>
           </div>
         </div>
-        <button type="button" class="btn btn-ghost btn-sm" id="aud-b-cambiar" onclick="auditIrAlInicio()">Cambiar periodo o grupo</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="aud-b-cambiar" onclick="auditIrACambiarGrupo()">Cambiar periodo o grupo</button>
       </div>
 
       <!-- ============ PANEL INICIO (rol-dependiente) ============ -->
@@ -1379,14 +1393,7 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
 
         <!-- vista profesor -->
         <div id="inicio-profesor" class="hidden">
-          <div class="card aud-bar collapsed" id="aud-bar">
-            <div class="aud-head"><svg class="icon"><use href="#i-eye"/></svg><h4>Auditoría de grupos</h4><span class="pill info">Solo visualización</span><span class="aud-resumen" id="aud-resumen"></span><button type="button" class="btn btn-ghost btn-sm aud-toggle" id="aud-toggle" aria-expanded="false" aria-controls="aud-body" onclick="auditToggleBar()"><span id="aud-toggle-txt">Cambiar grupo</span><svg class="icon aud-chev"><use href="#i-chev"/></svg></button></div>
-            <div class="aud-sel aud-body"><label class="field-label" for="aud-periodo">Periodo</label><select class="input" id="aud-periodo" onchange="auditCambiarPeriodo(this.value)"></select></div>
-            <div class="aud-sel aud-body"><label class="field-label" for="aud-grupo">Grupo a auditar</label><select class="input" id="aud-grupo" onchange="auditCambiarGrupo(this.value)"></select></div>
-            <div class="aud-body"></div>
-            <div class="aud-info-row aud-body" id="aud-info"></div>
-          </div>
-          <h3 style="font-size:15px;margin-bottom:14px;color:var(--muted);">Avance del grupo auditado — toca una card para consultar el módulo</h3>
+          <h3 style="font-size:15px;margin-bottom:14px;color:var(--muted);">Avance del grupo auditado — toca una card para consultar el módulo. Para cambiar de grupo, entra a Una mirada al aula o a Evoluciona tu aula.</h3>
           <div class="launch-collage" id="aud-collage"></div>
           <div class="stats-rail" id="aud-rail"></div>
 
@@ -2684,7 +2691,7 @@ var panelTitles = {
   'aula-viva':'Aula Viva',
   'aud-proyecto':'Una mirada al aula',
   'aud-simulador':'Evoluciona tu aula',
-  'aud-aulaviva':'Aula Viva',
+  'aud-aulaviva':'Aula Viva de los grupos',
   'profesor-cola':'Árboles por revisar',
   'profesor-revision':'Revisión de árbol',
   'profesor-actividades':'Parametrización de Actividades',
@@ -3578,7 +3585,6 @@ function auditCambiarGrupo(id){
   auditRenderTodo();
 }
 function auditRenderTodo(){
-  auditRenderSelector();
   repGenRender();
   auditRenderCards();
   auditRenderPaneles();
@@ -3588,16 +3594,37 @@ function auditRenderTodo(){
   if(document.getElementById('panel-mirada-aula').classList.contains('active')) renderMiradaAula();
   auditActualizarBanner();
 }
-function auditRenderSelector(){
-  var selP = document.getElementById('aud-periodo'), selG = document.getElementById('aud-grupo');
-  if(!selP || !selG) return;
-  selP.innerHTML = AUDIT_PERIODOS.map(function(p){ return '<option value="' + p.code + '"' + (p.code === AUDIT_PERIODO ? ' selected' : '') + '>' + p.etiqueta + '</option>'; }).join('');
-  var grupos = AUDIT_GRUPOS.filter(function(g){ return g.periodo === AUDIT_PERIODO; });
-  selG.innerHTML = grupos.map(function(g){ return '<option value="' + g.id + '"' + (g.id === AUDIT_GRUPO ? ' selected' : '') + '>' + g.nombre + '</option>'; }).join('');
-  var g = auditGrupo(), info = document.getElementById('aud-info');
-  var rs = document.getElementById('aud-resumen'); if(rs) rs.textContent = g ? 'Auditando · ' + g.nombre + ' · ' + g.periodoTxt : '';
-  if(info) info.innerHTML = g ? '<div class="aud-inst"><svg class="icon"><use href="#i-folder"/></svg><div><b>' + g.institucion + '</b><span>' + g.integrantes.length + ' integrantes · periodo ' + g.periodoTxt + '</span></div></div>'
+/* ---- barra de cambio de grupo, embebida en Momento 1 y Momento 3 (ya no vive en el Panel principal) ---- */
+function auditSelectorBarHtml(suffix){
+  var g = auditGrupo();
+  var periodosHtml = AUDIT_PERIODOS.map(function(p){ return '<option value="' + p.code + '"' + (p.code === AUDIT_PERIODO ? ' selected' : '') + '>' + p.etiqueta + '</option>'; }).join('');
+  var grupos = AUDIT_GRUPOS.filter(function(x){ return x.periodo === AUDIT_PERIODO; });
+  var gruposHtml = grupos.map(function(x){ return '<option value="' + x.id + '"' + (x.id === AUDIT_GRUPO ? ' selected' : '') + '>' + x.nombre + '</option>'; }).join('');
+  var info = g ? '<div class="aud-inst"><svg class="icon"><use href="#i-folder"/></svg><div><b>' + g.institucion + '</b><span>' + g.integrantes.length + ' integrantes · periodo ' + g.periodoTxt + '</span></div></div>'
       + '<div class="aud-members">' + g.integrantes.map(function(m){ return '<span class="member-chip" title="' + m.nombre + '"><span class="av">' + m.av + '</span>' + m.nombre.split(' ')[0] + '</span>'; }).join('') + '</div>' : '';
+  return '<div class="card aud-bar" style="margin-bottom:22px;">'
+    + '<div class="aud-head"><svg class="icon"><use href="#i-eye"/></svg><h4>Auditoría de grupos</h4><span class="pill info">Solo visualización</span></div>'
+    + '<div class="aud-sel"><label class="field-label" for="aud-periodo-' + suffix + '">Periodo</label><select class="input" id="aud-periodo-' + suffix + '" onchange="auditCambiarPeriodo(this.value)">' + periodosHtml + '</select></div>'
+    + '<div class="aud-sel"><label class="field-label" for="aud-grupo-' + suffix + '">Grupo a auditar</label><select class="input" id="aud-grupo-' + suffix + '" onchange="auditCambiarGrupo(this.value)">' + gruposHtml + '</select></div>'
+    + '<div class="aud-info-row">' + info + '</div>'
+  + '</div>';
+}
+/* ---- navegación rápida entre Momentos 1, 3 y 4, sin volver al Panel principal ---- */
+function auditMomentosNavHtml(actual){
+  var items = [
+    {k:'proyecto', label:'Momento 1 · Una mirada al aula', panel:'proyecto-aula'},
+    {k:'simulador', label:'Momento 3 · Evoluciona tu aula', panel:'simulador'},
+    {k:'aulaviva', label:'Momento 4 · Aula Viva', panel:'aula-viva'}
+  ];
+  return '<div class="aud-momentos-nav">' + items.map(function(it){
+    return it.k === actual
+      ? '<span class="aud-momento-btn active">' + it.label + '</span>'
+      : '<button type="button" class="aud-momento-btn" onclick="setPanel(\'' + it.panel + '\')">' + it.label + ' <svg class="icon"><use href="#i-arrow"/></svg></button>';
+  }).join('') + '</div>';
+}
+function auditScrollPaso(key){
+  var el = document.getElementById('ro-paso-' + key);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
 }
 function auditSet(id, txt){ var el = document.getElementById(id); if(el) el.textContent = txt; }
 function auditRenderCards(){
@@ -3651,10 +3678,22 @@ function auditPropuestaHtml(p){
   return auditCampos([['Nombre tentativo', p.tentative_name],['Problemática', p.problem_statement],['Objetivo general y específicos', p.general_and_specific_objectives],['Población beneficiaria', p.beneficiary_population],['Enfoques involucrados', p.approaches_involved],['Estrategias pedagógicas', p.pedagogical_strategies],['Impacto esperado', p.expected_impact],['Viabilidad', p.feasibility],['Potencial de innovación', p.innovation_potential]]);
 }
 function auditPasoVacio(txt){ return '<p class="mono-note">' + txt + '</p>'; }
+var AUD_PASOS_M1 = [
+  {key:'caracterizacion', label:'Caracterización'},
+  {key:'arbol', label:'Árbol de Problematización'},
+  {key:'propuestas', label:'Propuestas (GPT)'},
+  {key:'proyecto', label:'Formato de Proyecto de Aula'},
+  {key:'correccion', label:'Corrección con IA'}
+];
 function auditProyectoAulaHtml(g){
   var est = auditEstadosMirada(g);
   var tag = function(i){ return '<span class="mono-note" style="text-transform:none;font-weight:500;">— ' + est[i].detalle + '</span>'; };
   var h = '<div class="panel-head"><div><h2>Una mirada al aula</h2><p>' + g.nombre + ' · ' + g.periodoTxt + ' · vista de solo visualización.</p></div></div>';
+  h += auditSelectorBarHtml('m1');
+  h += auditMomentosNavHtml('proyecto');
+  h += '<div class="substep-layout"><div class="substeps">' + AUD_PASOS_M1.map(function(p, i){
+    return '<div class="step-item' + (est[i].estado === 'done' ? ' done' : '') + '" onclick="auditScrollPaso(\'' + p.key + '\')"><span class="num">' + (i + 1) + '</span> ' + p.label + '</div>';
+  }).join('') + '</div><div>';
   h += '<div id="ro-paso-caracterizacion" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:12px;">1. Caracterización ' + tag(0) + '</h4>'
     + (g.caracterizacion ? '<p class="mono-note" style="margin-bottom:12px;">Institución educativa</p>' + auditCampos(g.caracterizacion.institucion) + '<p class="mono-note" style="margin:18px 0 12px;">Aula</p>' + auditCampos(g.caracterizacion.aula) : auditPasoVacio('El grupo todavía no guarda la caracterización.')) + '</div>';
   h += '<div id="ro-paso-arbol" class="card" style="margin-bottom:18px;"><h4 style="font-size:14.5px;margin-bottom:12px;">2. Árbol de Problematización ' + tag(1) + '</h4>'
@@ -3664,38 +3703,81 @@ function auditProyectoAulaHtml(g){
     + (g.proyecto ? g.proyecto.secciones.map(function(s, i){ return '<div class="ro-block"><h5>' + (i + 1) + '. ' + s[0] + '</h5><p style="font-size:13px;">' + s[1] + '</p></div>'; }).join('') : auditPasoVacio('El grupo todavía no inicia el formato.')) + '</div>';
   h += '<div id="ro-paso-correccion" class="card"><h4 style="font-size:14.5px;margin-bottom:6px;">5. Corrección con IA ' + tag(4) + '</h4>'
     + (g.proyecto && g.proyecto.corregido ? '<p style="font-size:13px;margin-top:8px;">El grupo envió el formato a corrección con IA y recibió la versión pulida del Proyecto Pedagógico de Aula.</p>' : auditPasoVacio('Aún no se envía a corrección.')) + '</div>';
+  h += '</div></div>';
   return h;
 }
 function auditSimuladorHtml(g){
   var usos = g.simulador || [];
-  return '<div class="panel-head"><div><h2>Evoluciona tu aula</h2><p>' + g.nombre + ' · ' + g.periodoTxt + ' · vista de solo visualización.</p></div></div>'
-    + '<div class="card">' + (usos.length ? usos.map(function(u){ return '<div class="ro-sim-card"><div class="ro-sim-head"><b>' + u.titulo + '</b><span>' + u.fecha + '</span></div><p>' + u.resumen + '</p></div>'; }).join('') : '<p class="mono-note">El grupo no ha usado Evoluciona tu aula.</p>') + '</div>';
+  var h = '<div class="panel-head"><div><h2>Evoluciona tu aula</h2><p>' + g.nombre + ' · ' + g.periodoTxt + ' · vista de solo visualización.</p></div></div>';
+  h += auditSelectorBarHtml('m3');
+  h += auditMomentosNavHtml('simulador');
+  if(!usos.length){ h += '<div class="card"><p class="mono-note">El grupo no ha usado Evoluciona tu aula.</p></div>'; return h; }
+  h += usos.map(function(u){
+    return '<div class="doc-preview" style="margin-bottom:20px;"><div class="doc-top"><div class="tag">Documento de Evoluciona tu aula</div><h3>' + u.titulo + '</h3></div>'
+      + '<div class="doc-body"><div class="doc-section-title">Generado el ' + u.fecha + '</div><p>' + u.resumen + '</p></div></div>';
+  }).join('');
+  return h;
 }
-function auditAulaVivaHtml(g){
+/* ---- Aula Viva del docente: carpetas de todos los grupos, con detalle idéntico a 'Mis Grupos' finalizados del estudiante ---- */
+var AUDIT_AV_PERIODO = AUDIT_PERIODO;
+var AUDIT_AV_ABIERTO = null;
+var AUDIT_AV_TAB = 'todo';
+function auditAulaVivaFiltrarPeriodo(code){ AUDIT_AV_PERIODO = code; auditRenderPaneles(); }
+function auditAulaVivaAbrir(id){ AUDIT_AV_ABIERTO = id; AUDIT_AV_TAB = 'todo'; auditRenderPaneles(); var c = document.querySelector('.content'); if(c) c.scrollTop = 0; }
+function auditAulaVivaCerrar(){ AUDIT_AV_ABIERTO = null; auditRenderPaneles(); }
+function auditAulaVivaTab(k){ AUDIT_AV_TAB = k; auditRenderPaneles(); }
+function auditAulaVivaListaHtml(){
+  var h = '<div class="panel-head"><div><h2>Aula Viva de los grupos</h2><p>Repositorio de cada grupo de proyecto, organizado como carpetas. Elige una para ver sus documentos, producto y evidencias — vista de solo visualización.</p></div></div>';
+  h += auditMomentosNavHtml('aulaviva');
+  h += '<div class="aud-toolbar" style="margin-bottom:20px;"><select class="sel" id="aud-av-periodo" onchange="auditAulaVivaFiltrarPeriodo(this.value)">' + AUDIT_PERIODOS.map(function(p){ return '<option value="' + p.code + '"' + (p.code === AUDIT_AV_PERIODO ? ' selected' : '') + '>' + p.etiqueta + '</option>'; }).join('') + '</select></div>';
+  var grupos = AUDIT_GRUPOS.filter(function(x){ return x.periodo === AUDIT_AV_PERIODO; });
+  if(!grupos.length) return h + '<p class="mono-note">No hay grupos en este periodo.</p>';
+  h += '<div class="av-folder-grid">' + grupos.map(function(x){
+    var c = auditRepoCuenta(x);
+    var est = x.repoEstado === 'completo' ? ['Finalizado', 'on'] : c.total ? ['Creado · sin finalizar', 'warn'] : ['Sin iniciar', 'off'];
+    return '<button type="button" class="av-folder-card" onclick="auditAulaVivaAbrir(\'' + x.id + '\')"><div class="av-folder-ico"><svg class="icon"><use href="#i-folder"/></svg></div><div class="av-folder-body"><b>' + x.nombre + '</b><span>' + x.institucion + '</span><span class="pill ' + est[1] + '">' + est[0] + '</span></div></button>';
+  }).join('') + '</div>';
+  return h;
+}
+function auditAulaVivaRepoHtml(id){
+  var g = AUDIT_GRUPOS.find(function(x){ return x.id === id; });
+  if(!g) return auditAulaVivaListaHtml();
   var repo = AULA_VIVA_GRUPOS[g.repoKey], c = auditRepoCuenta(g);
-  var est = g.repoEstado === 'completo' ? 'finalizado completo' : c.total ? 'creado · sin finalizar' : 'sin repositorio';
-  var h = '<div class="panel-head"><div><h2>Aula Viva de Experiencia</h2><p>' + g.nombre + ' · ' + g.periodoTxt + ' · vista de solo visualización.</p></div></div>';
-  h += '<div class="mv-hero" id="aud-av-hero"><div class="mv-id"><span class="mv-vault"><svg class="icon"><use href="#i-unlock"/></svg></span><div><small>Repositorio del grupo · ' + est + '</small><h3>' + g.nombre + '</h3><p>' + g.institucion + ' · ' + g.periodoTxt + ' · ' + c.total + (c.total === 1 ? ' archivo' : ' archivos') + '</p></div></div></div>';
-  h += '<div class="mv-stats" style="margin-top:16px;"><div class="mv-stat"><b>' + c.total + '</b><span>archivos en total</span></div>' + ['documentos','producto','evidencias'].map(function(k, i){ var n = [c.docs, c.prod, c.evid][i]; return '<div class="mv-stat ' + AV_CARPETAS[k].acc + '"><b>' + n + '</b><span>' + AV_CARPETAS[k].nombre.toLowerCase() + '</span></div>'; }).join('') + '</div>';
+  var estTxt = g.repoEstado === 'completo' ? 'finalizado completo' : c.total ? 'creado · sin finalizar' : 'sin repositorio';
+  var tabs = [{k:'todo', t:'Todo', n:c.total}].concat(['documentos','producto','evidencias'].map(function(k, i){ return {k:k, t:AV_CARPETAS[k].nombre, n:[c.docs, c.prod, c.evid][i]}; }));
+  var h = '<button type="button" class="mv-back" onclick="auditAulaVivaCerrar()"><svg class="icon"><use href="#i-arrow"/></svg>Volver a Aula Viva de los grupos</button>';
+  h += '<div class="mv-hero"><div class="mv-id"><span class="mv-vault"><svg class="icon"><use href="#i-unlock"/></svg></span><div><small>Repositorio del grupo · ' + estTxt + '</small><h3>' + g.nombre + '</h3><p>' + g.institucion + ' · ' + g.periodoTxt + ' · ' + c.total + (c.total === 1 ? ' archivo' : ' archivos') + '</p></div></div></div>';
+  h += '<div class="mv-stats"><div class="mv-stat"><b>' + c.total + '</b><span>archivos en total</span></div>' + ['documentos','producto','evidencias'].map(function(k, i){ var n = [c.docs, c.prod, c.evid][i]; return '<div class="mv-stat ' + AV_CARPETAS[k].acc + '"><b>' + n + '</b><span>' + AV_CARPETAS[k].nombre.toLowerCase() + '</span></div>'; }).join('') + '</div>';
+  h += '<div class="mv-tabs">' + tabs.map(function(t){ return '<button type="button" class="mv-tab' + (AUDIT_AV_TAB === t.k ? ' on' : '') + '" onclick="auditAulaVivaTab(\'' + t.k + '\')">' + t.t + ' <em>' + t.n + '</em></button>'; }).join('') + '</div>';
   var d = 0;
   ['documentos','producto','evidencias'].forEach(function(k){
+    if(AUDIT_AV_TAB !== 'todo' && AUDIT_AV_TAB !== k) return;
     var cf = AV_CARPETAS[k], items = repo ? repo[k] : [];
     h += '<section class="mv-sec ' + cf.acc + '" data-folder="' + k + '"><div class="mv-sec-head"><span class="ico"><svg class="icon"><use href="#' + cf.icon + '"/></svg></span><div><h4>' + cf.nombre + '</h4><small>' + items.length + (items.length === 1 ? ' archivo' : ' archivos') + '</small></div><span class="num">' + cf.num + '</span></div>';
     if(!items.length){ h += '<p class="mono-note">El grupo no ha cargado archivos en esta carpeta.</p></section>'; return; }
     h += '<div class="mv-grid">' + items.map(function(f){
       var t = auditTipoArchivo(f.nombre), tp = MISG_TIPO[t];
-      return '<article class="mv-file" style="animation-delay:' + (d++ * 55) + 'ms"><div class="mv-thumb t-' + t + '"><span class="mv-ext">' + tp.label + '</span><svg class="icon"><use href="#' + tp.icon + '"/></svg></div><div class="mv-body"><b>' + f.nombre + '</b><span class="meta">' + f.meta + '</span></div></article>';
+      var nombreEsc = f.nombre.replace(/'/g, "\\'");
+      return '<article class="mv-file" style="animation-delay:' + (d++ * 55) + 'ms"><div class="mv-thumb t-' + t + '"><span class="mv-ext">' + tp.label + '</span><svg class="icon"><use href="#' + tp.icon + '"/></svg></div><div class="mv-body"><b>' + f.nombre + '</b><span class="meta">' + f.meta + '</span>'
+        + '<div class="mv-dl"><button type="button" onclick="toast(\'Esto descargaría ' + nombreEsc + '\')"><svg class="icon"><use href="#i-download"/></svg>Descargar</button></div></div></article>';
     }).join('') + '</div></section>';
   });
   return h;
 }
+function auditAulaVivaHtml(){
+  return AUDIT_AV_ABIERTO ? auditAulaVivaRepoHtml(AUDIT_AV_ABIERTO) : auditAulaVivaListaHtml();
+}
 function auditRenderPaneles(){
   var g = auditGrupo();
   var set = function(id, h){ var el = document.getElementById(id); if(el) el.innerHTML = h; };
-  if(!g){ ['panel-aud-proyecto','panel-aud-simulador','panel-aud-aulaviva'].forEach(function(id){ set(id, '<div class="card"><p class="mono-note">Elige un periodo y un grupo en el Panel principal.</p></div>'); }); return; }
-  set('panel-aud-proyecto', auditProyectoAulaHtml(g));
-  set('panel-aud-simulador', auditSimuladorHtml(g));
-  set('panel-aud-aulaviva', auditAulaVivaHtml(g));
+  if(!g){
+    set('panel-aud-proyecto', '<div class="card"><p class="mono-note">Elige un periodo y un grupo.</p></div>');
+    set('panel-aud-simulador', '<div class="card"><p class="mono-note">Elige un periodo y un grupo.</p></div>');
+  } else {
+    set('panel-aud-proyecto', auditProyectoAulaHtml(g));
+    set('panel-aud-simulador', auditSimuladorHtml(g));
+  }
+  set('panel-aud-aulaviva', auditAulaVivaHtml());
 }
 var AUDIT_PANELES = {'proyecto-aula':'aud-proyecto', 'simulador':'aud-simulador', 'aula-viva':'aud-aulaviva'};
 function auditActualizarBanner(nombrePanel){
@@ -3703,23 +3785,14 @@ function auditActualizarBanner(nombrePanel){
   if(!b) return;
   var name = nombrePanel || (document.querySelector('.panel.active') || {id:''}).id.replace(/^panel-/, '');
   var g = auditGrupo();
-  var visible = auditActivo() && g && ['mirada-aula','aud-proyecto','aud-simulador','aud-aulaviva','biblioteca'].indexOf(name) !== -1;
+  var visible = auditActivo() && g && ['mirada-aula','biblioteca'].indexOf(name) !== -1;
   b.classList.toggle('hidden', !visible);
   if(visible){
     document.getElementById('aud-b-nombre').textContent = g.nombre;
     document.getElementById('aud-b-periodo').textContent = '· ' + auditPeriodoEtiqueta(g.periodo);
   }
 }
-function auditIrAlInicio(){ setPanel('panel-inicio'); auditToggleBar(true); }
-/* ---- selector de auditoría plegable ---- */
-var AUDIT_BAR_ABIERTA = false;
-function auditToggleBar(abrir){
-  AUDIT_BAR_ABIERTA = (typeof abrir === 'boolean') ? abrir : !AUDIT_BAR_ABIERTA;
-  var bar = document.getElementById('aud-bar'); if(!bar) return;
-  bar.classList.toggle('collapsed', !AUDIT_BAR_ABIERTA);
-  var t = document.getElementById('aud-toggle'); if(t) t.setAttribute('aria-expanded', AUDIT_BAR_ABIERTA ? 'true' : 'false');
-  var tx = document.getElementById('aud-toggle-txt'); if(tx) tx.textContent = AUDIT_BAR_ABIERTA ? 'Ocultar' : 'Cambiar grupo';
-}
+function auditIrACambiarGrupo(){ setPanel('proyecto-aula'); }
 
 /* ---- Reportes generales (docente): datos consolidados de los grupos del periodo ---- */
 var REPGEN_GRUPOS = [
