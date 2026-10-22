@@ -397,13 +397,14 @@ body.auditing .nav-group.aud-nav{display:block;}
 .av-folder-body .pill{align-self:flex-start;margin-top:2px;}
 /* ---- Reportes generales (docente) ---- */
 .repgen{margin-top:26px;position:relative;}
-.repgen-actions{display:flex;gap:8px;flex-wrap:wrap;}
 .repgen-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;}
 .rg-kpi{background:var(--panel);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:16px 18px;}
 .rg-kpi .rg-v{font-size:30px;font-weight:700;line-height:1.1;color:var(--ink);}
 .rg-kpi .rg-v small{font-size:14px;font-weight:500;color:var(--muted);margin-left:4px;}
 .rg-kpi .rg-l{font-size:12.5px;color:var(--muted);margin-top:6px;}
 .repgen-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;}
+.repgen-ranking{margin-top:16px;}
+.repgen-detalle{margin-top:8px;}
 .rg-card{background:var(--panel);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:18px 20px;}
 .rg-card h4{margin:0 0 4px;font-size:15px;}
 .rg-card .rg-sub{font-size:12.5px;color:var(--muted);margin-bottom:16px;}
@@ -421,7 +422,6 @@ body.auditing .nav-group.aud-nav{display:block;}
 .rg-leg-i .dot{width:10px;height:10px;border-radius:3px;flex:none;}
 .rg-leg-i b{margin-left:auto;font-size:14px;}
 .rg-leg-i .rg-gs{color:var(--muted);font-size:12px;}
-.repgen-tabla table{width:100%;}
 .repgen-tip{position:absolute;pointer-events:none;z-index:5;background:#191628;color:#fff;font-size:12.5px;padding:7px 10px;border-radius:8px;opacity:0;transition:opacity .12s;max-width:240px;box-shadow:0 6px 18px rgba(25,22,40,.25);}
 .repgen-tip.on{opacity:1;}
 @media(max-width:900px){.repgen-kpis{grid-template-columns:repeat(2,1fr);}.repgen-grid{grid-template-columns:1fr;}.rg-row{grid-template-columns:110px 1fr 40px;}}
@@ -1258,7 +1258,6 @@ button.av-doc-row:hover{border-color:var(--acc-ink);}
     <button class="nav-item" data-role="profesor,coordinador,admin" data-panel="profesor-cola" onclick="setPanel('profesor-cola')"><svg class="icon"><use href="#i-shield"/></svg> Árboles por revisar</button>
     <button class="nav-item" data-role="profesor,coordinador,admin" data-panel="admin-grupos" onclick="setPanel('admin-grupos')"><svg class="icon"><use href="#i-users"/></svg> Grupos de proyecto</button>
     <button class="nav-item" data-role="profesor,coordinador,admin" data-panel="staff-aula-viva" onclick="setPanel('staff-aula-viva')"><svg class="icon"><use href="#i-folder"/></svg> Aula Viva de los grupos</button>
-    <button class="nav-item" data-role="profesor,coordinador,admin" data-panel="staff-reporte" onclick="setPanel('staff-reporte')"><svg class="icon"><use href="#i-chart"/></svg> Reporte de avance</button>
     <button class="nav-item" data-role="profesor,coordinador,admin" data-panel="auditoria" onclick="setPanel('auditoria'); renderAuditoria();"><svg class="icon"><use href="#i-pulse"/></svg> Auditoría <span class="tag tag-new">nuevo</span></button>
     <button class="nav-item" data-role="coordinador,admin" data-panel="admin-usuarios" onclick="setPanel('admin-usuarios')"><svg class="icon"><use href="#i-users"/></svg> Usuarios</button>
     <button class="nav-item" data-role="coordinador,admin" data-panel="admin-periodos" onclick="setPanel('admin-periodos')"><svg class="icon"><use href="#i-clock"/></svg> Periodos y Cortes</button>
@@ -2395,10 +2394,11 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
         </div>
 
         <section class="repgen" id="rep-gen" aria-labelledby="repgen-title">
-          <div class="panel-head" style="margin-top:6px;"><div><h2 id="repgen-title" style="font-size:18px;">Reportes generales</h2><p>Vista consolidada de todos los grupos del periodo 2026-1.</p></div><div class="repgen-actions"><button type="button" class="btn btn-ghost btn-sm" id="repgen-vista" onclick="repGenVista()">Ver como tabla</button><button type="button" class="btn btn-primary btn-sm" onclick="setPanel('staff-reporte')">Reporte completo por grupo</button></div></div>
+          <div class="panel-head" style="margin-top:6px;"><div><h2 id="repgen-title" style="font-size:18px;">Reportes generales</h2><p>Toda la información consolidada de los grupos del periodo 2026-1, en un solo lugar.</p></div></div>
           <div class="repgen-kpis" id="repgen-kpis"></div>
           <div class="repgen-grid" id="repgen-charts"></div>
-          <div class="repgen-tabla hidden" id="repgen-tabla"></div>
+          <div class="repgen-ranking" id="repgen-ranking"></div>
+          <div class="repgen-detalle" id="repgen-detalle"></div>
           <div class="repgen-tip" id="repgen-tip" role="status"></div>
         </section>
       </div>
@@ -2454,54 +2454,6 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
             <div class="drive-section-title">Evidencias del proceso</div>
             <div class="repo-timeline" id="vr-evidencias"></div>
           </div>
-        </div>
-      </div>
-
-      <!-- ============ GESTIÓN ACADÉMICA: reporte de avance por grupo ============ -->
-      <div class="panel" id="panel-staff-reporte">
-        <div class="panel-head"><div><h2>Reporte de avance</h2><p>Seguimiento del progreso de cada grupo por formato, paso del módulo Una mirada al aula, uso de Evoluciona tu aula y cargue de Aula Viva.</p></div></div>
-        <div class="table-wrap" style="overflow-x:auto;">
-          <table>
-            <thead><tr><th>Grupo</th><th>Caracterización</th><th>Árbol de Problematización</th><th>Paso en Una mirada al aula</th><th>Proyecto Pedagógico de Aula</th><th>Usos de Evoluciona tu aula</th><th>Aula Viva</th></tr></thead>
-            <tbody>
-              <tr>
-                <td>Grupo 3 — Semilleros de Cambio</td>
-                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:100%;background:var(--green2-ink)"></span></div><span class="mono-note">100%</span></div></td>
-                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:100%;background:var(--green2-ink)"></span></div><span class="mono-note">100%</span></div></td>
-                <td><span class="pill warn">Diligenciando el Proyecto Pedagógico</span></td>
-                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:65%;background:var(--yellow-ink)"></span></div><span class="mono-note">65%</span></div></td>
-                <td class="mono-note">2 veces</td>
-                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:40%;background:var(--yellow-ink)"></span></div><span class="mono-note">40%</span></div></td>
-              </tr>
-              <tr>
-                <td>Grupo 5 — Voces del Aula</td>
-                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:100%;background:var(--green2-ink)"></span></div><span class="mono-note">100%</span></div></td>
-                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:100%;background:var(--green2-ink)"></span></div><span class="mono-note">100%</span></div></td>
-                <td><span class="pill off">Aún no inicia — árbol pendiente de aceptación</span></td>
-                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:0%;background:var(--pink-ink)"></span></div><span class="mono-note">0%</span></div></td>
-                <td class="mono-note">0 veces</td>
-                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:0%;background:var(--pink-ink)"></span></div><span class="mono-note">0%</span></div></td>
-              </tr>
-              <tr>
-                <td>Grupo 7 — Mundo Diverso</td>
-                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:85%;background:var(--green2-ink)"></span></div><span class="mono-note">85%</span></div></td>
-                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:70%;background:var(--yellow-ink)"></span></div><span class="mono-note">70%</span></div></td>
-                <td><span class="pill danger">Árbol en ajuste — pendiente de reenvío</span></td>
-                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:0%;background:var(--pink-ink)"></span></div><span class="mono-note">0%</span></div></td>
-                <td class="mono-note">1 vez</td>
-                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:0%;background:var(--pink-ink)"></span></div><span class="mono-note">0%</span></div></td>
-              </tr>
-              <tr>
-                <td>Grupo 9 — Raíces y Alas</td>
-                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:95%;background:var(--green2-ink)"></span></div><span class="mono-note">95%</span></div></td>
-                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:100%;background:var(--green2-ink)"></span></div><span class="mono-note">100%</span></div></td>
-                <td><span class="pill off">Aún no inicia — árbol pendiente de aceptación</span></td>
-                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:0%;background:var(--pink-ink)"></span></div><span class="mono-note">0%</span></div></td>
-                <td class="mono-note">0 veces</td>
-                <td><div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:10%;background:var(--pink-ink)"></span></div><span class="mono-note">10%</span></div></td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
 
@@ -2680,7 +2632,6 @@ var panelTitles = {
   'admin-periodos':'Periodos y Cortes',
   'admin-grupos':'Grupos de proyecto',
   'staff-aula-viva':'Aula Viva de los grupos',
-  'staff-reporte':'Reporte de avance',
   'auditoria':'Auditoría'
 };
 function setPanel(name){
@@ -3776,8 +3727,18 @@ var REPGEN_ESTADOS = {
   pend:{txt:'Pendiente de revisión', color:'#7e7442', ico:'◔'},
   ajuste:{txt:'En ajuste', color:'#9b5395', ico:'!'}
 };
-var REPGEN_TABLA = false;
 function repGenProm(k){ return Math.round(REPGEN_GRUPOS.reduce(function(a,g){ return a + g[k]; }, 0) / REPGEN_GRUPOS.length); }
+function repGenPromedioGrupo(g){ return Math.round((g.carac + g.arbol + g.proy + g.av) / 4); }
+function repGenPasoMirada(g){
+  if(g.proy >= 100) return {txt:'Formato de Proyecto de Aula completo', cls:'on'};
+  if(g.proy > 0) return {txt:'Diligenciando el Proyecto Pedagógico', cls:'warn'};
+  if(g.estado === 'ajuste') return {txt:'Árbol en ajuste — pendiente de reenvío', cls:'danger'};
+  return {txt:'Aún no inicia — árbol pendiente de aceptación', cls:'off'};
+}
+function repGenColor(pct){ return pct >= 80 ? 'var(--green2-ink)' : pct > 0 ? 'var(--yellow-ink)' : 'var(--pink-ink)'; }
+function repGenBarraHtml(pct){
+  return '<div style="display:flex;align-items:center;gap:8px;"><div class="mini-bar"><span style="width:' + pct + '%;background:' + repGenColor(pct) + '"></span></div><span class="mono-note">' + pct + '%</span></div>';
+}
 function repGenRender(){
   var box = document.getElementById('repgen-kpis'); if(!box) return;
   var G = REPGEN_GRUPOS, n = G.length;
@@ -3809,15 +3770,20 @@ function repGenRender(){
   document.getElementById('repgen-charts').innerHTML =
     '<div class="rg-card"><h4>Avance promedio por formato</h4><div class="rg-sub">Promedio de los ' + n + ' grupos, de 0 a 100 %</div>' + barras + '</div>'
     + '<div class="rg-card"><h4>Estado de los Árboles de Problematización</h4><div class="rg-sub">Único punto de control docente en el Momento 1</div><div class="rg-seg" role="img" aria-label="Distribución de estados de los árboles">' + seg + '</div><div class="rg-leg">' + leg + '</div></div>';
-  document.getElementById('repgen-tabla').innerHTML = '<div class="table-wrap"><table><thead><tr><th>Grupo</th><th>Caracterización</th><th>Árbol</th><th>Proyecto Pedagógico</th><th>Aula Viva</th><th>Usos Evoluciona</th><th>Estado del árbol</th></tr></thead><tbody>'
-    + G.map(function(g){ return '<tr><td>' + g.n + ' — ' + g.nombre + '</td><td>' + g.carac + '%</td><td>' + g.arbol + '%</td><td>' + g.proy + '%</td><td>' + g.av + '%</td><td>' + g.usos + '</td><td>' + REPGEN_ESTADOS[g.estado].ico + ' ' + REPGEN_ESTADOS[g.estado].txt + '</td></tr>'; }).join('')
-    + '<tr><td><b>Promedio</b></td><td><b>' + repGenProm('carac') + '%</b></td><td><b>' + repGenProm('arbol') + '%</b></td><td><b>' + repGenProm('proy') + '%</b></td><td><b>' + repGenProm('av') + '%</b></td><td><b>' + usos + '</b></td><td></td></tr></tbody></table></div>';
-}
-function repGenVista(){
-  REPGEN_TABLA = !REPGEN_TABLA;
-  document.getElementById('repgen-tabla').classList.toggle('hidden', !REPGEN_TABLA);
-  document.getElementById('repgen-charts').classList.toggle('hidden', REPGEN_TABLA);
-  document.getElementById('repgen-vista').textContent = REPGEN_TABLA ? 'Ver como gráficas' : 'Ver como tabla';
+
+  var ranking = G.slice().sort(function(a, b){ return repGenPromedioGrupo(b) - repGenPromedioGrupo(a); }).map(function(g){
+    var v = repGenPromedioGrupo(g);
+    return '<div class="rg-row" tabindex="0" data-tip="' + g.n + ' — ' + g.nombre + ': ' + v + '% de avance general">'
+      + '<span class="rg-name">' + g.n + ' — ' + g.nombre + '</span><span class="rg-track"><span class="rg-fill" style="width:' + v + '%;background:' + repGenColor(v) + '"></span></span><span class="rg-val">' + v + '%</span></div>';
+  }).join('');
+  document.getElementById('repgen-ranking').innerHTML =
+    '<div class="rg-card"><h4>Avance general por grupo</h4><div class="rg-sub">Promedio de Caracterización, Árbol, Proyecto Pedagógico y Aula Viva — de mayor a menor avance</div>' + ranking + '</div>';
+
+  document.getElementById('repgen-detalle').innerHTML = '<h4 style="font-size:14.5px;margin:24px 0 14px;">Detalle por grupo</h4><div class="table-wrap" style="overflow-x:auto;"><table><thead><tr><th>Grupo</th><th>Caracterización</th><th>Árbol de Problematización</th><th>Paso en Una mirada al aula</th><th>Proyecto Pedagógico de Aula</th><th>Usos de Evoluciona tu aula</th><th>Aula Viva</th></tr></thead><tbody>'
+    + G.map(function(g){
+      var paso = repGenPasoMirada(g);
+      return '<tr><td>' + g.n + ' — ' + g.nombre + '</td><td>' + repGenBarraHtml(g.carac) + '</td><td>' + repGenBarraHtml(g.arbol) + '</td><td><span class="pill ' + paso.cls + '">' + paso.txt + '</span></td><td>' + repGenBarraHtml(g.proy) + '</td><td class="mono-note">' + g.usos + (g.usos === 1 ? ' vez' : ' veces') + '</td><td>' + repGenBarraHtml(g.av) + '</td></tr>';
+    }).join('') + '</tbody></table></div>';
 }
 (function(){
   var sec = document.getElementById('rep-gen'), tip = document.getElementById('repgen-tip');
