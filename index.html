@@ -429,7 +429,8 @@ body.auditing .nav-group.aud-nav{display:block;}
 .rg-leg-i{display:flex;align-items:center;gap:10px;font-size:13px;padding:2px 0;}
 .rg-leg-i .dot{width:10px;height:10px;border-radius:3px;flex:none;}
 .rg-leg-i b{margin-left:auto;font-size:14px;}
-.rg-leg-i .rg-gs{color:var(--muted);font-size:12px;}
+.rg-info-btn{width:18px;height:18px;border-radius:50%;border:1px solid var(--border);background:var(--panel-2);color:var(--muted);font-size:11px;font-style:italic;font-weight:700;font-family:Georgia,serif;display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer;}
+.rg-info-btn:hover,.rg-info-btn:focus-visible{background:var(--purple-ink);border-color:var(--purple-ink);color:#fff;}
 .repgen-tip{position:absolute;pointer-events:none;z-index:5;background:#191628;color:#fff;font-size:12.5px;padding:7px 10px;border-radius:8px;opacity:0;transition:opacity .12s;max-width:240px;box-shadow:0 6px 18px rgba(25,22,40,.25);}
 .repgen-tip.on{opacity:1;}
 @media(max-width:900px){.repgen-kpis{grid-template-columns:repeat(2,1fr);}.repgen-grid{grid-template-columns:1fr;}.rg-row{grid-template-columns:110px 1fr 40px;}}
@@ -3808,8 +3809,9 @@ function repGenRender(){
   }).join('');
   var leg = orden.map(function(k){
     var gs = G.filter(function(g){ return g.estado === k; });
-    return '<div class="rg-leg-i" tabindex="0" data-tip="' + REPGEN_ESTADOS[k].txt + ': ' + gs.length + '"><span class="dot" style="background:' + REPGEN_ESTADOS[k].color + '"></span><span>' + REPGEN_ESTADOS[k].ico + ' ' + REPGEN_ESTADOS[k].txt
-      + '<br><span class="rg-gs">' + (gs.map(function(g){ return g.n; }).join(', ') || '—') + '</span></span><b>' + gs.length + '</b></div>';
+    var nombres = gs.map(function(g){ return g.n; }).join(', ') || 'Ningún grupo';
+    return '<div class="rg-leg-i"><span class="dot" style="background:' + REPGEN_ESTADOS[k].color + '"></span><span>' + REPGEN_ESTADOS[k].ico + ' ' + REPGEN_ESTADOS[k].txt + '</span>'
+      + '<button type="button" class="rg-info-btn" tabindex="0" data-tip="' + nombres + '" aria-label="Ver grupos en estado ' + REPGEN_ESTADOS[k].txt + '">i</button><b>' + gs.length + '</b></div>';
   }).join('');
   document.getElementById('repgen-charts').innerHTML =
     '<div class="rg-card"><h4>Grupos que completaron cada momento</h4><div class="rg-sub">De los ' + n + ' grupos del periodo actual</div>' + barras + '</div>'
