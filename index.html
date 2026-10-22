@@ -403,7 +403,6 @@ body.auditing .nav-group.aud-nav{display:block;}
 .rg-kpi .rg-v small{font-size:14px;font-weight:500;color:var(--muted);margin-left:4px;}
 .rg-kpi .rg-l{font-size:12.5px;color:var(--muted);margin-top:6px;}
 .repgen-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;}
-.repgen-ranking{margin-top:16px;}
 .repgen-detalle{margin-top:8px;}
 .rg-group-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
 .rg-group-card{background:var(--panel);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:16px 18px;}
@@ -2406,7 +2405,6 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
           <div class="panel-head" style="margin-top:6px;"><div><h2 id="repgen-title" style="font-size:18px;">Reportes generales</h2><p>Toda la información consolidada de los grupos del periodo 2026-1, en un solo lugar.</p></div></div>
           <div class="repgen-kpis" id="repgen-kpis"></div>
           <div class="repgen-grid" id="repgen-charts"></div>
-          <div class="repgen-ranking" id="repgen-ranking"></div>
           <div class="repgen-tip" id="repgen-tip" role="status"></div>
         </section>
       </div>
@@ -3757,7 +3755,6 @@ var REPGEN_ESTADOS = {
   ajuste:{txt:'En ajuste', color:'#9b5395', ico:'!'}
 };
 function repGenProm(k){ return Math.round(REPGEN_GRUPOS.reduce(function(a,g){ return a + g[k]; }, 0) / REPGEN_GRUPOS.length); }
-function repGenPromedioGrupo(g){ return Math.round((g.carac + g.arbol + g.proy + g.av) / 4); }
 function repGenPasoMirada(g){
   if(g.proy >= 100) return {txt:'Formato de Proyecto de Aula completo', cls:'on'};
   if(g.proy > 0) return {txt:'Diligenciando el Proyecto Pedagógico', cls:'warn'};
@@ -3799,14 +3796,6 @@ function repGenRender(){
   document.getElementById('repgen-charts').innerHTML =
     '<div class="rg-card"><h4>Avance promedio por formato</h4><div class="rg-sub">Promedio de los ' + n + ' grupos, de 0 a 100 %</div>' + barras + '</div>'
     + '<div class="rg-card"><h4>Estado de los Árboles de Problematización</h4><div class="rg-sub">Único punto de control docente en el Momento 1</div><div class="rg-seg" role="img" aria-label="Distribución de estados de los árboles">' + seg + '</div><div class="rg-leg">' + leg + '</div></div>';
-
-  var ranking = G.slice().sort(function(a, b){ return repGenPromedioGrupo(b) - repGenPromedioGrupo(a); }).map(function(g){
-    var v = repGenPromedioGrupo(g);
-    return '<div class="rg-row" tabindex="0" data-tip="' + g.n + ' — ' + g.nombre + ': ' + v + '% de avance general">'
-      + '<span class="rg-name">' + g.n + ' — ' + g.nombre + '</span><span class="rg-track"><span class="rg-fill" style="width:' + v + '%;background:' + repGenColor(v) + '"></span></span><span class="rg-val">' + v + '%</span></div>';
-  }).join('');
-  document.getElementById('repgen-ranking').innerHTML =
-    '<div class="rg-card"><h4>Avance general por grupo</h4><div class="rg-sub">Promedio de Caracterización, Árbol, Proyecto Pedagógico y Aula Viva — de mayor a menor avance</div>' + ranking + '</div>';
 }
 (function(){
   var sec = document.getElementById('rep-gen'), tip = document.getElementById('repgen-tip');
