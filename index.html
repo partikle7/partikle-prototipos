@@ -2140,17 +2140,15 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
 
       <!-- ============ PROFESOR: cola de revisión ============ -->
       <div class="panel" id="panel-profesor-cola">
-        <div class="panel-head"><div><h2>Árboles pendientes de revisión</h2><p>Único punto de control docente en el Momento 1: aceptar o retroalimentar el Árbol de Problematización de cada grupo.</p></div></div>
+        <div class="panel-head">
+          <div><h2>Árboles pendientes de revisión</h2><p id="cola-sub">Único punto de control docente en el Momento 1: aceptar o retroalimentar el Árbol de Problematización de cada grupo. Solo se listan los árboles que ya tienen al menos una revisión.</p></div>
+          <button type="button" class="btn btn-ghost btn-sm hidden" id="cola-btn-filtro" onclick="colaToggleAsignados()">Ver solo mis grupos asignados</button>
+        </div>
         <div class="filter-row"><input class="input" placeholder="Buscar por grupo o institución…"><button class="btn btn-ghost btn-sm">Filtrar por institución</button></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Grupo</th><th>Institución</th><th>Enviado</th><th>Estado</th><th></th></tr></thead>
-            <tbody>
-              <tr><td>Grupo 3 — Semilleros de Cambio</td><td>I.E. Distrital La Luz</td><td>4 mar 2026</td><td><span class="pill on" id="cola-status-g3">Aceptado</span></td><td><button class="btn btn-ghost btn-sm" onclick="setPanel('profesor-revision')">Ver</button></td></tr>
-              <tr><td>Grupo 5 — Voces del Aula</td><td>Jardín Infantil Semillas</td><td>9 mar 2026</td><td><span class="pill warn">Pendiente</span></td><td><button class="btn btn-primary btn-sm" onclick="setPanel('profesor-revision')">Revisar</button></td></tr>
-              <tr><td>Grupo 7 — Mundo Diverso</td><td>I.E. Nueva Esperanza</td><td>8 mar 2026</td><td><span class="pill danger">En ajuste</span></td><td><button class="btn btn-ghost btn-sm" onclick="setPanel('profesor-revision')">Ver</button></td></tr>
-              <tr><td>Grupo 9 — Raíces y Alas</td><td>I.E. Distrital La Luz</td><td>10 mar 2026</td><td><span class="pill warn">Pendiente</span></td><td><button class="btn btn-primary btn-sm" onclick="setPanel('profesor-revision')">Revisar</button></td></tr>
-            </tbody>
+            <thead><tr><th>Grupo</th><th>Institución</th><th>Enviado</th><th>Revisiones</th><th>Estado</th><th></th></tr></thead>
+            <tbody id="tabla-profesor-cola"></tbody>
           </table>
         </div>
       </div>
@@ -2663,6 +2661,7 @@ function setPanel(name){
   document.getElementById('topbar-crumb').textContent = 'DiversIA / ' + title + (name==='proyecto-aula' ? ' / Paso a paso' : '');
   if(name==='mirada-aula' && typeof renderMiradaAula==='function') renderMiradaAula();
   if(name==='admin-grupos' && typeof repGenRender==='function') repGenRender();
+  if(name==='profesor-cola' && typeof renderProfesorCola==='function') renderProfesorCola();
   var bf = document.getElementById('btn-ver-flujo');
   if(bf) bf.classList.toggle('hidden', !(name==='proyecto-aula' && miradaVieneDelHub));
   if(typeof renderVentanas === 'function') renderVentanas();
@@ -2806,27 +2805,24 @@ function renderArbolStatus(){
   var sub = document.getElementById('arbol-status-sub');
   var comment = document.getElementById('arbol-feedback-comment');
   var topstatus = document.getElementById('m1-topstatus');
-  var cola = document.getElementById('cola-status-g3');
   banner.className = 'status-banner ' + (arbolStatus==='pending' ? 'pending' : arbolStatus==='feedback' ? 'feedback' : arbolStatus==='accepted' ? 'accepted' : 'draft');
   comment.classList.add('hidden');
   if(arbolStatus==='pending'){
     title.textContent = 'Árbol enviado — pendiente de revisión';
     sub.textContent = 'El profesor Andrés Molina revisará el árbol de tu grupo próximamente.';
     topstatus.textContent = 'Árbol: pendiente de revisión'; topstatus.className='pill warn';
-    if(cola){ cola.textContent = 'Pendiente'; cola.className = 'pill warn'; }
   } else if(arbolStatus==='accepted'){
     title.textContent = 'Árbol aceptado por el profesor';
     sub.textContent = 'Prof. Andrés Molina aceptó el árbol. Ya puedes generar las propuestas de proyecto.';
     topstatus.textContent = 'Árbol: aceptado por el profesor'; topstatus.className='pill on';
-    if(cola){ cola.textContent = 'Aceptado'; cola.className = 'pill on'; }
   } else if(arbolStatus==='feedback'){
     title.textContent = 'El profesor solicitó ajustes';
     sub.textContent = 'Revisa las observaciones, ajusta el árbol y vuelve a enviarlo a revisión.';
     comment.textContent = '"' + (window.__feedbackText || 'Los efectos de la Situación 2 necesitan causas más específicas antes de continuar.') + '" — Prof. Andrés Molina';
     comment.classList.remove('hidden');
     topstatus.textContent = 'Árbol: requiere ajustes'; topstatus.className='pill danger';
-    if(cola){ cola.textContent = 'En ajuste'; cola.className = 'pill danger'; }
   }
+  if(typeof renderProfesorCola === 'function') renderProfesorCola();
   renderRevisionHistorial();
   var demo = document.getElementById('arbol-demo-review');
   if(demo) demo.classList.toggle('hidden', arbolStatus !== 'pending');
@@ -3366,7 +3362,7 @@ var AUDIT_GRUPOS = [
     propuesta:{ tentative_name:'"Aprendemos juntos": participación diversa en el aula', problem_statement:'Participación desigual en actividades colaborativas de Transición B.', general_and_specific_objectives:'Promover la participación equitativa mediante roles rotativos y comunicación alternativa.', beneficiary_population:'24 niños y niñas de Transición B', approaches_involved:'Inclusión · Derechos · Curso de vida', pedagogical_strategies:'Juego cooperativo, roles rotativos, tablero de comunicación visual', expected_impact:'Mayor participación y reconocimiento entre pares', feasibility:'Alta — recursos disponibles en el aula', innovation_potential:'Medio-alto' },
     proyecto:{ estado:'En borrador · 55% del formato diligenciado', listo:false, corregido:false,
       secciones:[['Identificación del proyecto','"Aprendemos juntos": participación diversa en el aula — Transición B, I.E. Distrital La Luz.'],['Punto de partida pedagógico','Diagnóstico basado en la caracterización y el árbol de problematización aceptado.'],['Propósito formativo','Promover la participación equitativa de todos los niños y niñas en las actividades colaborativas.']] },
-    simulador:[], repoKey:'g3', repoEstado:'sin_finalizar' },
+    simulador:[], repoKey:'g3', repoEstado:'sin_finalizar', staffAsignado:['Prof. Andrés Molina','Diana Castañeda'] },
   { id:'g5', periodo:'PER-2026-1', nombre:'Grupo 5 — Voces del Aula', institucion:'Jardín Infantil Semillas', periodoTxt:'2026-1',
     integrantes:[{nombre:'Camila Andrea Gómez', av:'CG'},{nombre:'Laura Sofía Mejía', av:'LM'},{nombre:'Daniela Ortiz', av:'DO'},{nombre:'Paula Vargas', av:'PV'}],
     caracterizacion:{
@@ -3377,7 +3373,7 @@ var AUDIT_GRUPOS = [
       pregunta:'¿Por qué los niños y niñas de Jardín A tienen pocas oportunidades de expresar sus opiniones frente a los demás?',
       revisiones:[],
       situaciones:[{descripcion:'Las asambleas de aula son dirigidas casi siempre por la docente.', ramas:[{efecto:'Los niños esperan indicaciones antes de hablar', causa:'No hay espacios de conversación guiados por los niños', enfoque:'Participación y Agencia Infantil'}]}] },
-    propuesta:null, proyecto:null, simulador:[], repoKey:'g5', repoEstado:'sin_finalizar' },
+    propuesta:null, proyecto:null, simulador:[], repoKey:'g5', repoEstado:'sin_finalizar', staffAsignado:['Prof. Andrés Molina'] },
   { id:'g7', periodo:'PER-2026-1', nombre:'Grupo 7 — Mundo Diverso', institucion:'I.E. Nueva Esperanza', periodoTxt:'2026-1',
     integrantes:[{nombre:'Andrea Castillo', av:'AC'},{nombre:'Mateo Herrera', av:'MH'},{nombre:'Sara Beltrán', av:'SB'}],
     caracterizacion:{
@@ -3388,7 +3384,7 @@ var AUDIT_GRUPOS = [
       pregunta:'¿Por qué en Transición A se forman subgrupos que excluyen a algunos niños y niñas?',
       revisiones:[{enviado:'20 ago 2026', respondido:'23 ago 2026', estado:'feedback', docente:'Prof. Andrés Molina', comentario:'Las causas están redactadas como juicios. Reformúlenlas a partir de hechos observados en el aula.'}],
       situaciones:[{descripcion:'Los niños eligen siempre a los mismos compañeros para jugar.', ramas:[{efecto:'Algunos niños quedan solos durante el juego', causa:'Las actividades no promueven la mezcla de grupos', enfoque:'Inclusión'}]}] },
-    propuesta:null, proyecto:null, simulador:[], repoKey:'g7', repoEstado:'sin_finalizar' },
+    propuesta:null, proyecto:null, simulador:[], repoKey:'g7', repoEstado:'sin_finalizar', staffAsignado:['Prof. Andrés Molina'] },
   { id:'g9', periodo:'PER-2026-1', nombre:'Grupo 9 — Raíces y Alas', institucion:'I.E. Distrital La Luz', periodoTxt:'2026-1',
     integrantes:[{nombre:'Natalia Pardo', av:'NP'},{nombre:'Julián Rincón', av:'JR'},{nombre:'Karen Acosta', av:'KA'},{nombre:'Esteban Mora', av:'EM'}],
     caracterizacion:{
@@ -3399,7 +3395,7 @@ var AUDIT_GRUPOS = [
       pregunta:'¿Por qué a los niños y niñas de Transición C les cuesta autorregular su atención en actividades largas?',
       revisiones:[],
       situaciones:[{descripcion:'Las actividades de mesa superan el tiempo de atención del grupo.', ramas:[{efecto:'Interrupciones frecuentes en la clase', causa:'Las rutinas no incluyen pausas activas', enfoque:'Curso de vida'}]}] },
-    propuesta:null, proyecto:null, simulador:[], repoKey:'g9', repoEstado:'sin_finalizar' },
+    propuesta:null, proyecto:null, simulador:[], repoKey:'g9', repoEstado:'sin_finalizar', staffAsignado:['Prof. Andrés Molina','Diana Castañeda'] },
   { id:'g-2025-2', periodo:'PER-2025-2', nombre:'Grupo 1 — Voces de mi Territorio', institucion:'Jardín Infantil Los Robles', periodoTxt:'2025-2',
     integrantes:[{nombre:'Valentina Rojas', av:'VR'},{nombre:'Camilo Andrés Suárez', av:'CS'}],
 
@@ -3484,6 +3480,48 @@ var AUDIT_GRUPO = null;
 function auditActivo(){ return window.__role === 'profesor' && AUDIT_GRUPO !== null; }
 function auditGrupo(){ return AUDIT_GRUPOS.find(function(g){ return g.id === AUDIT_GRUPO; }) || null; }
 function auditPeriodoEtiqueta(code){ var p = AUDIT_PERIODOS.find(function(x){ return x.code === code; }); return p ? p.etiqueta : code; }
+
+/* ---- Árboles por revisar: solo los que ya tienen al menos 1 revisión, filtrados por rol ---- */
+var COLA_STAFF = {profesor:'Prof. Andrés Molina', coordinador:'Diana Castañeda'};
+var COLA_SOLO_ASIGNADOS = false;
+var COLA_ESTADOS = {accepted:{txt:'Aceptado', cls:'on'}, review:{txt:'Pendiente', cls:'warn'}, feedback:{txt:'En ajuste', cls:'danger'}};
+function colaArbolInfo(g){
+  if(g.id === 'g3') return {tipo: arbolStatus === 'pending' ? 'review' : arbolStatus, revisiones: arbolRevisiones};
+  return g.arbol ? {tipo: g.arbol.tipo, revisiones: g.arbol.revisiones} : {tipo: null, revisiones: []};
+}
+function colaToggleAsignados(){ COLA_SOLO_ASIGNADOS = !COLA_SOLO_ASIGNADOS; renderProfesorCola(); }
+function renderProfesorCola(){
+  var tbody = document.getElementById('tabla-profesor-cola');
+  if(!tbody) return;
+  var btn = document.getElementById('cola-btn-filtro');
+  var rol = window.__role;
+  if(btn) btn.classList.toggle('hidden', rol !== 'coordinador');
+  if(btn) btn.textContent = COLA_SOLO_ASIGNADOS ? 'Ver todos los grupos' : 'Ver solo mis grupos asignados';
+
+  var grupos = AUDIT_GRUPOS.filter(function(g){ return g.periodo === 'PER-2026-1'; }).map(function(g){
+    var info = colaArbolInfo(g);
+    return {g: g, info: info};
+  }).filter(function(x){ return x.info.revisiones && x.info.revisiones.length >= 1; });
+
+  if(rol === 'profesor'){
+    grupos = grupos.filter(function(x){ return x.g.staffAsignado && x.g.staffAsignado.indexOf(COLA_STAFF.profesor) !== -1; });
+  } else if(rol === 'coordinador' && COLA_SOLO_ASIGNADOS){
+    grupos = grupos.filter(function(x){ return x.g.staffAsignado && x.g.staffAsignado.indexOf(COLA_STAFF.coordinador) !== -1; });
+  }
+
+  if(!grupos.length){
+    tbody.innerHTML = '<tr><td colspan="6" class="mono-note">No hay árboles con revisiones para mostrar.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = grupos.map(function(x){
+    var g = x.g, info = x.info;
+    var est = COLA_ESTADOS[info.tipo] || COLA_ESTADOS.review;
+    var ultima = info.revisiones[info.revisiones.length - 1];
+    var accion = info.tipo === 'review' ? 'Revisar' : 'Ver';
+    var btnCls = info.tipo === 'review' ? 'btn-primary' : 'btn-ghost';
+    return '<tr><td>' + g.nombre + '</td><td>' + g.institucion + '</td><td class="mono-note">' + ultima.enviado + '</td><td class="mono-note">' + info.revisiones.length + (info.revisiones.length === 1 ? ' revisión' : ' revisiones') + '</td><td><span class="pill ' + est.cls + '">' + est.txt + '</span></td><td><button class="btn ' + btnCls + ' btn-sm" onclick="setPanel(\'profesor-revision\')">' + accion + '</button></td></tr>';
+  }).join('');
+}
 
 /* estado de los 5 pasos de Una mirada al aula según lo que el grupo lleva hecho */
 function auditEstadosMirada(g){
