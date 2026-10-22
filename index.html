@@ -2394,10 +2394,10 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
           <table>
             <thead><tr><th>Código</th><th>Grupo</th><th>Tipo de práctica</th><th>Periodo</th><th>Integrantes</th><th>Vigencia</th><th></th></tr></thead>
             <tbody id="tabla-grupos-admin">
-              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-003</td><td>Grupo 3 — Semilleros de Cambio</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>Valentina Rojas, Juan David Peña, María Alejandra Ruiz</td><td>01 feb – 30 jun 2026</td><td><button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 3')">Editar</button></td></tr>
-              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-005</td><td>Grupo 5 — Voces del Aula</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>4 integrantes</td><td>01 feb – 30 jun 2026</td><td><button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 5')">Editar</button></td></tr>
-              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-007</td><td>Grupo 7 — Mundo Diverso</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>3 integrantes</td><td>01 feb – 30 jun 2026</td><td><button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 7')">Editar</button></td></tr>
-              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-009</td><td>Grupo 9 — Raíces y Alas</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>4 integrantes</td><td>01 feb – 30 jun 2026</td><td><button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 9')">Editar</button></td></tr>
+              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-003</td><td>Grupo 3 — Semilleros de Cambio</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>Valentina Rojas, Juan David Peña, María Alejandra Ruiz</td><td>01 feb – 30 jun 2026</td><td style="white-space:nowrap;"><button class="btn btn-ghost btn-sm" onclick="repGenVerDetalle('Grupo 3')">Ver detalle</button> <button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 3')">Editar</button></td></tr>
+              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-005</td><td>Grupo 5 — Voces del Aula</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>4 integrantes</td><td>01 feb – 30 jun 2026</td><td style="white-space:nowrap;"><button class="btn btn-ghost btn-sm" onclick="repGenVerDetalle('Grupo 5')">Ver detalle</button> <button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 5')">Editar</button></td></tr>
+              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-007</td><td>Grupo 7 — Mundo Diverso</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>3 integrantes</td><td>01 feb – 30 jun 2026</td><td style="white-space:nowrap;"><button class="btn btn-ghost btn-sm" onclick="repGenVerDetalle('Grupo 7')">Ver detalle</button> <button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 7')">Editar</button></td></tr>
+              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-009</td><td>Grupo 9 — Raíces y Alas</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>4 integrantes</td><td>01 feb – 30 jun 2026</td><td style="white-space:nowrap;"><button class="btn btn-ghost btn-sm" onclick="repGenVerDetalle('Grupo 9')">Ver detalle</button> <button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 9')">Editar</button></td></tr>
             </tbody>
           </table>
         </div>
@@ -3731,6 +3731,14 @@ var REPGEN_GRUPOS = [
   {n:'Grupo 7', nombre:'Mundo Diverso',        carac:85,  arbol:70,  proy:0,  av:0,  usos:1, estado:'ajuste'},
   {n:'Grupo 9', nombre:'Raíces y Alas',        carac:95,  arbol:100, proy:0,  av:10, usos:0, estado:'pend'}
 ];
+var REPGEN_DETALLE_ID = null;
+function repGenVerDetalle(n){
+  REPGEN_DETALLE_ID = n;
+  repGenRender();
+  var el = document.getElementById('repgen-detalle');
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function repGenCerrarDetalle(){ REPGEN_DETALLE_ID = null; repGenRender(); }
 var REPGEN_ESTADOS = {
   ok:{txt:'Aceptado', color:'#428048', ico:'✓'},
   pend:{txt:'Pendiente de revisión', color:'#7e7442', ico:'◔'},
@@ -3789,15 +3797,19 @@ function repGenRender(){
     '<div class="rg-card"><h4>Avance general por grupo</h4><div class="rg-sub">Promedio de Caracterización, Árbol, Proyecto Pedagógico y Aula Viva — de mayor a menor avance</div>' + ranking + '</div>';
 
   var metricas = [['Caracterización','carac'],['Árbol de Problematización','arbol'],['Proyecto Pedagógico','proy'],['Aula Viva','av']];
-  var tarjetas = G.map(function(g){
-    var paso = repGenPasoMirada(g);
-    return '<div class="rg-group-card">'
-      + '<div class="rg-group-head"><b>' + g.n + ' — ' + g.nombre + '</b><span class="pill ' + paso.cls + '">' + paso.txt + '</span></div>'
-      + '<div class="rg-group-metrics">' + metricas.map(function(m){ return '<div class="rg-dm"><span class="rg-dm-l">' + m[0] + '</span>' + repGenBarraHtml(g[m[1]]) + '</div>'; }).join('') + '</div>'
-      + '<div class="rg-group-foot">Evoluciona tu aula: <b>' + g.usos + (g.usos === 1 ? ' uso' : ' usos') + '</b></div>'
-    + '</div>';
-  }).join('');
-  document.getElementById('repgen-detalle').innerHTML = '<h4 style="font-size:14.5px;margin:24px 0 14px;">Detalle por grupo</h4><div class="rg-group-grid">' + tarjetas + '</div>';
+  var detalleBox = document.getElementById('repgen-detalle');
+  var seleccionado = G.find(function(g){ return g.n === REPGEN_DETALLE_ID; });
+  if(!seleccionado){
+    detalleBox.innerHTML = '<h4 style="font-size:14.5px;margin:24px 0 10px;">Detalle por grupo</h4><p class="mono-note">Elige "Ver detalle" en la tabla de grupos de arriba para consultar el avance completo de un grupo.</p>';
+  } else {
+    var paso = repGenPasoMirada(seleccionado);
+    detalleBox.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin:24px 0 14px;"><h4 style="font-size:14.5px;margin:0;">Detalle por grupo</h4><button type="button" class="btn btn-ghost btn-sm" onclick="repGenCerrarDetalle()">Cerrar</button></div>'
+      + '<div class="rg-group-grid"><div class="rg-group-card">'
+      + '<div class="rg-group-head"><b>' + seleccionado.n + ' — ' + seleccionado.nombre + '</b><span class="pill ' + paso.cls + '">' + paso.txt + '</span></div>'
+      + '<div class="rg-group-metrics">' + metricas.map(function(m){ return '<div class="rg-dm"><span class="rg-dm-l">' + m[0] + '</span>' + repGenBarraHtml(seleccionado[m[1]]) + '</div>'; }).join('') + '</div>'
+      + '<div class="rg-group-foot">Evoluciona tu aula: <b>' + seleccionado.usos + (seleccionado.usos === 1 ? ' uso' : ' usos') + '</b></div>'
+      + '</div></div>';
+  }
 }
 (function(){
   var sec = document.getElementById('rep-gen'), tip = document.getElementById('repgen-tip');
