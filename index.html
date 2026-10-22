@@ -2407,9 +2407,16 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
           <div class="repgen-kpis" id="repgen-kpis"></div>
           <div class="repgen-grid" id="repgen-charts"></div>
           <div class="repgen-ranking" id="repgen-ranking"></div>
-          <div class="repgen-detalle" id="repgen-detalle"></div>
           <div class="repgen-tip" id="repgen-tip" role="status"></div>
         </section>
+      </div>
+
+      <!-- Modal: detalle de un grupo (desde Grupos de proyecto / Reportes generales) -->
+      <div class="modal-overlay hidden" id="modal-grupo-detalle" onclick="if(event.target===this) repGenCerrarDetalle()">
+        <div class="modal-box">
+          <button class="modal-close" onclick="repGenCerrarDetalle()"><svg class="icon" style="width:15px;height:15px"><use href="#i-x"/></svg></button>
+          <div class="modal-form" id="modal-grupo-detalle-body"></div>
+        </div>
       </div>
 
       <!-- ============ GESTIÓN ACADÉMICA: aula viva de los grupos (solo lectura, docente/coordinador/admin) ============ -->
@@ -3731,14 +3738,19 @@ var REPGEN_GRUPOS = [
   {n:'Grupo 7', nombre:'Mundo Diverso',        carac:85,  arbol:70,  proy:0,  av:0,  usos:1, estado:'ajuste'},
   {n:'Grupo 9', nombre:'Raíces y Alas',        carac:95,  arbol:100, proy:0,  av:10, usos:0, estado:'pend'}
 ];
-var REPGEN_DETALLE_ID = null;
+var REPGEN_METRICAS = [['Caracterización','carac'],['Árbol de Problematización','arbol'],['Proyecto Pedagógico','proy'],['Aula Viva','av']];
 function repGenVerDetalle(n){
-  REPGEN_DETALLE_ID = n;
-  repGenRender();
-  var el = document.getElementById('repgen-detalle');
-  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  var g = REPGEN_GRUPOS.find(function(x){ return x.n === n; });
+  if(!g) return;
+  var paso = repGenPasoMirada(g);
+  var body = document.getElementById('modal-grupo-detalle-body');
+  body.innerHTML = '<h3>' + g.n + ' — ' + g.nombre + '</h3>'
+    + '<p class="sub" style="margin-bottom:14px;"><span class="pill ' + paso.cls + '">' + paso.txt + '</span></p>'
+    + '<div class="rg-group-metrics">' + REPGEN_METRICAS.map(function(m){ return '<div class="rg-dm"><span class="rg-dm-l">' + m[0] + '</span>' + repGenBarraHtml(g[m[1]]) + '</div>'; }).join('') + '</div>'
+    + '<div class="rg-group-foot">Evoluciona tu aula: <b>' + g.usos + (g.usos === 1 ? ' uso' : ' usos') + '</b></div>';
+  document.getElementById('modal-grupo-detalle').classList.remove('hidden');
 }
-function repGenCerrarDetalle(){ REPGEN_DETALLE_ID = null; repGenRender(); }
+function repGenCerrarDetalle(){ document.getElementById('modal-grupo-detalle').classList.add('hidden'); }
 var REPGEN_ESTADOS = {
   ok:{txt:'Aceptado', color:'#428048', ico:'✓'},
   pend:{txt:'Pendiente de revisión', color:'#7e7442', ico:'◔'},
@@ -3795,21 +3807,6 @@ function repGenRender(){
   }).join('');
   document.getElementById('repgen-ranking').innerHTML =
     '<div class="rg-card"><h4>Avance general por grupo</h4><div class="rg-sub">Promedio de Caracterización, Árbol, Proyecto Pedagógico y Aula Viva — de mayor a menor avance</div>' + ranking + '</div>';
-
-  var metricas = [['Caracterización','carac'],['Árbol de Problematización','arbol'],['Proyecto Pedagógico','proy'],['Aula Viva','av']];
-  var detalleBox = document.getElementById('repgen-detalle');
-  var seleccionado = G.find(function(g){ return g.n === REPGEN_DETALLE_ID; });
-  if(!seleccionado){
-    detalleBox.innerHTML = '<h4 style="font-size:14.5px;margin:24px 0 10px;">Detalle por grupo</h4><p class="mono-note">Elige "Ver detalle" en la tabla de grupos de arriba para consultar el avance completo de un grupo.</p>';
-  } else {
-    var paso = repGenPasoMirada(seleccionado);
-    detalleBox.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin:24px 0 14px;"><h4 style="font-size:14.5px;margin:0;">Detalle por grupo</h4><button type="button" class="btn btn-ghost btn-sm" onclick="repGenCerrarDetalle()">Cerrar</button></div>'
-      + '<div class="rg-group-grid"><div class="rg-group-card">'
-      + '<div class="rg-group-head"><b>' + seleccionado.n + ' — ' + seleccionado.nombre + '</b><span class="pill ' + paso.cls + '">' + paso.txt + '</span></div>'
-      + '<div class="rg-group-metrics">' + metricas.map(function(m){ return '<div class="rg-dm"><span class="rg-dm-l">' + m[0] + '</span>' + repGenBarraHtml(seleccionado[m[1]]) + '</div>'; }).join('') + '</div>'
-      + '<div class="rg-group-foot">Evoluciona tu aula: <b>' + seleccionado.usos + (seleccionado.usos === 1 ? ' uso' : ' usos') + '</b></div>'
-      + '</div></div>';
-  }
 }
 (function(){
   var sec = document.getElementById('rep-gen'), tip = document.getElementById('repgen-tip');
