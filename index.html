@@ -2736,22 +2736,22 @@ var REV_ESTADO = {
   pending: {txt:'Pendiente de revisión', pill:'warn'}
 };
 var revAnterioresAbierto = false;
-function revisionItemHtml(r, n){
+function revisionItemHtml(r, n, actual){
   var est = REV_ESTADO[r.estado];
   var fechas = 'Enviado el ' + escaparHtml(r.enviado) + (r.respondido ? ' · Respondido el ' + escaparHtml(r.respondido) : '');
   var cuerpo = r.estado === 'pending'
     ? '<div class="rev-comment waiting">Esperando la respuesta del profesor…</div>'
     : '<div class="rev-comment">“' + escaparHtml(r.comentario) + '”<span class="who">— ' + escaparHtml(r.docente || 'Profesor') + '</span></div>';
-  return '<div class="rev-item st-' + r.estado + '"><div class="rev-top"><b>Revisión ' + n + '</b><span class="pill ' + est.pill + '">' + est.txt + '</span></div>'
+  return '<div class="rev-item st-' + r.estado + '"><div class="rev-top"><span style="display:flex;align-items:center;gap:8px;"><b>Revisión ' + n + '</b>' + (actual ? '<span class="tag tag-new">actual</span>' : '') + '</span><span class="pill ' + est.pill + '">' + est.txt + '</span></div>'
     + '<div class="rev-dates">' + fechas + '</div>' + cuerpo + '</div>';
 }
 function revisionesHtml(lista, abierto){
   if(!lista || !lista.length) return '<div class="rev-empty">Aún no has enviado el árbol a revisión. Cuando lo envíes, aquí verás el estado y los comentarios del profesor.</div>';
   var total = lista.length;
-  var html = revisionItemHtml(lista[total - 1], total);   // la más reciente, siempre visible
+  var html = revisionItemHtml(lista[total - 1], total, true);   // la más reciente, siempre visible — marcada como actual
   if(total > 1){
     var anteriores = '';
-    for(var i = total - 2; i >= 0; i--) anteriores += revisionItemHtml(lista[i], i + 1);
+    for(var i = total - 2; i >= 0; i--) anteriores += revisionItemHtml(lista[i], i + 1, false);
     var n = total - 1;
     html += '<button type="button" class="rev-toggle' + (abierto ? ' open' : '') + '" aria-expanded="' + (abierto ? 'true' : 'false') + '" onclick="toggleRevAnteriores(this)"><span class="chev">▾</span> <span class="lbl">' + (abierto ? 'Ocultar ' : 'Ver ') + (n === 1 ? 'revisión anterior' : n + ' revisiones anteriores') + '</span></button>'
       + '<div class="rev-older' + (abierto ? '' : ' hidden') + '">' + anteriores + '</div>';
