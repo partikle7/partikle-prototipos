@@ -433,6 +433,9 @@ body.auditing .nav-group.aud-nav{display:block;}
 .repgen-tip{position:absolute;pointer-events:none;z-index:5;background:#191628;color:#fff;font-size:12.5px;padding:7px 10px;border-radius:8px;opacity:0;transition:opacity .12s;max-width:240px;box-shadow:0 6px 18px rgba(25,22,40,.25);}
 .repgen-tip.on{opacity:1;}
 @media(max-width:900px){.repgen-kpis{grid-template-columns:repeat(2,1fr);}.repgen-grid{grid-template-columns:1fr;}.rg-row{grid-template-columns:110px 1fr 40px;}}
+.rg-popover{position:fixed;z-index:950;width:300px;max-width:calc(100vw - 24px);background:var(--panel);border:1px solid var(--border-soft);border-radius:var(--radius-sm);box-shadow:0 20px 50px rgba(20,15,40,0.28);padding:18px;}
+.rg-popover.hidden{display:none;}
+.rg-popover-close{position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:100px;background:var(--panel-2);display:flex;align-items:center;justify-content:center;color:var(--muted);}
 
 .ro-block{border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:18px 20px;margin-bottom:14px;background:var(--panel);}
 .ro-block h5{font-size:14px;margin-bottom:10px;}
@@ -2393,10 +2396,10 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
           <table>
             <thead><tr><th>Código</th><th>Grupo</th><th>Tipo de práctica</th><th>Periodo</th><th>Integrantes</th><th>Vigencia</th><th></th></tr></thead>
             <tbody id="tabla-grupos-admin">
-              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-003</td><td>Grupo 3 — Semilleros de Cambio</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>Valentina Rojas, Juan David Peña, María Alejandra Ruiz</td><td>01 feb – 30 jun 2026</td><td style="white-space:nowrap;"><button class="btn btn-ghost btn-sm" onclick="repGenVerDetalle('Grupo 3')">Ver detalle</button> <button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 3')">Editar</button></td></tr>
-              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-005</td><td>Grupo 5 — Voces del Aula</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>4 integrantes</td><td>01 feb – 30 jun 2026</td><td style="white-space:nowrap;"><button class="btn btn-ghost btn-sm" onclick="repGenVerDetalle('Grupo 5')">Ver detalle</button> <button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 5')">Editar</button></td></tr>
-              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-007</td><td>Grupo 7 — Mundo Diverso</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>3 integrantes</td><td>01 feb – 30 jun 2026</td><td style="white-space:nowrap;"><button class="btn btn-ghost btn-sm" onclick="repGenVerDetalle('Grupo 7')">Ver detalle</button> <button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 7')">Editar</button></td></tr>
-              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-009</td><td>Grupo 9 — Raíces y Alas</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>4 integrantes</td><td>01 feb – 30 jun 2026</td><td style="white-space:nowrap;"><button class="btn btn-ghost btn-sm" onclick="repGenVerDetalle('Grupo 9')">Ver detalle</button> <button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 9')">Editar</button></td></tr>
+              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-003</td><td>Grupo 3 — Semilleros de Cambio</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>Valentina Rojas, Juan David Peña, María Alejandra Ruiz</td><td>01 feb – 30 jun 2026</td><td style="white-space:nowrap;"><button class="btn btn-ghost btn-sm" onclick="repGenVerDetalle('Grupo 3', this)">Ver detalle</button> <button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 3')">Editar</button></td></tr>
+              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-005</td><td>Grupo 5 — Voces del Aula</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>4 integrantes</td><td>01 feb – 30 jun 2026</td><td style="white-space:nowrap;"><button class="btn btn-ghost btn-sm" onclick="repGenVerDetalle('Grupo 5', this)">Ver detalle</button> <button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 5')">Editar</button></td></tr>
+              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-007</td><td>Grupo 7 — Mundo Diverso</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>3 integrantes</td><td>01 feb – 30 jun 2026</td><td style="white-space:nowrap;"><button class="btn btn-ghost btn-sm" onclick="repGenVerDetalle('Grupo 7', this)">Ver detalle</button> <button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 7')">Editar</button></td></tr>
+              <tr><td class="mono-note" style="text-transform:none;">GRP-2026-1-009</td><td>Grupo 9 — Raíces y Alas</td><td>Práctica Pedagógica I</td><td>2026-1</td><td>4 integrantes</td><td>01 feb – 30 jun 2026</td><td style="white-space:nowrap;"><button class="btn btn-ghost btn-sm" onclick="repGenVerDetalle('Grupo 9', this)">Ver detalle</button> <button class="btn btn-ghost btn-sm" onclick="toast('Editar integrantes del Grupo 9')">Editar</button></td></tr>
             </tbody>
           </table>
         </div>
@@ -2409,12 +2412,10 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
         </section>
       </div>
 
-      <!-- Modal: detalle de un grupo (desde Grupos de proyecto / Reportes generales) -->
-      <div class="modal-overlay hidden" id="modal-grupo-detalle" onclick="if(event.target===this) repGenCerrarDetalle()">
-        <div class="modal-box">
-          <button class="modal-close" onclick="repGenCerrarDetalle()"><svg class="icon" style="width:15px;height:15px"><use href="#i-x"/></svg></button>
-          <div class="modal-form" id="modal-grupo-detalle-body"></div>
-        </div>
+      <!-- Popover: detalle de un grupo (desde la tabla de Grupos de proyecto) -->
+      <div class="rg-popover hidden" id="rg-detalle-popover">
+        <button type="button" class="rg-popover-close" onclick="repGenCerrarDetalle()"><svg class="icon" style="width:13px;height:13px"><use href="#i-x"/></svg></button>
+        <div id="rg-detalle-popover-body"></div>
       </div>
 
       <!-- ============ GESTIÓN ACADÉMICA: aula viva de los grupos (solo lectura, docente/coordinador/admin) ============ -->
@@ -3737,18 +3738,34 @@ var REPGEN_GRUPOS = [
   {n:'Grupo 9', nombre:'Raíces y Alas',        carac:95,  arbol:100, proy:0,  av:10, usos:0, estado:'pend'}
 ];
 var REPGEN_METRICAS = [['Caracterización','carac'],['Árbol de Problematización','arbol'],['Proyecto Pedagógico','proy'],['Aula Viva','av']];
-function repGenVerDetalle(n){
+function repGenVerDetalle(n, btn){
   var g = REPGEN_GRUPOS.find(function(x){ return x.n === n; });
   if(!g) return;
   var paso = repGenPasoMirada(g);
-  var body = document.getElementById('modal-grupo-detalle-body');
-  body.innerHTML = '<h3>' + g.n + ' — ' + g.nombre + '</h3>'
-    + '<p class="sub" style="margin-bottom:14px;"><span class="pill ' + paso.cls + '">' + paso.txt + '</span></p>'
+  var pop = document.getElementById('rg-detalle-popover');
+  var body = document.getElementById('rg-detalle-popover-body');
+  body.innerHTML = '<h4 style="font-size:14.5px;margin:0 0 8px;">' + g.n + ' — ' + g.nombre + '</h4>'
+    + '<p style="margin:0 0 14px;"><span class="pill ' + paso.cls + '">' + paso.txt + '</span></p>'
     + '<div class="rg-group-metrics">' + REPGEN_METRICAS.map(function(m){ return '<div class="rg-dm"><span class="rg-dm-l">' + m[0] + '</span>' + repGenBarraHtml(g[m[1]]) + '</div>'; }).join('') + '</div>'
     + '<div class="rg-group-foot">Evoluciona tu aula: <b>' + g.usos + (g.usos === 1 ? ' uso' : ' usos') + '</b></div>';
-  document.getElementById('modal-grupo-detalle').classList.remove('hidden');
+  pop.classList.remove('hidden');
+  if(btn){
+    var r = btn.getBoundingClientRect(), pw = 300;
+    var left = Math.min(r.left, window.innerWidth - pw - 16);
+    left = Math.max(12, left);
+    var top = r.bottom + 8;
+    pop.style.left = left + 'px';
+    pop.style.top = top + 'px';
+    if(top + 360 > window.innerHeight) pop.style.top = Math.max(12, r.top - 8 - pop.offsetHeight) + 'px';
+  }
 }
-function repGenCerrarDetalle(){ document.getElementById('modal-grupo-detalle').classList.add('hidden'); }
+function repGenCerrarDetalle(){ document.getElementById('rg-detalle-popover').classList.add('hidden'); }
+document.addEventListener('click', function(e){
+  var pop = document.getElementById('rg-detalle-popover');
+  if(!pop || pop.classList.contains('hidden')) return;
+  if(pop.contains(e.target) || e.target.closest('[onclick^="repGenVerDetalle"]')) return;
+  repGenCerrarDetalle();
+});
 var REPGEN_ESTADOS = {
   ok:{txt:'Aceptado', color:'#428048', ico:'✓'},
   pend:{txt:'Pendiente de revisión', color:'#7e7442', ico:'◔'},
