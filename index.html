@@ -3811,7 +3811,7 @@ function repGenRender(){
       + '<br><span class="rg-gs">' + (gs.map(function(g){ return g.n; }).join(', ') || '—') + '</span></span><b>' + gs.length + '</b></div>';
   }).join('');
   document.getElementById('repgen-charts').innerHTML =
-    '<div class="rg-card"><h4>Avance promedio por formato</h4><div class="rg-sub">Promedio de los ' + n + ' grupos, de 0 a 100 %</div>' + barras + '</div>'
+    '<div class="rg-card"><h4>Avance promedio del periodo actual</h4><div class="rg-sub">Promedio de los ' + n + ' grupos, de 0 a 100 %</div>' + barras + '</div>'
     + '<div class="rg-card"><h4>Estado de los Árboles de Problematización</h4><div class="rg-sub">Único punto de control docente en el Momento 1</div><div class="rg-seg" role="img" aria-label="Distribución de estados de los árboles">' + seg + '</div><div class="rg-leg">' + leg + '</div></div>';
 }
 (function(){
