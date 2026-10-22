@@ -3796,9 +3796,10 @@ function repGenRender(){
     + kp(usos, usos === 1 ? 'uso' : 'usos', 'De Evoluciona tu aula en total');
   var forms = [['Caracterización','carac'],['Árbol de Problematización','arbol'],['Proyecto Pedagógico','proy'],['Aula Viva','av']];
   var barras = forms.map(function(f){
-    var v = repGenProm(f[1]);
-    return '<div class="rg-row" tabindex="0" data-tip="' + f[0] + ': ' + v + '% de avance promedio en ' + n + ' grupos">'
-      + '<span class="rg-name">' + f[0] + '</span><span class="rg-track"><span class="rg-fill" style="width:' + v + '%"></span></span><span class="rg-val">' + v + '%</span></div>';
+    var completados = G.filter(function(g){ return g[f[1]] >= 100; }).length;
+    var pct = Math.round(completados / n * 100);
+    return '<div class="rg-row" tabindex="0" data-tip="' + f[0] + ': ' + completados + ' de ' + n + ' grupos lo completaron">'
+      + '<span class="rg-name">' + f[0] + '</span><span class="rg-track"><span class="rg-fill" style="width:' + pct + '%"></span></span><span class="rg-val">' + completados + ' de ' + n + '</span></div>';
   }).join('');
   var orden = ['ok','pend','ajuste'];
   var seg = orden.map(function(k){
@@ -3811,7 +3812,7 @@ function repGenRender(){
       + '<br><span class="rg-gs">' + (gs.map(function(g){ return g.n; }).join(', ') || '—') + '</span></span><b>' + gs.length + '</b></div>';
   }).join('');
   document.getElementById('repgen-charts').innerHTML =
-    '<div class="rg-card"><h4>Avance promedio del periodo actual</h4><div class="rg-sub">Promedio de los ' + n + ' grupos, de 0 a 100 %</div>' + barras + '</div>'
+    '<div class="rg-card"><h4>Grupos que completaron cada momento</h4><div class="rg-sub">De los ' + n + ' grupos del periodo actual</div>' + barras + '</div>'
     + '<div class="rg-card"><h4>Estado de los Árboles de Problematización</h4><div class="rg-sub">Único punto de control docente en el Momento 1</div><div class="rg-seg" role="img" aria-label="Distribución de estados de los árboles">' + seg + '</div><div class="rg-leg">' + leg + '</div></div>';
 }
 (function(){
