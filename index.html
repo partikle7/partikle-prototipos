@@ -2165,6 +2165,8 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
         </div>
         <div class="revision-tree fx-scroll" id="revision-flow"></div>
 
+        <div id="profesor-revision-historial"></div>
+
         <div class="action-row">
           <button class="btn btn-green" onclick="profesorAceptar()">Aceptar árbol</button>
           <button class="btn btn-warn" onclick="toggleFeedbackBox()">Enviar retroalimentación</button>
@@ -2823,6 +2825,7 @@ function renderArbolStatus(){
     topstatus.textContent = 'Árbol: requiere ajustes'; topstatus.className='pill danger';
   }
   if(typeof renderProfesorCola === 'function') renderProfesorCola();
+  if(typeof renderProfesorRevisionHistorial === 'function') renderProfesorRevisionHistorial();
   renderRevisionHistorial();
   var demo = document.getElementById('arbol-demo-review');
   if(demo) demo.classList.toggle('hidden', arbolStatus !== 'pending');
@@ -5056,6 +5059,13 @@ function renderRevisionFlow(){
 function toggleFeedbackBox(){
   document.getElementById('feedback-box').classList.toggle('show');
 }
+var profesorRevHistAbierto = false;
+function renderProfesorRevisionHistorial(){
+  var box = document.getElementById('profesor-revision-historial');
+  if(!box) return;
+  var n = arbolRevisiones.length;
+  box.innerHTML = '<div class="rev-hist" style="margin-top:22px;"><div class="rev-hist-head"><h4>Historial de revisiones</h4><span class="pill off">' + n + (n === 1 ? ' revisión' : ' revisiones') + '</span></div>' + revisionesHtml(arbolRevisiones, profesorRevHistAbierto) + '</div>';
+}
 function profesorAceptar(){
   aplicarRevisionArbol('accepted');
   toast('Árbol del Grupo 3 aceptado — se notificó al grupo');
@@ -5072,6 +5082,7 @@ function profesorRetroalimentar(){
 renderRevisionFlow();
 checkArbol();
 renderArbolStatus();
+renderProfesorRevisionHistorial();
 renderMiradaAula();
 initExperiencias();
 renderPeriodos();
