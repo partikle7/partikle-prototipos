@@ -431,7 +431,7 @@ body.auditing .nav-group.aud-nav{display:block;}
 .rg-leg-i b{margin-left:auto;font-size:14px;}
 .rg-info-btn{width:18px;height:18px;border-radius:50%;border:1px solid var(--border);background:var(--panel-2);color:var(--muted);font-size:11px;font-style:italic;font-weight:700;font-family:Georgia,serif;display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer;}
 .rg-info-btn:hover,.rg-info-btn:focus-visible{background:var(--purple-ink);border-color:var(--purple-ink);color:#fff;}
-.repgen-tip{position:absolute;pointer-events:none;z-index:5;background:#191628;color:#fff;font-size:12.5px;padding:7px 10px;border-radius:8px;opacity:0;transition:opacity .12s;max-width:240px;box-shadow:0 6px 18px rgba(25,22,40,.25);}
+.repgen-tip{position:absolute;pointer-events:none;z-index:5;background:#191628;color:#fff;font-size:12.5px;padding:7px 10px;border-radius:8px;opacity:0;transition:opacity .12s;max-width:300px;max-height:160px;overflow-y:auto;word-break:break-word;box-shadow:0 6px 18px rgba(25,22,40,.25);}
 .repgen-tip.on{opacity:1;}
 @media(max-width:900px){.repgen-kpis{grid-template-columns:repeat(2,1fr);}.repgen-grid{grid-template-columns:1fr;}.rg-row{grid-template-columns:110px 1fr 40px;}}
 .rg-popover{position:fixed;z-index:950;width:300px;max-width:calc(100vw - 24px);background:var(--panel);border:1px solid var(--border-soft);border-radius:var(--radius-sm);box-shadow:0 20px 50px rgba(20,15,40,0.28);padding:18px;}
@@ -2393,6 +2393,7 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
       <!-- ============ ADMIN: grupos (solo lectura) ============ -->
       <div class="panel" id="panel-admin-grupos">
         <div class="panel-head"><div><h2>Grupos de proyecto</h2><p>Conformación de grupos y asignación de integrantes — disponible para docentes, coordinación y administración por igual.</p></div><button class="btn btn-primary btn-sm" onclick="abrirModalGrupo('tabla-grupos-admin')"><svg class="icon" style="width:14px;height:14px;stroke:#171034"><use href="#i-plus"/></svg> Nuevo grupo</button></div>
+        <div class="filter-row"><input class="input" id="grupos-buscar" placeholder="Buscar por código, grupo o institución…" oninput="filtrarGruposAdmin(this.value)"><button class="btn btn-ghost btn-sm">Filtrar por periodo</button></div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Código</th><th>Grupo</th><th>Tipo de práctica</th><th>Periodo</th><th>Integrantes</th><th>Vigencia</th><th></th></tr></thead>
@@ -3809,7 +3810,8 @@ function repGenRender(){
   }).join('');
   var leg = orden.map(function(k){
     var gs = G.filter(function(g){ return g.estado === k; });
-    var nombres = gs.map(function(g){ return g.n; }).join(', ') || 'Ningún grupo';
+    var MAX_NOMBRES = 8;
+    var nombres = gs.length ? gs.slice(0, MAX_NOMBRES).map(function(g){ return g.n; }).join(', ') + (gs.length > MAX_NOMBRES ? ' y ' + (gs.length - MAX_NOMBRES) + ' más' : '') : 'Ningún grupo';
     return '<div class="rg-leg-i"><span class="dot" style="background:' + REPGEN_ESTADOS[k].color + '"></span><span>' + REPGEN_ESTADOS[k].ico + ' ' + REPGEN_ESTADOS[k].txt + '</span>'
       + '<button type="button" class="rg-info-btn" tabindex="0" data-tip="' + nombres + '" aria-label="Ver grupos en estado ' + REPGEN_ESTADOS[k].txt + '">i</button><b>' + gs.length + '</b></div>';
   }).join('');
@@ -3824,7 +3826,7 @@ function repGenRender(){
     var t = el.getAttribute('data-tip'); if(!t) return;
     tip.textContent = t;
     var a = sec.getBoundingClientRect(), b = el.getBoundingClientRect();
-    tip.style.left = Math.max(4, Math.min(a.width - 250, b.left - a.left + 12)) + 'px';
+    tip.style.left = Math.max(4, Math.min(a.width - 304, b.left - a.left + 12)) + 'px';
     tip.style.top = (b.top - a.top - 40) + 'px';
     tip.classList.add('on');
   }
@@ -4816,6 +4818,13 @@ var estudiantesDisponibles = [
   {nombre:'Valeria Ospina', correo:'valeria.ospina@americana.edu.co', institucion:'I.E. Nueva Esperanza'},
   {nombre:'Daniel Zapata', correo:'daniel.zapata@americana.edu.co', institucion:'I.E. Distrital La Luz'}
 ];
+function filtrarGruposAdmin(q){
+  q = q.trim().toLowerCase();
+  document.querySelectorAll('#tabla-grupos-admin tr').forEach(function(tr){
+    var texto = tr.textContent.toLowerCase();
+    tr.classList.toggle('hidden', q.length > 0 && texto.indexOf(q) === -1);
+  });
+}
 var mgIntegrantesSeleccionados = [];
 var mgTablaDestino = 'tabla-grupos-admin';
 function abrirModalGrupo(tablaDestino){
