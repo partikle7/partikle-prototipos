@@ -83,6 +83,7 @@ ul{list-style:none;}
 .btn-primary{background:linear-gradient(135deg,var(--purple),var(--lila));color:#171034;box-shadow:0 8px 20px rgba(142,127,240,0.35);}
 .btn-primary:hover{filter:brightness(1.05);transform:translateY(-1px);box-shadow:0 10px 24px rgba(142,127,240,0.45);}
 .btn-primary:disabled{opacity:.35;cursor:not-allowed;transform:none;filter:none;box-shadow:none;}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
 .btn-green{background:linear-gradient(135deg,var(--green),var(--green2));color:#123018;box-shadow:0 8px 20px rgba(131,255,143,0.35);}
 .btn-green:hover{filter:brightness(1.03);transform:translateY(-1px);}
 .btn-ghost{background:var(--panel-2);border:1px solid var(--border);color:var(--ink);}
@@ -701,6 +702,20 @@ tbody tr:hover{background:var(--bg-soft);}
 .rev-comment .who{display:block;font-size:11px;color:var(--muted2);font-weight:700;margin-top:6px;}
 .rev-comment.waiting{color:var(--muted);font-style:italic;}
 .rev-empty{font-size:12.5px;color:var(--muted);padding:14px;border:1px dashed var(--border);border-radius:var(--radius-sm);text-align:center;}
+.rev-decision{margin-top:4px;}
+.rev-decision-intro{font-size:12.5px;color:var(--muted);margin:0 0 10px;}
+.rev-decision-row{display:flex;gap:10px;flex-wrap:wrap;}
+.rev-dec-btn{flex:1;min-width:160px;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 14px;border-radius:var(--radius-sm);font-weight:700;font-size:13px;border:1.5px solid transparent;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s,color .15s;}
+.rev-dec-btn .icon{width:15px;height:15px;}
+.rev-dec-btn.accept{background:rgba(66,128,72,0.1);color:var(--green2-ink);border-color:rgba(66,128,72,0.35);}
+.rev-dec-btn.accept:hover{background:rgba(66,128,72,0.18);}
+.rev-dec-btn.accept.active{background:var(--green2-ink);color:#fff;border-color:var(--green2-ink);}
+.rev-dec-btn.reject{background:rgba(155,83,149,0.1);color:var(--pink-ink);border-color:rgba(155,83,149,0.35);}
+.rev-dec-btn.reject:hover{background:rgba(155,83,149,0.18);}
+.rev-dec-btn.reject.active{background:var(--pink-ink);color:#fff;border-color:var(--pink-ink);}
+.rev-dec-comment{margin-top:14px;padding-top:14px;border-top:1px dashed var(--border-soft);animation:revDecIn .15s ease;}
+@keyframes revDecIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+.cola-disabled-hint{font-size:11px;color:var(--muted2);margin-top:4px;}
 .fx-scroll{overflow-x:auto;}
 .fx-legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:0 0 12px;font-size:11.5px;font-weight:600;color:var(--muted);}
 .fx-legend .fxl{display:inline-block;width:11px;height:11px;border-radius:4px;margin-right:6px;vertical-align:-1px;}
@@ -727,9 +742,6 @@ tbody tr:hover{background:var(--bg-soft);}
 .revision-tree .sit-title{font-weight:700;font-size:14px;margin:16px 0 10px;color:var(--purple-ink);}
 .revision-efecto{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:10px 0;border-bottom:1px dashed var(--border-soft);font-size:12.5px;}
 .revision-efecto .k{font-size:10px;text-transform:uppercase;color:var(--muted2);font-weight:700;margin-bottom:2px;}
-.action-row{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap;}
-.feedback-box{display:none;margin-top:16px;}
-.feedback-box.show{display:block;}
 
 /* toast */
 #toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:#191333;border:1px solid rgba(255,255,255,0.1);color:#ffffff;padding:13px 22px;border-radius:100px;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px;opacity:0;pointer-events:none;transition:.25s;z-index:999;box-shadow:var(--shadow);max-width:420px;}
@@ -2141,7 +2153,7 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
       <!-- ============ PROFESOR: cola de revisión ============ -->
       <div class="panel" id="panel-profesor-cola">
         <div class="panel-head">
-          <div><h2>Árboles pendientes de revisión</h2><p id="cola-sub">Único punto de control docente en el Momento 1: aceptar o retroalimentar el Árbol de Problematización de cada grupo. Solo se listan los árboles que ya tienen al menos una revisión.</p></div>
+          <div><h2>Árboles pendientes de revisión</h2><p id="cola-sub">Único punto de control docente en el Momento 1: aceptar o retroalimentar el Árbol de Problematización de cada grupo.</p></div>
           <button type="button" class="btn btn-ghost btn-sm hidden" id="cola-btn-filtro" onclick="colaToggleAsignados()">Ver solo mis grupos asignados</button>
         </div>
         <div class="filter-row"><input class="input" placeholder="Buscar por grupo o institución…"><button class="btn btn-ghost btn-sm">Filtrar por institución</button></div>
@@ -2153,28 +2165,21 @@ Hart, R. (1992). Children's Participation. UNICEF.</textarea>
         </div>
       </div>
 
-      <!-- ============ PROFESOR: detalle de revisión ============ -->
-      <div class="panel" id="panel-profesor-revision">
-        <div class="panel-head">
-          <div><h2>Revisión del árbol — Grupo 3, Semilleros de Cambio</h2><p>I.E. Distrital La Luz · Transición A · enviado el 17 de agosto de 2026</p></div>
-          <button class="btn btn-ghost btn-sm" onclick="setPanel('profesor-cola')">← Volver a la cola</button>
-        </div>
-        <div class="fx-legend">
-          <span><i class="fxl fx-problema"></i> Problema</span><span><i class="fxl fx-sit"></i> Situación</span><span><i class="fxl fx-efecto"></i> Efecto</span><span><i class="fxl fx-causa"></i> Causa</span><span><i class="fxl fx-enfoque"></i> Enfoque diferenciador</span>
-          <span class="fx-note">Regla: 1 problema → 2 situaciones → 4 efectos por situación → 1 causa por efecto → 1 enfoque por causa</span>
-        </div>
-        <div class="revision-tree fx-scroll" id="revision-flow"></div>
-
-        <div id="profesor-revision-historial"></div>
-
-        <div class="action-row">
-          <button class="btn btn-green" onclick="profesorAceptar()">Aceptar árbol</button>
-          <button class="btn btn-warn" onclick="toggleFeedbackBox()">Enviar retroalimentación</button>
-        </div>
-        <div class="card feedback-box" id="feedback-box">
-          <label class="field-label">Observaciones para el grupo</label>
-          <textarea class="ta" id="feedback-text" rows="3" placeholder="Ej: Los efectos de la Situación 2 necesitan causas más específicas antes de continuar…"></textarea>
-          <div style="text-align:right;margin-top:10px;"><button class="btn btn-primary btn-sm" onclick="profesorRetroalimentar()">Enviar retroalimentación al grupo</button></div>
+      <!-- Modal: revisión del árbol de un grupo (docente/coordinador/admin) -->
+      <div class="modal-overlay hidden" id="modal-revision-arbol" onclick="if(event.target===this) colaCerrarModal()">
+        <div class="modal-box" style="max-width:920px;">
+          <button class="modal-close" onclick="colaCerrarModal()"><svg class="icon" style="width:15px;height:15px"><use href="#i-x"/></svg></button>
+          <div class="modal-form">
+            <div class="panel-head" style="margin:0 0 14px;">
+              <div><h3 id="rev-modal-titulo">Árbol de Problematización</h3><p class="sub" id="rev-modal-sub"></p></div>
+              <span class="pill" id="rev-modal-estado"></span>
+            </div>
+            <div class="fx-legend">
+              <span><i class="fxl fx-problema"></i> Problema</span><span><i class="fxl fx-sit"></i> Situación</span><span><i class="fxl fx-efecto"></i> Efecto</span><span><i class="fxl fx-causa"></i> Causa</span><span><i class="fxl fx-enfoque"></i> Enfoque diferenciador</span>
+            </div>
+            <div class="revision-tree fx-scroll" id="rev-modal-flow"></div>
+            <div id="rev-modal-historial"></div>
+          </div>
         </div>
       </div>
 
@@ -2643,7 +2648,6 @@ var panelTitles = {
   'aud-simulador':'Evoluciona tu aula',
   'aud-aulaviva':'Aula Viva de los grupos',
   'profesor-cola':'Árboles por revisar',
-  'profesor-revision':'Revisión de árbol',
   'profesor-actividades':'Parametrización de Actividades',
   'admin-usuarios':'Usuarios',
   'admin-periodos':'Periodos y Cortes',
@@ -2825,7 +2829,7 @@ function renderArbolStatus(){
     topstatus.textContent = 'Árbol: requiere ajustes'; topstatus.className='pill danger';
   }
   if(typeof renderProfesorCola === 'function') renderProfesorCola();
-  if(typeof renderProfesorRevisionHistorial === 'function') renderProfesorRevisionHistorial();
+  if(typeof colaRenderModal === 'function' && COLA_MODAL_GRUPO === 'g3') colaRenderModal();
   renderRevisionHistorial();
   var demo = document.getElementById('arbol-demo-review');
   if(demo) demo.classList.toggle('hidden', arbolStatus !== 'pending');
@@ -3372,7 +3376,7 @@ var AUDIT_GRUPOS = [
       institucion:[['Nombre de la institución','Jardín Infantil Semillas'],['Ubicación','Zona urbana, Soacha, Cundinamarca'],['Naturaleza','Privada'],['Niveles educativos','Prejardín, Jardín y Transición'],['Enfoque pedagógico','Reggio Emilia, escucha activa de la voz infantil']],
       aula:[['Nombre / grado','Jardín A'],['Número de estudiantes','16'],['Rango de edad','3 a 4 años'],['Diversidad del grupo','Un niño con retraso del lenguaje'],['Nivel de participación','Alto con los adultos, bajo entre pares']]
     },
-    arbol:{ tipo:'review', estado:'Enviado — pendiente de revisión del profesor',
+    arbol:{ tipo:'review', estado:'Enviado — pendiente de revisión del profesor', enviadoInicial:'9 mar 2026',
       pregunta:'¿Por qué los niños y niñas de Jardín A tienen pocas oportunidades de expresar sus opiniones frente a los demás?',
       revisiones:[],
       situaciones:[{descripcion:'Las asambleas de aula son dirigidas casi siempre por la docente.', ramas:[{efecto:'Los niños esperan indicaciones antes de hablar', causa:'No hay espacios de conversación guiados por los niños', enfoque:'Participación y Agencia Infantil'}]}] },
@@ -3394,7 +3398,7 @@ var AUDIT_GRUPOS = [
       institucion:[['Nombre de la institución','I.E. Distrital La Luz'],['Ubicación','Zona urbana, localidad de Engativá, Bogotá'],['Naturaleza','Oficial'],['Niveles educativos','Preescolar y básica primaria'],['Enfoque pedagógico','Aprendizaje basado en proyectos']],
       aula:[['Nombre / grado','Transición C'],['Número de estudiantes','25'],['Rango de edad','5 a 6 años'],['Diversidad del grupo','Dos estudiantes con diagnóstico de TDAH'],['Nivel de participación','Alto, con dificultades de autorregulación']]
     },
-    arbol:{ tipo:'review', estado:'Enviado — pendiente de revisión del profesor',
+    arbol:{ tipo:'review', estado:'Enviado — pendiente de revisión del profesor', enviadoInicial:'10 mar 2026',
       pregunta:'¿Por qué a los niños y niñas de Transición C les cuesta autorregular su atención en actividades largas?',
       revisiones:[],
       situaciones:[{descripcion:'Las actividades de mesa superan el tiempo de atención del grupo.', ramas:[{efecto:'Interrupciones frecuentes en la clase', causa:'Las rutinas no incluyen pausas activas', enfoque:'Curso de vida'}]}] },
@@ -3484,13 +3488,17 @@ function auditActivo(){ return window.__role === 'profesor' && AUDIT_GRUPO !== n
 function auditGrupo(){ return AUDIT_GRUPOS.find(function(g){ return g.id === AUDIT_GRUPO; }) || null; }
 function auditPeriodoEtiqueta(code){ var p = AUDIT_PERIODOS.find(function(x){ return x.code === code; }); return p ? p.etiqueta : code; }
 
-/* ---- Árboles por revisar: solo los que ya tienen al menos 1 revisión, filtrados por rol ---- */
+/* ---- Árboles por revisar: todos los grupos, filtrados por rol ---- */
 var COLA_STAFF = {profesor:'Prof. Andrés Molina', coordinador:'Diana Castañeda'};
 var COLA_SOLO_ASIGNADOS = false;
 var COLA_ESTADOS = {accepted:{txt:'Aceptado', cls:'on'}, review:{txt:'Pendiente', cls:'warn'}, feedback:{txt:'En ajuste', cls:'danger'}};
 function colaArbolInfo(g){
-  if(g.id === 'g3') return {tipo: arbolStatus === 'pending' ? 'review' : arbolStatus, revisiones: arbolRevisiones};
-  return g.arbol ? {tipo: g.arbol.tipo, revisiones: g.arbol.revisiones} : {tipo: null, revisiones: []};
+  if(g.id === 'g3') return {tipo: arbolStatus === 'pending' ? 'review' : arbolStatus, revisiones: arbolRevisiones, enviadoInicial: null};
+  return g.arbol ? {tipo: g.arbol.tipo, revisiones: g.arbol.revisiones, enviadoInicial: g.arbol.enviadoInicial || null} : {tipo: null, revisiones: [], enviadoInicial: null};
+}
+function colaUltimoEnvio(info){
+  if(info.revisiones.length) return info.revisiones[info.revisiones.length - 1].enviado;
+  return info.enviadoInicial || '—';
 }
 function colaToggleAsignados(){ COLA_SOLO_ASIGNADOS = !COLA_SOLO_ASIGNADOS; renderProfesorCola(); }
 function renderProfesorCola(){
@@ -3502,9 +3510,8 @@ function renderProfesorCola(){
   if(btn) btn.textContent = COLA_SOLO_ASIGNADOS ? 'Ver todos los grupos' : 'Ver solo mis grupos asignados';
 
   var grupos = AUDIT_GRUPOS.filter(function(g){ return g.periodo === 'PER-2026-1'; }).map(function(g){
-    var info = colaArbolInfo(g);
-    return {g: g, info: info};
-  }).filter(function(x){ return x.info.revisiones && x.info.revisiones.length >= 1; });
+    return {g: g, info: colaArbolInfo(g)};
+  });
 
   if(rol === 'profesor'){
     grupos = grupos.filter(function(x){ return x.g.staffAsignado && x.g.staffAsignado.indexOf(COLA_STAFF.profesor) !== -1; });
@@ -3513,17 +3520,163 @@ function renderProfesorCola(){
   }
 
   if(!grupos.length){
-    tbody.innerHTML = '<tr><td colspan="6" class="mono-note">No hay árboles con revisiones para mostrar.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="mono-note">No hay grupos para mostrar.</td></tr>';
     return;
   }
   tbody.innerHTML = grupos.map(function(x){
     var g = x.g, info = x.info;
-    var est = COLA_ESTADOS[info.tipo] || COLA_ESTADOS.review;
-    var ultima = info.revisiones[info.revisiones.length - 1];
-    var accion = info.tipo === 'review' ? 'Revisar' : 'Ver';
-    var btnCls = info.tipo === 'review' ? 'btn-primary' : 'btn-ghost';
-    return '<tr><td>' + g.nombre + '</td><td>' + g.institucion + '</td><td class="mono-note">' + ultima.enviado + '</td><td class="mono-note">' + info.revisiones.length + (info.revisiones.length === 1 ? ' revisión' : ' revisiones') + '</td><td><span class="pill ' + est.cls + '">' + est.txt + '</span></td><td><button class="btn ' + btnCls + ' btn-sm" onclick="setPanel(\'profesor-revision\')">' + accion + '</button></td></tr>';
+    var enviado = !info.tipo ? '<span class="mono-note">—</span>'
+      : '<span class="mono-note">' + colaUltimoEnvio(info) + '</span>';
+    var revisionesTxt = !info.tipo ? '<span class="mono-note">—</span>'
+      : '<span class="mono-note">' + info.revisiones.length + (info.revisiones.length === 1 ? ' revisión' : ' revisiones') + '</span>';
+    var estadoHtml;
+    var accionHtml;
+    if(!info.tipo){
+      estadoHtml = '<span class="pill off">Sin enviar</span>';
+      accionHtml = '<button class="btn btn-ghost btn-sm" disabled>Ver revisiones</button><div class="cola-disabled-hint">Sin revisión</div>';
+    } else {
+      var est = COLA_ESTADOS[info.tipo] || COLA_ESTADOS.review;
+      estadoHtml = '<span class="pill ' + est.cls + '">' + est.txt + '</span>';
+      var accion = info.tipo === 'review' ? 'Revisar' : 'Ver revisiones';
+      var btnCls = info.tipo === 'review' ? 'btn-primary' : 'btn-ghost';
+      accionHtml = '<button class="btn ' + btnCls + ' btn-sm" onclick="colaAbrirRevision(\'' + g.id + '\')">' + accion + '</button>';
+    }
+    return '<tr><td>' + g.nombre + '</td><td>' + g.institucion + '</td><td>' + enviado + '</td><td>' + revisionesTxt + '</td><td>' + estadoHtml + '</td><td style="white-space:nowrap;">' + accionHtml + '</td></tr>';
   }).join('');
+}
+
+/* ---- Modal de revisión del árbol: historial unificado + decisión accesible sobre la actual ---- */
+var COLA_MODAL_GRUPO = null;
+var COLA_DECISION_MODO = null; // null | 'accept' | 'feedback'
+function colaArbolFlowData(g){
+  if(g.id === 'g3') return {problema: REVISION_ARBOL.problema, situaciones: REVISION_ARBOL.situaciones};
+  if(!g.arbol || !g.arbol.situaciones || !g.arbol.situaciones.length) return {problema: g.arbol ? g.arbol.pregunta : '', situaciones: []};
+  return {
+    problema: g.arbol.pregunta,
+    situaciones: g.arbol.situaciones.map(function(s){
+      return {titulo: s.descripcion, ramas: s.ramas.map(function(r){ return [r.efecto, r.causa, r.enfoque]; })};
+    })
+  };
+}
+function arbolFlowHtml(problema, situaciones){
+  if(!situaciones || !situaciones.length) return '<p class="mono-note">El grupo aún no registra situaciones en el árbol.</p>';
+  var sits = situaciones.map(function(sit, i){
+    var ramas = sit.ramas.map(function(r){
+      var enfoque = '<div class="fx-kids"><div class="fx-item">' + nodoFx('enfoque','Enfoque', r[2]) + '</div></div>';
+      var causa = '<div class="fx-kids"><div class="fx-item">' + nodoFx('causa','Causa', r[1]) + enfoque + '</div></div>';
+      return '<div class="fx-item">' + nodoFx('efecto','Efecto', r[0]) + causa + '</div>';
+    }).join('');
+    return '<div class="fx-item">' + nodoFx('sit','Situación ' + (i+1), sit.titulo) + '<div class="fx-kids">' + ramas + '</div></div>';
+  }).join('');
+  return '<div class="fx">' + nodoFx('problema','Problema general', problema) + '<div class="fx-kids">' + sits + '</div></div>';
+}
+function colaAbrirRevision(groupId){
+  COLA_MODAL_GRUPO = groupId;
+  COLA_DECISION_MODO = null;
+  document.getElementById('modal-revision-arbol').classList.remove('hidden');
+  colaRenderModal();
+}
+function colaCerrarModal(){
+  document.getElementById('modal-revision-arbol').classList.add('hidden');
+  COLA_MODAL_GRUPO = null;
+  if(document.getElementById('panel-profesor-cola').classList.contains('active')) renderProfesorCola();
+}
+function colaElegirDecision(modo){ COLA_DECISION_MODO = modo; colaRenderModal(); }
+function colaRevisionItemHtml(r, n, actual, g){
+  var est = REV_ESTADO[r.estado] || REV_ESTADO.pending;
+  var fechas = 'Enviado el ' + escaparHtml(r.enviado) + (r.respondido ? ' · Respondido el ' + escaparHtml(r.respondido) : '');
+  if(actual && r.estado === 'pending'){
+    var cuerpo = '<div class="rev-decision">'
+      + '<p class="rev-decision-intro">¿Qué decides sobre esta versión del árbol?</p>'
+      + '<div class="rev-decision-row" role="group" aria-label="Decisión sobre el árbol">'
+        + '<button type="button" class="rev-dec-btn accept' + (COLA_DECISION_MODO === 'accept' ? ' active' : '') + '" aria-pressed="' + (COLA_DECISION_MODO === 'accept' ? 'true' : 'false') + '" onclick="colaElegirDecision(\'accept\')"><svg class="icon"><use href="#i-check"/></svg> Aceptar árbol</button>'
+        + '<button type="button" class="rev-dec-btn reject' + (COLA_DECISION_MODO === 'feedback' ? ' active' : '') + '" aria-pressed="' + (COLA_DECISION_MODO === 'feedback' ? 'true' : 'false') + '" onclick="colaElegirDecision(\'feedback\')"><svg class="icon"><use href="#i-x"/></svg> Solicitar ajustes</button>'
+      + '</div>';
+    if(COLA_DECISION_MODO === 'accept'){
+      cuerpo += '<div class="rev-dec-comment"><label class="field-label" for="rev-dec-comment-accept">Comentario para el grupo (opcional)</label>'
+        + '<textarea class="ta" id="rev-dec-comment-accept" rows="2" placeholder="Ej: Buen trabajo, el árbol queda aceptado…"></textarea>'
+        + '<div style="text-align:right;margin-top:10px;display:flex;gap:8px;justify-content:flex-end;"><button type="button" class="btn btn-ghost btn-sm" onclick="colaElegirDecision(null)">Cancelar</button><button type="button" class="btn btn-green btn-sm" onclick="colaConfirmarDecision(\'accepted\')"><svg class="icon" style="width:14px;height:14px"><use href="#i-check"/></svg> Confirmar aceptación</button></div></div>';
+    } else if(COLA_DECISION_MODO === 'feedback'){
+      cuerpo += '<div class="rev-dec-comment"><label class="field-label" for="rev-dec-comment-feedback">Observaciones para el grupo <span class="mono-note" style="text-transform:none;font-weight:600;">— obligatorio</span></label>'
+        + '<textarea class="ta" id="rev-dec-comment-feedback" rows="3" placeholder="Ej: Los efectos de la Situación 2 necesitan causas más específicas antes de continuar…"></textarea>'
+        + '<div style="text-align:right;margin-top:10px;display:flex;gap:8px;justify-content:flex-end;"><button type="button" class="btn btn-ghost btn-sm" onclick="colaElegirDecision(null)">Cancelar</button><button type="button" class="btn btn-warn btn-sm" onclick="colaConfirmarDecision(\'feedback\')">Enviar retroalimentación</button></div></div>';
+    }
+    cuerpo += '</div>';
+    return '<div class="rev-item st-pending"><div class="rev-top"><span style="display:flex;align-items:center;gap:8px;"><b>Revisión ' + n + '</b><span class="tag tag-new">actual</span></span><span class="pill warn">Pendiente de tu decisión</span></div><div class="rev-dates">' + fechas + '</div>' + cuerpo + '</div>';
+  }
+  var cuerpoLeido = r.estado === 'pending'
+    ? '<div class="rev-comment waiting">Esperando la respuesta del profesor…</div>'
+    : '<div class="rev-comment">“' + escaparHtml(r.comentario) + '”<span class="who">— ' + escaparHtml(r.docente || 'Profesor') + '</span></div>';
+  return '<div class="rev-item st-' + r.estado + '"><div class="rev-top"><span style="display:flex;align-items:center;gap:8px;"><b>Revisión ' + n + '</b>' + (actual ? '<span class="tag tag-new">actual</span>' : '') + '</span><span class="pill ' + est.pill + '">' + est.txt + '</span></div>'
+    + '<div class="rev-dates">' + fechas + '</div>' + cuerpoLeido + '</div>';
+}
+function colaRenderModal(){
+  var g = AUDIT_GRUPOS.find(function(x){ return x.id === COLA_MODAL_GRUPO; });
+  var box = document.getElementById('modal-revision-arbol');
+  if(!g || !box) return;
+  var info = colaArbolInfo(g);
+  var est = COLA_ESTADOS[info.tipo] || {txt:'Sin enviar', cls:'off'};
+  document.getElementById('rev-modal-titulo').textContent = 'Árbol de Problematización — ' + g.nombre;
+  document.getElementById('rev-modal-sub').textContent = g.institucion + ' · ' + g.periodoTxt;
+  var pill = document.getElementById('rev-modal-estado');
+  pill.textContent = est.txt; pill.className = 'pill ' + est.cls;
+
+  var flow = colaArbolFlowData(g);
+  document.getElementById('rev-modal-flow').innerHTML = arbolFlowHtml(flow.problema, flow.situaciones);
+
+  var lista = info.revisiones.slice();
+  var pendiente = lista.length && lista[lista.length - 1].estado === 'pending';
+  if(!pendiente && info.tipo === 'review'){
+    lista.push({enviado: colaUltimoEnvio(info), estado: 'pending'});
+  }
+  var histBox = document.getElementById('rev-modal-historial');
+  if(!lista.length){
+    histBox.innerHTML = '<div class="rev-hist" style="margin-top:22px;"><div class="rev-hist-head"><h4>Historial de revisiones</h4></div><div class="rev-empty">El grupo aún no ha enviado este árbol a revisión.</div></div>';
+    return;
+  }
+  var total = lista.length;
+  var html = colaRevisionItemHtml(lista[total - 1], total, true, g);
+  if(total > 1){
+    var anteriores = '';
+    for(var i = total - 2; i >= 0; i--) anteriores += colaRevisionItemHtml(lista[i], i + 1, false, g);
+    html += '<button type="button" class="rev-toggle' + (profesorRevHistAbierto ? ' open' : '') + '" aria-expanded="' + (profesorRevHistAbierto ? 'true' : 'false') + '" onclick="colaToggleHistorial(this)"><span class="chev">▾</span> <span class="lbl">' + (profesorRevHistAbierto ? 'Ocultar ' : 'Ver ') + (total - 1 === 1 ? 'revisión anterior' : (total - 1) + ' revisiones anteriores') + '</span></button>'
+      + '<div class="rev-older' + (profesorRevHistAbierto ? '' : ' hidden') + '">' + anteriores + '</div>';
+  }
+  histBox.innerHTML = '<div class="rev-hist" style="margin-top:22px;"><div class="rev-hist-head"><h4>Historial de revisiones</h4><span class="pill off">' + total + (total === 1 ? ' revisión' : ' revisiones') + '</span></div>' + html + '</div>';
+}
+function colaToggleHistorial(btn){
+  profesorRevHistAbierto = !profesorRevHistAbierto;
+  colaRenderModal();
+}
+function colaConfirmarDecision(resultado){
+  var g = AUDIT_GRUPOS.find(function(x){ return x.id === COLA_MODAL_GRUPO; });
+  if(!g) return;
+  var comentario = resultado === 'accepted'
+    ? (document.getElementById('rev-dec-comment-accept') || {}).value
+    : (document.getElementById('rev-dec-comment-feedback') || {}).value;
+  if(resultado === 'feedback' && !(comentario || '').trim()){
+    toast('Escribe una observación para el grupo antes de enviar');
+    return;
+  }
+  if(g.id === 'g3'){
+    aplicarRevisionArbol(resultado, comentario || null);
+  } else {
+    if(!g.arbol.revisiones) g.arbol.revisiones = [];
+    g.arbol.revisiones.push({
+      enviado: colaUltimoEnvio(colaArbolInfo(g)),
+      respondido: fechaCorta(),
+      estado: resultado,
+      docente: COLA_STAFF.profesor,
+      comentario: comentario && comentario.trim() ? comentario.trim() : (resultado === 'accepted' ? 'Árbol aceptado. Cumple la estructura requerida; pueden continuar con las propuestas.' : comentario)
+    });
+    g.arbol.tipo = resultado;
+    g.arbol.estado = resultado === 'accepted' ? 'Aceptado por el profesor · ' + fechaLarga(DEMO_HOY) : 'El profesor solicitó ajustes';
+  }
+  toast(resultado === 'accepted' ? 'Árbol de ' + g.nombre + ' aceptado — se notificó al grupo' : 'Retroalimentación enviada a ' + g.nombre);
+  COLA_DECISION_MODO = null;
+  profesorRevHistAbierto = false;
+  colaRenderModal();
+  renderProfesorCola();
 }
 
 /* estado de los 5 pasos de Una mirada al aula según lo que el grupo lleva hecho */
@@ -5041,48 +5194,11 @@ var REVISION_ARBOL = {
 function nodoFx(tipo, etiqueta, texto){
   return '<div class="fx-node ' + tipo + '"><div class="k">' + etiqueta + '</div>' + escaparHtml(texto) + '</div>';
 }
-function renderRevisionFlow(){
-  var cont = document.getElementById('revision-flow');
-  if(!cont) return;
-  var sits = REVISION_ARBOL.situaciones.map(function(sit, i){
-    var ramas = sit.ramas.map(function(r){
-      var enfoque = '<div class="fx-kids"><div class="fx-item">' + nodoFx('enfoque','Enfoque', r[2]) + '</div></div>';
-      var causa = '<div class="fx-kids"><div class="fx-item">' + nodoFx('causa','Causa', r[1]) + enfoque + '</div></div>';
-      return '<div class="fx-item">' + nodoFx('efecto','Efecto', r[0]) + causa + '</div>';
-    }).join('');
-    return '<div class="fx-item">' + nodoFx('sit','Situación ' + (i+1), sit.titulo) + '<div class="fx-kids">' + ramas + '</div></div>';
-  }).join('');
-  cont.innerHTML = '<div class="fx">' + nodoFx('problema','Problema general', REVISION_ARBOL.problema) + '<div class="fx-kids">' + sits + '</div></div>';
-}
-
-/* ---- profesor: revisión ---- */
-function toggleFeedbackBox(){
-  document.getElementById('feedback-box').classList.toggle('show');
-}
 var profesorRevHistAbierto = false;
-function renderProfesorRevisionHistorial(){
-  var box = document.getElementById('profesor-revision-historial');
-  if(!box) return;
-  var n = arbolRevisiones.length;
-  box.innerHTML = '<div class="rev-hist" style="margin-top:22px;"><div class="rev-hist-head"><h4>Historial de revisiones</h4><span class="pill off">' + n + (n === 1 ? ' revisión' : ' revisiones') + '</span></div>' + revisionesHtml(arbolRevisiones, profesorRevHistAbierto) + '</div>';
-}
-function profesorAceptar(){
-  aplicarRevisionArbol('accepted');
-  toast('Árbol del Grupo 3 aceptado — se notificó al grupo');
-  setPanel('profesor-cola');
-}
-function profesorRetroalimentar(){
-  var text = document.getElementById('feedback-text').value.trim();
-  aplicarRevisionArbol('feedback', text || 'Los efectos de la Situación 2 necesitan causas más específicas antes de continuar.');
-  toast('Retroalimentación enviada al Grupo 3');
-  setPanel('profesor-cola');
-}
 
 /* ---- init ---- */
-renderRevisionFlow();
 checkArbol();
 renderArbolStatus();
-renderProfesorRevisionHistorial();
 renderMiradaAula();
 initExperiencias();
 renderPeriodos();
