@@ -236,14 +236,66 @@ tbody tr:last-child td{ border-bottom:none; }
 .role-select-opt .dot{ width:9px; height:9px; border-radius:50%; flex:none; }
 .role-select-opt .count{ margin-left:auto; font-size:0.74rem; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; }
 
-.role-card-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(208px, 1fr)); gap:12px; }
-.role-card{ border:1px solid var(--border); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:10px; background:var(--surface); }
-.role-card-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.role-card-name{ font-weight:600; font-size:0.92rem; }
+.role-card-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:12px; }
+.role-card{ border:1px solid var(--border); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:12px; background:var(--surface); }
+.role-card-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.role-card-name{ font-weight:600; font-size:0.92rem; flex:1; min-width:0; }
+.role-card-top .badge{ flex:none; }
 .role-card-stats{ display:flex; gap:14px; }
 .role-card-stat{ display:flex; flex-direction:column; gap:2px; }
 .role-card-stat b{ font-family:'IBM Plex Mono',monospace; font-size:1.05rem; font-weight:600; }
 .role-card-stat span{ font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; }
+
+.role-progress-head{ display:flex; justify-content:space-between; align-items:baseline; font-size:0.72rem; color:var(--text-muted); }
+.role-progress-head b{ color:var(--text); font-family:'IBM Plex Mono',monospace; font-weight:600; }
+.role-progress{ height:6px; border-radius:99px; background:var(--surface-alt); overflow:hidden; }
+.role-progress > div{ height:100%; border-radius:99px; background:var(--accent); }
+.role-card-link{
+  align-self:flex-start; background:none; border:none; color:var(--accent-strong); font-weight:600;
+  font-size:0.8rem; cursor:pointer; padding:0; font-family:inherit; display:flex; align-items:center; gap:5px;
+}
+.role-card-link:hover{ text-decoration:underline; }
+
+/* ---- Selector de permisos: agrupado, con interruptores ---- */
+.perm-picker-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.perm-counter{ font-size:0.78rem; color:var(--text-muted); font-weight:600; }
+.perm-counter b{ color:var(--accent-strong); }
+.perm-quick-actions{ display:flex; gap:12px; }
+.perm-quick-actions button{ background:none; border:none; color:var(--accent-strong); font-weight:600; font-size:0.78rem; cursor:pointer; padding:0; font-family:inherit; }
+.perm-quick-actions button:hover{ text-decoration:underline; }
+
+.perm-groups{ display:flex; flex-direction:column; gap:16px; }
+.perm-group-label{ font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-bottom:7px; }
+.perm-group-rows{ display:flex; flex-direction:column; gap:7px; }
+
+.perm-row{ display:flex; flex-direction:row; align-items:center; gap:12px; padding:10px 11px; border:1px solid var(--border); border-radius:10px; transition:background .15s ease, border-color .15s ease; cursor:pointer; }
+.perm-row:hover{ background:var(--surface-alt); }
+.perm-row.on{ border-color:var(--accent-soft); background:var(--accent-soft); }
+.perm-row-icon{
+  width:32px; height:32px; border-radius:9px; background:var(--surface-alt); color:var(--text-muted);
+  display:flex; align-items:center; justify-content:center; flex:none; transition:background .15s ease, color .15s ease;
+}
+.perm-row.on .perm-row-icon{ background:var(--accent); color:#fff; }
+.perm-row-text{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+.perm-row-text b{ font-size:0.85rem; font-weight:600; }
+.perm-row-text span{ font-size:0.76rem; color:var(--text-muted); }
+
+.switch{ position:relative; width:38px; height:22px; flex:none; display:inline-block; cursor:pointer; }
+.switch input{ position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; }
+.switch .track{ position:absolute; inset:0; background:var(--border); border-radius:999px; transition:background .2s ease; pointer-events:none; }
+.switch .thumb{ position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.25); transition:transform .2s ease; }
+.switch input:checked + .track{ background:var(--accent); }
+.switch input:checked + .track .thumb{ transform:translateX(16px); }
+.switch input:focus-visible + .track{ outline:2px solid var(--accent); outline-offset:2px; }
+
+/* ---- Modal de solo lectura: permisos de un rol ---- */
+.perm-view-row{ display:flex; align-items:center; gap:12px; padding:9px 11px; border-radius:10px; }
+.perm-view-row .perm-row-icon{ width:30px; height:30px; }
+.perm-view-status{ margin-left:auto; flex:none; display:flex; align-items:center; gap:5px; font-size:0.76rem; font-weight:600; }
+.perm-view-row.granted .perm-view-status{ color:var(--success); }
+.perm-view-row.granted .perm-row-icon{ background:var(--success-soft); color:var(--success); }
+.perm-view-row.denied{ opacity:0.55; }
+.perm-view-row.denied .perm-view-status{ color:var(--text-muted); }
 
 input[type=text], input[type=number], select{
   width:100%; padding:9px 11px; border-radius:8px; border:1px solid var(--border);
@@ -265,6 +317,10 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 .matrix td.check{ text-align:center; }
 .check-yes{ color:var(--success); font-weight:700; }
 .check-no{ color:var(--border); }
+.matrix-group-row td{ padding:12px 12px 6px; border-bottom:none; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); background:var(--surface-alt); }
+.matrix-group-row:first-child td{ padding-top:2px; }
+.matrix-perm-name{ display:flex; align-items:center; gap:9px; }
+.matrix-perm-name .perm-row-icon{ background:var(--accent-soft); color:var(--accent-strong); flex:none; }
 
 /* dropzone */
 .dropzone{
@@ -308,7 +364,7 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 .modal-overlay[hidden]{ display:none; }
 .modal{
   background:var(--surface); border:1px solid var(--border); border-radius:16px;
-  width:100%; max-width:480px; max-height:86vh; overflow-y:auto; box-shadow:var(--shadow);
+  width:100%; max-width:540px; max-height:86vh; overflow-y:auto; box-shadow:var(--shadow);
 }
 .modal-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px 20px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--surface); }
 .modal-head h3{ margin:0; font-size:1.05rem; font-weight:600; }
@@ -317,10 +373,6 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 .modal-close:hover{ background:var(--surface-alt); color:var(--text); }
 .modal-body{ padding:20px; }
 
-.perm-check-list{ display:flex; flex-direction:column; gap:7px; }
-.perm-check-row{ display:flex; align-items:center; gap:10px; padding:9px 11px; border:1px solid var(--border); border-radius:9px; font-size:0.84rem; cursor:pointer; }
-.perm-check-row:hover{ background:var(--surface-alt); }
-.perm-check-row input{ width:16px; height:16px; accent-color:var(--accent); flex:none; }
 
 @media (max-width: 860px){
   .shell{ grid-template-columns:1fr; }
@@ -921,14 +973,23 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   }
 
   /* ---------------- Usuarios y roles ---------------- */
+  var PERM_ICONS = {
+    eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M2 12s3.8-7 10-7 10 7 10 7-3.8 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
+    download:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 19h16"/></svg>',
+    upload:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M4 5h16"/></svg>',
+    check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M20 6 9 17l-5-5"/></svg>',
+    calc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>',
+    users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.3a3.2 3.2 0 0 1 0 6.1"/><path d="M15.5 14.2c2.6.5 4.5 2.8 4.5 5.8"/></svg>',
+    audit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M9 3h6l5 5v13H4V3z" opacity="0"/><path d="M6 2h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1Z"/><path d="M15 2v5h5"/><path d="M9 13h6M9 17h6"/></svg>'
+  };
   var PERMISSIONS = [
-    'Ver dashboard y reportes',
-    'Gestionar usuarios y roles',
-    'Cargar plantillas',
-    'Validar y aprobar plantillas',
-    'Ejecutar cálculo de tasas',
-    'Exportar resultados',
-    'Auditar historial de cambios'
+    {name:'Ver dashboard y reportes', desc:'Consultar KPIs, gráficos y el resumen operativo.', cat:'General', icon:'eye'},
+    {name:'Exportar resultados', desc:'Descargar tablas y reportes generados por el sistema.', cat:'General', icon:'download'},
+    {name:'Cargar plantillas', desc:'Subir archivos de primer curso, matriculados, graduados y programas.', cat:'Plantillas', icon:'upload'},
+    {name:'Validar y aprobar plantillas', desc:'Revisar y confirmar una plantilla antes de habilitarla.', cat:'Plantillas', icon:'check'},
+    {name:'Ejecutar cálculo de tasas', desc:'Calcular tasas SPADIES a partir de las plantillas cargadas.', cat:'Tasas', icon:'calc'},
+    {name:'Gestionar usuarios y roles', desc:'Crear usuarios, asignar roles y definir permisos.', cat:'Administración', icon:'users'},
+    {name:'Auditar historial de cambios', desc:'Ver el registro de acciones realizadas en la plataforma.', cat:'Administración', icon:'audit'}
   ];
   var ROLES = [
     {key:'admin', label:'Administrador', cls:'role-admin', dot:'var(--accent-strong)', builtin:true},
@@ -938,8 +999,8 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   ];
   var ROLE_PERMISSIONS = {
     admin:    [1,1,1,1,1,1,1],
-    analista: [1,0,1,0,1,1,0],
-    auditor:  [1,0,0,1,0,1,1],
+    analista: [1,1,1,0,1,0,0],
+    auditor:  [1,1,0,1,0,0,1],
     consulta: [1,0,0,0,0,0,0]
   };
   var EXTRA_ROLE_STYLES = [
@@ -1007,15 +1068,59 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   function renderRoleCards(){
     document.getElementById('role-cards').innerHTML = ROLES.map(function(r){
       var userCount = USERS.filter(function(u){ return u.role===r.key; }).length;
-      var permCount = (ROLE_PERMISSIONS[r.key]||[]).filter(Boolean).length;
+      var perms = ROLE_PERMISSIONS[r.key] || [];
+      var permCount = perms.filter(Boolean).length;
+      var pct = PERMISSIONS.length ? Math.round(permCount / PERMISSIONS.length * 100) : 0;
       return '<div class="role-card">'+
-        '<div class="role-card-top"><span class="role-card-name">'+r.label+'</span><span class="badge '+r.cls+'">'+r.key+'</span></div>'+
+        '<div class="role-card-top"><span class="role-card-name">'+r.label+'</span><span class="badge '+r.cls+'">'+(r.builtin ? r.key : 'Personalizado')+'</span></div>'+
         '<div class="role-card-stats">'+
           '<div class="role-card-stat"><b>'+userCount+'</b><span>Usuarios</span></div>'+
-          '<div class="role-card-stat"><b>'+permCount+'/'+PERMISSIONS.length+'</b><span>Permisos</span></div>'+
         '</div>'+
+        '<div>'+
+          '<div class="role-progress-head"><span>Permisos habilitados</span><b>'+permCount+'/'+PERMISSIONS.length+'</b></div>'+
+          '<div class="role-progress"><div style="width:'+pct+'%; background:'+r.dot+'"></div></div>'+
+        '</div>'+
+        '<button class="role-card-link" type="button" data-role="'+r.key+'">Ver permisos'+
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>'+
+        '</button>'+
       '</div>';
     }).join('');
+    document.querySelectorAll('.role-card-link').forEach(function(btn){
+      btn.addEventListener('click', function(){ openRolePermissionsModal(btn.dataset.role); });
+    });
+  }
+
+  function groupPermissions(){
+    var groups = [];
+    PERMISSIONS.forEach(function(p, idx){
+      var g = groups[groups.length - 1];
+      if(!g || g.cat !== p.cat){ g = {cat:p.cat, items:[]}; groups.push(g); }
+      g.items.push({perm:p, idx:idx});
+    });
+    return groups;
+  }
+
+  function openRolePermissionsModal(roleKey){
+    var role = getRole(roleKey);
+    var perms = ROLE_PERMISSIONS[roleKey] || [];
+    document.getElementById('modal-title').textContent = role.label;
+    document.getElementById('modal-subtitle').innerHTML = 'Permisos de este rol · <span class="badge '+role.cls+'" style="margin-left:2px;">'+(role.builtin ? roleKey : 'Personalizado')+'</span>';
+    var html = groupPermissions().map(function(g){
+      var rows = g.items.map(function(it){
+        var granted = !!perms[it.idx];
+        return '<div class="perm-view-row '+(granted?'granted':'denied')+'">'+
+          '<span class="perm-row-icon">'+PERM_ICONS[it.perm.icon]+'</span>'+
+          '<div class="perm-row-text"><b>'+it.perm.name+'</b><span>'+it.perm.desc+'</span></div>'+
+          '<span class="perm-view-status">'+(granted
+            ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M20 6 9 17l-5-5"/></svg> Incluido'
+            : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg> No incluido')+
+          '</span>'+
+        '</div>';
+      }).join('');
+      return '<div class="perm-group"><div class="perm-group-label">'+g.cat+'</div><div class="perm-group-rows">'+rows+'</div></div>';
+    }).join('');
+    document.getElementById('modal-body').innerHTML = '<div class="perm-groups">'+html+'</div>';
+    modalOverlay.hidden = false;
   }
 
   var urTabs = document.getElementById('ur-tabs');
@@ -1052,14 +1157,21 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   document.getElementById('user-search').addEventListener('input', renderUsers);
 
   function renderMatrix(){
+    var colCount = ROLES.length + 1;
     document.getElementById('matrix-head-row').innerHTML = '<th>Permiso</th>' +
       ROLES.map(function(r){ return '<th>'+r.label+'</th>'; }).join('');
-    document.getElementById('matrix-body').innerHTML = PERMISSIONS.map(function(permName, pIdx){
-      return '<tr><td>'+permName+'</td>'+ ROLES.map(function(r){
-        var v = (ROLE_PERMISSIONS[r.key] || [])[pIdx];
-        return '<td class="check">'+(v? '<span class="check-yes">✓</span>' : '<span class="check-no">—</span>')+'</td>';
-      }).join('') +'</tr>';
+    var rowsHtml = groupPermissions().map(function(g){
+      var groupHeader = '<tr class="matrix-group-row"><td colspan="'+colCount+'">'+g.cat+'</td></tr>';
+      var rows = g.items.map(function(it){
+        return '<tr><td><span class="matrix-perm-name"><span class="perm-row-icon" style="width:26px; height:26px;">'+PERM_ICONS[it.perm.icon]+'</span>'+it.perm.name+'</span></td>'+
+          ROLES.map(function(r){
+            var v = (ROLE_PERMISSIONS[r.key] || [])[it.idx];
+            return '<td class="check">'+(v? '<span class="check-yes">✓</span>' : '<span class="check-no">—</span>')+'</td>';
+          }).join('') +'</tr>';
+      }).join('');
+      return groupHeader + rows;
     }).join('');
+    document.getElementById('matrix-body').innerHTML = rowsHtml;
   }
 
   /* ---- Modal: crear usuario / crear rol ---- */
@@ -1104,29 +1216,75 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     });
   }
 
+  function permRowHtml(it){
+    return '<label class="perm-row" id="nr-row-'+it.idx+'">'+
+      '<span class="perm-row-icon">'+PERM_ICONS[it.perm.icon]+'</span>'+
+      '<span class="perm-row-text"><b>'+it.perm.name+'</b><span>'+it.perm.desc+'</span></span>'+
+      '<span class="switch"><input type="checkbox" id="nr-perm-'+it.idx+'" data-perm-idx="'+it.idx+'"><span class="track"><span class="thumb"></span></span></span>'+
+    '</label>';
+  }
+
+  function updatePermCounter(){
+    var total = PERMISSIONS.length;
+    var checked = PERMISSIONS.filter(function(_,i){ return document.getElementById('nr-perm-'+i).checked; }).length;
+    document.getElementById('nr-perm-counter').innerHTML = '<b>'+checked+'</b> de '+total+' permisos seleccionados';
+  }
+
   function openRoleModal(){
     document.getElementById('modal-title').textContent = 'Nuevo rol';
     document.getElementById('modal-subtitle').textContent = 'Define el nombre y los permisos que tendrá este rol.';
-    var checksHtml = PERMISSIONS.map(function(p, i){
-      return '<label class="perm-check-row"><input type="checkbox" id="nr-perm-'+i+'">'+p+'</label>';
+    var groupsHtml = groupPermissions().map(function(g){
+      var rows = g.items.map(permRowHtml).join('');
+      return '<div class="perm-group"><div class="perm-group-label">'+g.cat+'</div><div class="perm-group-rows">'+rows+'</div></div>';
     }).join('');
     document.getElementById('modal-body').innerHTML =
-      '<form id="role-form" style="display:flex; flex-direction:column; gap:14px;">'+
+      '<form id="role-form" style="display:flex; flex-direction:column; gap:16px;">'+
         '<label>Nombre del rol<input type="text" id="nr-name" required placeholder="Ej. Coordinador de programa"></label>'+
         '<label>Descripción breve<input type="text" id="nr-desc" placeholder="Para qué se usa este rol"></label>'+
-        '<div style="display:flex; flex-direction:column; gap:8px;">'+
-          '<span style="font-size:0.78rem; font-weight:600; color:var(--text-muted);">Permisos habilitados</span>'+
-          '<div class="perm-check-list">'+checksHtml+'</div>'+
+        '<div>'+
+          '<div class="perm-picker-head">'+
+            '<span id="nr-perm-counter" class="perm-counter"></span>'+
+            '<span class="perm-quick-actions">'+
+              '<button type="button" id="nr-perm-all">Todos</button>'+
+              '<button type="button" id="nr-perm-none">Ninguno</button>'+
+            '</span>'+
+          '</div>'+
+          '<div class="perm-groups" style="margin-top:10px;">'+groupsHtml+'</div>'+
         '</div>'+
         '<button type="submit" class="btn btn-primary" style="align-self:flex-start;">Crear rol</button>'+
       '</form>';
+
     document.getElementById('nr-perm-0').checked = true;
+    document.getElementById('nr-row-0').classList.add('on');
+    updatePermCounter();
     modalOverlay.hidden = false;
+
+    document.getElementById('modal-body').addEventListener('change', function(e){
+      var input = e.target.closest('input[type=checkbox][data-perm-idx]');
+      if(!input) return;
+      document.getElementById('nr-row-'+input.dataset.permIdx).classList.toggle('on', input.checked);
+      updatePermCounter();
+    });
+    document.getElementById('nr-perm-all').addEventListener('click', function(){
+      PERMISSIONS.forEach(function(_,i){
+        document.getElementById('nr-perm-'+i).checked = true;
+        document.getElementById('nr-row-'+i).classList.add('on');
+      });
+      updatePermCounter();
+    });
+    document.getElementById('nr-perm-none').addEventListener('click', function(){
+      PERMISSIONS.forEach(function(_,i){
+        document.getElementById('nr-perm-'+i).checked = false;
+        document.getElementById('nr-row-'+i).classList.remove('on');
+      });
+      updatePermCounter();
+    });
+
     document.getElementById('role-form').addEventListener('submit', function(e){
       e.preventDefault();
       var name = document.getElementById('nr-name').value.trim();
       if(!name) return;
-      var key = 'rol_' + name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'') + '_' + (ROLES.length+1);
+      var key = 'rol_' + name.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'') + '_' + (ROLES.length+1);
       var style = EXTRA_ROLE_STYLES[extraRoleCount % EXTRA_ROLE_STYLES.length];
       extraRoleCount++;
       var perms = PERMISSIONS.map(function(p,i){ return document.getElementById('nr-perm-'+i).checked ? 1 : 0; });
