@@ -319,11 +319,9 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 .check-yes{ color:var(--success); font-weight:700; }
 .check-no{ color:var(--border); }
 
-.matrix-cat-head{ background:var(--surface-alt); font-size:0.68rem; }
 .matrix-col-head{ display:inline-flex; flex-direction:column; align-items:center; gap:5px; text-transform:none; letter-spacing:0; font-weight:600; font-size:0.72rem; color:var(--text-muted); cursor:help; }
 .matrix-col-head .perm-row-icon{ background:var(--accent-soft); color:var(--accent-strong); flex:none; }
 
-.matrix-role-name{ display:flex; align-items:center; gap:9px; white-space:nowrap; }
 .matrix-detail-btn{ white-space:nowrap; font-size:0.8rem; }
 
 /* dropzone */
@@ -604,7 +602,6 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
             <div class="panel-body matrix">
               <table>
                 <thead>
-                  <tr id="matrix-head-cats"></tr>
                   <tr id="matrix-head-row"></tr>
                 </thead>
                 <tbody id="matrix-body"></tbody>
@@ -1132,20 +1129,18 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   function renderMatrix(){
     var groups = groupPermissions();
 
-    document.getElementById('matrix-head-cats').innerHTML =
-      '<th rowspan="2" class="matrix-th-role">Rol</th>' +
-      '<th rowspan="2">Usuarios</th>' +
-      groups.map(function(g){ return '<th colspan="'+g.items.length+'" class="matrix-cat-head">'+g.cat+'</th>'; }).join('') +
-      '<th rowspan="2">Detalle</th>';
-
-    document.getElementById('matrix-head-row').innerHTML = groups.map(function(g){
-      return g.items.map(function(it){
-        return '<th><span class="matrix-col-head" title="'+it.perm.name+': '+it.perm.desc+'">'+
-          '<span class="perm-row-icon" style="width:26px; height:26px;">'+PERM_ICONS[it.perm.icon]+'</span>'+
-          '<span>'+it.perm.short+'</span>'+
-        '</span></th>';
-      }).join('');
-    }).join('');
+    document.getElementById('matrix-head-row').innerHTML =
+      '<th class="matrix-th-role">Rol</th>' +
+      '<th>Usuarios</th>' +
+      groups.map(function(g){
+        return g.items.map(function(it){
+          return '<th><span class="matrix-col-head" title="'+it.perm.name+': '+it.perm.desc+'">'+
+            '<span class="perm-row-icon" style="width:26px; height:26px;">'+PERM_ICONS[it.perm.icon]+'</span>'+
+            '<span>'+it.perm.short+'</span>'+
+          '</span></th>';
+        }).join('');
+      }).join('') +
+      '<th>Detalle</th>';
 
     document.getElementById('matrix-body').innerHTML = ROLES.map(function(r){
       var perms = ROLE_PERMISSIONS[r.key] || [];
@@ -1155,7 +1150,7 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
         return '<td class="check">'+(v? '<span class="check-yes">✓</span>' : '<span class="check-no">—</span>')+'</td>';
       }).join('');
       return '<tr>'+
-        '<td><span class="matrix-role-name"><span class="role-card-name">'+r.label+'</span><span class="badge '+r.cls+'">'+(r.builtin ? r.key : 'Personalizado')+'</span></span></td>'+
+        '<td><span class="badge '+r.cls+'">'+r.label+'</span></td>'+
         '<td class="mono">'+userCount+'</td>'+
         cells+
         '<td><button class="role-card-link matrix-detail-btn" type="button" data-role="'+r.key+'">Ver permisos'+
