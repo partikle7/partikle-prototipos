@@ -324,6 +324,21 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 
 .matrix-detail-btn{ white-space:nowrap; font-size:0.8rem; }
 
+/* ---- Acciones por fila: editar / eliminar / ver ---- */
+.row-actions{ display:flex; gap:6px; }
+.row-action-btn{
+  width:28px; height:28px; border-radius:8px; border:1px solid var(--border); background:var(--surface);
+  color:var(--text-muted); display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none;
+}
+.row-action-btn:hover{ background:var(--surface-alt); color:var(--text); }
+.row-action-btn.danger:hover{ background:var(--danger-soft); color:var(--danger); border-color:var(--danger-soft); }
+.row-action-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+.row-action-btn:disabled:hover{ background:var(--surface); color:var(--text-muted); border-color:var(--border); }
+
+.confirm-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:18px; }
+.btn-danger{ background:var(--danger); color:#fff; }
+.btn-danger:hover{ background:#9c4030; }
+
 /* dropzone */
 .dropzone{
   border:1.5px dashed var(--border); border-radius:12px; padding:30px 20px; text-align:center;
@@ -582,7 +597,7 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
               </div>
               <div class="table-scroll">
                 <table>
-                  <thead><tr><th>Usuario</th><th>Rol</th><th>Área</th><th>Último acceso</th><th>Estado</th></tr></thead>
+                  <thead><tr><th>Usuario</th><th>Rol</th><th>Área</th><th>Último acceso</th><th>Estado</th><th>Acciones</th></tr></thead>
                   <tbody id="users-body"></tbody>
                 </table>
               </div>
@@ -968,6 +983,10 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   }
 
   /* ---------------- Usuarios y roles ---------------- */
+  var ICON_PENCIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+  var ICON_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+  var ICON_EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M2 12s3.8-7 10-7 10 7 10 7-3.8 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+
   var PERM_ICONS = {
     eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M2 12s3.8-7 10-7 10 7 10 7-3.8 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
     download:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 19h16"/></svg>',
@@ -1012,14 +1031,15 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   }
 
   var USERS = [
-    {name:'Camila Herrera', mail:'camila.herrera@sedga.co', role:'admin', area:'Operaciones', last:'Hoy, 10:14', status:'ok'},
-    {name:'Julián Rendón', mail:'julian.rendon@sedga.co', role:'analista', area:'Permanencia académica', last:'Hoy, 9:02', status:'ok'},
-    {name:'Mariana Ospina', mail:'mariana.ospina@sedga.co', role:'admin', area:'Operaciones', last:'Ayer, 17:30', status:'ok'},
-    {name:'David Cárdenas', mail:'david.cardenas@sedga.co', role:'auditor', area:'Cumplimiento', last:'Ayer, 13:20', status:'warn'},
-    {name:'Laura Pinzón', mail:'laura.pinzon@sedga.co', role:'analista', area:'Permanencia académica', last:'25 oct, 15:44', status:'ok'},
-    {name:'Santiago Buriticá', mail:'santiago.buritica@sedga.co', role:'consulta', area:'Registro académico', last:'22 oct, 11:05', status:'err'},
-    {name:'Valentina Trujillo', mail:'valentina.trujillo@sedga.co', role:'auditor', area:'Cumplimiento', last:'21 oct, 8:50', status:'ok'}
+    {id:1, name:'Camila Herrera', mail:'camila.herrera@sedga.co', role:'admin', area:'Operaciones', last:'Hoy, 10:14', status:'ok'},
+    {id:2, name:'Julián Rendón', mail:'julian.rendon@sedga.co', role:'analista', area:'Permanencia académica', last:'Hoy, 9:02', status:'ok'},
+    {id:3, name:'Mariana Ospina', mail:'mariana.ospina@sedga.co', role:'admin', area:'Operaciones', last:'Ayer, 17:30', status:'ok'},
+    {id:4, name:'David Cárdenas', mail:'david.cardenas@sedga.co', role:'auditor', area:'Cumplimiento', last:'Ayer, 13:20', status:'warn'},
+    {id:5, name:'Laura Pinzón', mail:'laura.pinzon@sedga.co', role:'analista', area:'Permanencia académica', last:'25 oct, 15:44', status:'ok'},
+    {id:6, name:'Santiago Buriticá', mail:'santiago.buritica@sedga.co', role:'consulta', area:'Registro académico', last:'22 oct, 11:05', status:'err'},
+    {id:7, name:'Valentina Trujillo', mail:'valentina.trujillo@sedga.co', role:'auditor', area:'Cumplimiento', last:'21 oct, 8:50', status:'ok'}
   ];
+  var nextUserId = 8;
   var STATUS = {ok:['ok','Activo'], warn:['warn','Pendiente'], err:['err','Suspendido']};
   var activeRoleFilter = 'todos';
 
@@ -1121,8 +1141,19 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
         '<td>'+u.area+'</td>'+
         '<td class="mono" style="color:var(--text-muted)">'+u.last+'</td>'+
         '<td><span class="badge '+st[0]+'"><span class="dot-status"></span>'+st[1]+'</span></td>'+
+        '<td><div class="row-actions">'+
+          '<button class="row-action-btn" type="button" data-edit-user="'+u.id+'" title="Editar usuario" aria-label="Editar usuario">'+ICON_PENCIL+'</button>'+
+          '<button class="row-action-btn danger" type="button" data-delete-user="'+u.id+'" title="Eliminar usuario" aria-label="Eliminar usuario">'+ICON_TRASH+'</button>'+
+        '</div></td>'+
       '</tr>';
-    }).join('') || '<tr><td colspan="5" style="color:var(--text-muted); text-align:center; padding:20px;">No hay usuarios que coincidan con el filtro.</td></tr>';
+    }).join('') || '<tr><td colspan="6" style="color:var(--text-muted); text-align:center; padding:20px;">No hay usuarios que coincidan con el filtro.</td></tr>';
+
+    document.querySelectorAll('[data-edit-user]').forEach(function(btn){
+      btn.addEventListener('click', function(){ openUserModal(Number(btn.dataset.editUser)); });
+    });
+    document.querySelectorAll('[data-delete-user]').forEach(function(btn){
+      btn.addEventListener('click', function(){ confirmDeleteUser(Number(btn.dataset.deleteUser)); });
+    });
   }
   document.getElementById('user-search').addEventListener('input', renderUsers);
 
@@ -1153,14 +1184,22 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
         '<td><span class="badge '+r.cls+'">'+r.label+'</span></td>'+
         '<td class="mono">'+userCount+'</td>'+
         cells+
-        '<td><button class="role-card-link matrix-detail-btn" type="button" data-role="'+r.key+'">Ver permisos'+
-          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>'+
-        '</button></td>'+
+        '<td><div class="row-actions">'+
+          '<button class="row-action-btn" type="button" data-view-role="'+r.key+'" title="Ver permisos" aria-label="Ver permisos">'+ICON_EYE+'</button>'+
+          '<button class="row-action-btn" type="button" data-edit-role="'+r.key+'" title="Editar rol" aria-label="Editar rol">'+ICON_PENCIL+'</button>'+
+          '<button class="row-action-btn danger" type="button" data-delete-role="'+r.key+'" title="'+(r.builtin ? 'Los roles del sistema no se pueden eliminar' : 'Eliminar rol')+'" aria-label="Eliminar rol"'+(r.builtin ? ' disabled' : '')+'>'+ICON_TRASH+'</button>'+
+        '</div></td>'+
       '</tr>';
     }).join('');
 
-    document.querySelectorAll('.matrix-detail-btn').forEach(function(btn){
-      btn.addEventListener('click', function(){ openRolePermissionsModal(btn.dataset.role); });
+    document.querySelectorAll('[data-view-role]').forEach(function(btn){
+      btn.addEventListener('click', function(){ openRolePermissionsModal(btn.dataset.viewRole); });
+    });
+    document.querySelectorAll('[data-edit-role]').forEach(function(btn){
+      btn.addEventListener('click', function(){ openRoleModal(btn.dataset.editRole); });
+    });
+    document.querySelectorAll('[data-delete-role]').forEach(function(btn){
+      btn.addEventListener('click', function(){ confirmDeleteRole(btn.dataset.deleteRole); });
     });
   }
 
@@ -1173,9 +1212,45 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   document.getElementById('modal-close').addEventListener('click', closeModal);
   modalOverlay.addEventListener('click', function(e){ if(e.target === modalOverlay) closeModal(); });
 
-  function openUserModal(){
-    document.getElementById('modal-title').textContent = 'Nuevo usuario';
-    document.getElementById('modal-subtitle').textContent = 'Crea una cuenta y asígnale un rol existente.';
+  function openConfirmModal(opts){
+    document.getElementById('modal-title').textContent = opts.title;
+    document.getElementById('modal-subtitle').textContent = '';
+    document.getElementById('modal-body').innerHTML =
+      '<p style="margin:0; font-size:0.9rem; color:var(--text); line-height:1.6;">'+opts.message+'</p>'+
+      '<div class="confirm-actions">'+
+        '<button type="button" class="btn btn-ghost" id="confirm-cancel">Cancelar</button>'+
+        '<button type="button" class="btn '+(opts.danger ? 'btn-danger' : 'btn-primary')+'" id="confirm-ok">'+opts.confirmLabel+'</button>'+
+      '</div>';
+    modalOverlay.hidden = false;
+    document.getElementById('confirm-cancel').addEventListener('click', closeModal);
+    document.getElementById('confirm-ok').addEventListener('click', function(){
+      closeModal();
+      opts.onConfirm();
+    });
+  }
+
+  function confirmDeleteUser(id){
+    var user = USERS.filter(function(u){ return u.id===id; })[0];
+    if(!user) return;
+    openConfirmModal({
+      title:'Eliminar usuario',
+      message:'¿Seguro que quieres eliminar a <strong>'+user.name+'</strong>? Perderá acceso a Sedga de inmediato.',
+      confirmLabel:'Eliminar',
+      danger:true,
+      onConfirm:function(){
+        USERS = USERS.filter(function(u){ return u.id!==id; });
+        renderUsers();
+        renderRoleSelect();
+        renderMatrix();
+        toast('Usuario "'+user.name+'" eliminado');
+      }
+    });
+  }
+
+  function openUserModal(editId){
+    var editing = USERS.filter(function(u){ return u.id===editId; })[0];
+    document.getElementById('modal-title').textContent = editing ? 'Editar usuario' : 'Nuevo usuario';
+    document.getElementById('modal-subtitle').textContent = editing ? 'Actualiza los datos de esta cuenta.' : 'Crea una cuenta y asígnale un rol existente.';
     var roleOptions = ROLES.map(function(r){ return '<option value="'+r.key+'">'+r.label+'</option>'; }).join('');
     document.getElementById('modal-body').innerHTML =
       '<form id="user-form" style="display:flex; flex-direction:column; gap:14px;">'+
@@ -1185,24 +1260,35 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
           '<label>Rol<select id="nu-role">'+roleOptions+'</select></label>'+
           '<label>Área<input type="text" id="nu-area" placeholder="Ej. Registro académico"></label>'+
         '</div>'+
-        '<button type="submit" class="btn btn-primary" style="align-self:flex-start;">Crear usuario</button>'+
+        '<button type="submit" class="btn btn-primary" style="align-self:flex-start;">'+(editing ? 'Guardar cambios' : 'Crear usuario')+'</button>'+
       '</form>';
     modalOverlay.hidden = false;
+
+    if(editing){
+      document.getElementById('nu-name').value = editing.name;
+      document.getElementById('nu-mail').value = editing.mail;
+      document.getElementById('nu-role').value = editing.role;
+      document.getElementById('nu-area').value = editing.area;
+    }
+
     document.getElementById('user-form').addEventListener('submit', function(e){
       e.preventDefault();
       var name = document.getElementById('nu-name').value.trim();
       var mail = document.getElementById('nu-mail').value.trim();
       if(!name || !mail) return;
-      USERS.unshift({
-        name:name, mail:mail, role:document.getElementById('nu-role').value,
-        area:document.getElementById('nu-area').value.trim() || 'Sin asignar',
-        last:'Recién creado', status:'ok'
-      });
+      var role = document.getElementById('nu-role').value;
+      var area = document.getElementById('nu-area').value.trim() || 'Sin asignar';
+      if(editing){
+        editing.name = name; editing.mail = mail; editing.role = role; editing.area = area;
+        toast('Usuario "'+name+'" actualizado');
+      } else {
+        USERS.unshift({id:nextUserId++, name:name, mail:mail, role:role, area:area, last:'Recién creado', status:'ok'});
+        toast('Usuario "'+name+'" creado correctamente');
+      }
       renderUsers();
       renderRoleSelect();
       renderMatrix();
       closeModal();
-      toast('Usuario "'+name+'" creado correctamente');
     });
   }
 
@@ -1220,16 +1306,42 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     document.getElementById('nr-perm-counter').innerHTML = '<b>'+checked+'</b> de '+total+' permisos seleccionados';
   }
 
-  function openRoleModal(){
-    document.getElementById('modal-title').textContent = 'Nuevo rol';
-    document.getElementById('modal-subtitle').textContent = 'Define el nombre y los permisos que tendrá este rol.';
+  function confirmDeleteRole(key){
+    var role = getRole(key);
+    if(!role || role.builtin) return;
+    var userCount = USERS.filter(function(u){ return u.role===key; }).length;
+    if(userCount > 0){
+      toast('No se puede eliminar "'+role.label+'": reasigna primero a sus '+userCount+' usuario(s)');
+      return;
+    }
+    openConfirmModal({
+      title:'Eliminar rol',
+      message:'¿Seguro que quieres eliminar el rol <strong>'+role.label+'</strong>? Esta acción no se puede deshacer.',
+      confirmLabel:'Eliminar',
+      danger:true,
+      onConfirm:function(){
+        ROLES = ROLES.filter(function(r){ return r.key!==key; });
+        delete ROLE_PERMISSIONS[key];
+        renderRoleSelect();
+        renderMatrix();
+        toast('Rol "'+role.label+'" eliminado');
+      }
+    });
+  }
+
+  function openRoleModal(editKey){
+    var editing = editKey ? getRole(editKey) : null;
+    document.getElementById('modal-title').textContent = editing ? 'Editar rol' : 'Nuevo rol';
+    document.getElementById('modal-subtitle').textContent = editing ? 'Actualiza el nombre, la descripción o los permisos.' : 'Define el nombre y los permisos que tendrá este rol.';
     var groupsHtml = groupPermissions().map(function(g){
       var rows = g.items.map(permRowHtml).join('');
       return '<div class="perm-group"><div class="perm-group-label">'+g.cat+'</div><div class="perm-group-rows">'+rows+'</div></div>';
     }).join('');
+    var nameLocked = editing && editing.builtin;
     document.getElementById('modal-body').innerHTML =
       '<form id="role-form" style="display:flex; flex-direction:column; gap:16px;">'+
-        '<label>Nombre del rol<input type="text" id="nr-name" required placeholder="Ej. Coordinador de programa"></label>'+
+        '<label>Nombre del rol<input type="text" id="nr-name" required placeholder="Ej. Coordinador de programa"'+(nameLocked ? ' disabled' : '')+'></label>'+
+        (nameLocked ? '<p style="margin:-8px 0 0; font-size:0.76rem; color:var(--text-muted);">Los roles del sistema no se pueden renombrar.</p>' : '')+
         '<label>Descripción breve<input type="text" id="nr-desc" placeholder="Para qué se usa este rol"></label>'+
         '<div>'+
           '<div class="perm-picker-head">'+
@@ -1241,11 +1353,19 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
           '</div>'+
           '<div class="perm-groups" style="margin-top:10px;">'+groupsHtml+'</div>'+
         '</div>'+
-        '<button type="submit" class="btn btn-primary" style="align-self:flex-start;">Crear rol</button>'+
+        '<button type="submit" class="btn btn-primary" style="align-self:flex-start;">'+(editing ? 'Guardar cambios' : 'Crear rol')+'</button>'+
       '</form>';
 
-    document.getElementById('nr-perm-0').checked = true;
-    document.getElementById('nr-row-0').classList.add('on');
+    var initialPerms = editing ? (ROLE_PERMISSIONS[editing.key] || []) : null;
+    PERMISSIONS.forEach(function(_, i){
+      var checked = initialPerms ? !!initialPerms[i] : i===0;
+      document.getElementById('nr-perm-'+i).checked = checked;
+      document.getElementById('nr-row-'+i).classList.toggle('on', checked);
+    });
+    if(editing){
+      document.getElementById('nr-name').value = editing.label;
+      document.getElementById('nr-desc').value = editing.desc || '';
+    }
     updatePermCounter();
     modalOverlay.hidden = false;
 
@@ -1274,21 +1394,30 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
       e.preventDefault();
       var name = document.getElementById('nr-name').value.trim();
       if(!name) return;
-      var key = 'rol_' + name.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'') + '_' + (ROLES.length+1);
-      var style = EXTRA_ROLE_STYLES[extraRoleCount % EXTRA_ROLE_STYLES.length];
-      extraRoleCount++;
+      var desc = document.getElementById('nr-desc').value.trim();
       var perms = PERMISSIONS.map(function(p,i){ return document.getElementById('nr-perm-'+i).checked ? 1 : 0; });
-      ROLES.push({key:key, label:name, cls:style.cls, dot:style.dot, builtin:false});
-      ROLE_PERMISSIONS[key] = perms;
+
+      if(editing){
+        if(!editing.builtin) editing.label = name;
+        editing.desc = desc;
+        ROLE_PERMISSIONS[editing.key] = perms;
+        toast('Rol "'+editing.label+'" actualizado');
+      } else {
+        var key = 'rol_' + name.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'') + '_' + (ROLES.length+1);
+        var style = EXTRA_ROLE_STYLES[extraRoleCount % EXTRA_ROLE_STYLES.length];
+        extraRoleCount++;
+        ROLES.push({key:key, label:name, desc:desc, cls:style.cls, dot:style.dot, builtin:false});
+        ROLE_PERMISSIONS[key] = perms;
+        toast('Rol "'+name+'" creado con '+perms.filter(Boolean).length+' permisos');
+      }
       renderRoleSelect();
       renderMatrix();
       closeModal();
-      toast('Rol "'+name+'" creado con '+perms.filter(Boolean).length+' permisos');
     });
   }
 
-  document.getElementById('btn-new-user').addEventListener('click', openUserModal);
-  document.getElementById('btn-new-role').addEventListener('click', openRoleModal);
+  document.getElementById('btn-new-user').addEventListener('click', function(){ openUserModal(); });
+  document.getElementById('btn-new-role').addEventListener('click', function(){ openRoleModal(); });
 
   /* ---------------- Plantillas ---------------- */
   var TEMPLATES = [
