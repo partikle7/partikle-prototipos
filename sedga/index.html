@@ -311,16 +311,20 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 .btn-ghost{ background:var(--surface-alt); color:var(--text); }
 .btn-ghost:hover{ background:var(--border); }
 
-/* permission matrix */
+/* permission matrix: filas = roles, columnas = permisos agrupadas por categoría */
 .matrix{ overflow-x:auto; }
-.matrix table{ min-width:560px; }
-.matrix td.check{ text-align:center; }
+.matrix table{ min-width:840px; }
+.matrix td.check, .matrix th{ text-align:center; }
+.matrix th.matrix-th-role, .matrix td:first-child{ text-align:left; }
 .check-yes{ color:var(--success); font-weight:700; }
 .check-no{ color:var(--border); }
-.matrix-group-row td{ padding:12px 12px 6px; border-bottom:none; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); background:var(--surface-alt); }
-.matrix-group-row:first-child td{ padding-top:2px; }
-.matrix-perm-name{ display:flex; align-items:center; gap:9px; }
-.matrix-perm-name .perm-row-icon{ background:var(--accent-soft); color:var(--accent-strong); flex:none; }
+
+.matrix-cat-head{ background:var(--surface-alt); font-size:0.68rem; }
+.matrix-col-head{ display:inline-flex; flex-direction:column; align-items:center; gap:5px; text-transform:none; letter-spacing:0; font-weight:600; font-size:0.72rem; color:var(--text-muted); cursor:help; }
+.matrix-col-head .perm-row-icon{ background:var(--accent-soft); color:var(--accent-strong); flex:none; }
+
+.matrix-role-name{ display:flex; align-items:center; gap:9px; white-space:nowrap; }
+.matrix-detail-btn{ white-space:nowrap; font-size:0.8rem; }
 
 /* dropzone */
 .dropzone{
@@ -591,23 +595,17 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
         <div class="subview" id="ur-roles">
           <div class="panel">
             <div class="panel-head">
-              <h2>Roles</h2>
+              <h2>Roles y permisos</h2>
               <button class="btn btn-primary btn-sm" id="btn-new-role" type="button">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
                 Nuevo rol
               </button>
             </div>
-            <div class="panel-body">
-              <div class="role-card-grid" id="role-cards"></div>
-            </div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-head"><h2>Matriz de permisos</h2></div>
             <div class="panel-body matrix">
               <table>
                 <thead>
-                  <tr id="matrix-head-row"><th>Permiso</th></tr>
+                  <tr id="matrix-head-cats"></tr>
+                  <tr id="matrix-head-row"></tr>
                 </thead>
                 <tbody id="matrix-body"></tbody>
               </table>
@@ -983,13 +981,13 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     audit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M9 3h6l5 5v13H4V3z" opacity="0"/><path d="M6 2h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1Z"/><path d="M15 2v5h5"/><path d="M9 13h6M9 17h6"/></svg>'
   };
   var PERMISSIONS = [
-    {name:'Ver dashboard y reportes', desc:'Consultar KPIs, gráficos y el resumen operativo.', cat:'General', icon:'eye'},
-    {name:'Exportar resultados', desc:'Descargar tablas y reportes generados por el sistema.', cat:'General', icon:'download'},
-    {name:'Cargar plantillas', desc:'Subir archivos de primer curso, matriculados, graduados y programas.', cat:'Plantillas', icon:'upload'},
-    {name:'Validar y aprobar plantillas', desc:'Revisar y confirmar una plantilla antes de habilitarla.', cat:'Plantillas', icon:'check'},
-    {name:'Ejecutar cálculo de tasas', desc:'Calcular tasas SPADIES a partir de las plantillas cargadas.', cat:'Tasas', icon:'calc'},
-    {name:'Gestionar usuarios y roles', desc:'Crear usuarios, asignar roles y definir permisos.', cat:'Administración', icon:'users'},
-    {name:'Auditar historial de cambios', desc:'Ver el registro de acciones realizadas en la plataforma.', cat:'Administración', icon:'audit'}
+    {name:'Ver dashboard y reportes', short:'Dashboard', desc:'Consultar KPIs, gráficos y el resumen operativo.', cat:'General', icon:'eye'},
+    {name:'Exportar resultados', short:'Exportar', desc:'Descargar tablas y reportes generados por el sistema.', cat:'General', icon:'download'},
+    {name:'Cargar plantillas', short:'Cargar', desc:'Subir archivos de primer curso, matriculados, graduados y programas.', cat:'Plantillas', icon:'upload'},
+    {name:'Validar y aprobar plantillas', short:'Validar', desc:'Revisar y confirmar una plantilla antes de habilitarla.', cat:'Plantillas', icon:'check'},
+    {name:'Ejecutar cálculo de tasas', short:'Cálculo', desc:'Calcular tasas SPADIES a partir de las plantillas cargadas.', cat:'Tasas', icon:'calc'},
+    {name:'Gestionar usuarios y roles', short:'Usuarios', desc:'Crear usuarios, asignar roles y definir permisos.', cat:'Administración', icon:'users'},
+    {name:'Auditar historial de cambios', short:'Auditoría', desc:'Ver el registro de acciones realizadas en la plataforma.', cat:'Administración', icon:'audit'}
   ];
   var ROLES = [
     {key:'admin', label:'Administrador', cls:'role-admin', dot:'var(--accent-strong)', builtin:true},
@@ -1065,31 +1063,6 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     if(wrap && !wrap.contains(e.target)) document.getElementById('role-select-panel').hidden = true;
   });
 
-  function renderRoleCards(){
-    document.getElementById('role-cards').innerHTML = ROLES.map(function(r){
-      var userCount = USERS.filter(function(u){ return u.role===r.key; }).length;
-      var perms = ROLE_PERMISSIONS[r.key] || [];
-      var permCount = perms.filter(Boolean).length;
-      var pct = PERMISSIONS.length ? Math.round(permCount / PERMISSIONS.length * 100) : 0;
-      return '<div class="role-card">'+
-        '<div class="role-card-top"><span class="role-card-name">'+r.label+'</span><span class="badge '+r.cls+'">'+(r.builtin ? r.key : 'Personalizado')+'</span></div>'+
-        '<div class="role-card-stats">'+
-          '<div class="role-card-stat"><b>'+userCount+'</b><span>Usuarios</span></div>'+
-        '</div>'+
-        '<div>'+
-          '<div class="role-progress-head"><span>Permisos habilitados</span><b>'+permCount+'/'+PERMISSIONS.length+'</b></div>'+
-          '<div class="role-progress"><div style="width:'+pct+'%; background:'+r.dot+'"></div></div>'+
-        '</div>'+
-        '<button class="role-card-link" type="button" data-role="'+r.key+'">Ver permisos'+
-          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>'+
-        '</button>'+
-      '</div>';
-    }).join('');
-    document.querySelectorAll('.role-card-link').forEach(function(btn){
-      btn.addEventListener('click', function(){ openRolePermissionsModal(btn.dataset.role); });
-    });
-  }
-
   function groupPermissions(){
     var groups = [];
     PERMISSIONS.forEach(function(p, idx){
@@ -1157,21 +1130,43 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   document.getElementById('user-search').addEventListener('input', renderUsers);
 
   function renderMatrix(){
-    var colCount = ROLES.length + 1;
-    document.getElementById('matrix-head-row').innerHTML = '<th>Permiso</th>' +
-      ROLES.map(function(r){ return '<th>'+r.label+'</th>'; }).join('');
-    var rowsHtml = groupPermissions().map(function(g){
-      var groupHeader = '<tr class="matrix-group-row"><td colspan="'+colCount+'">'+g.cat+'</td></tr>';
-      var rows = g.items.map(function(it){
-        return '<tr><td><span class="matrix-perm-name"><span class="perm-row-icon" style="width:26px; height:26px;">'+PERM_ICONS[it.perm.icon]+'</span>'+it.perm.name+'</span></td>'+
-          ROLES.map(function(r){
-            var v = (ROLE_PERMISSIONS[r.key] || [])[it.idx];
-            return '<td class="check">'+(v? '<span class="check-yes">✓</span>' : '<span class="check-no">—</span>')+'</td>';
-          }).join('') +'</tr>';
+    var groups = groupPermissions();
+
+    document.getElementById('matrix-head-cats').innerHTML =
+      '<th rowspan="2" class="matrix-th-role">Rol</th>' +
+      '<th rowspan="2">Usuarios</th>' +
+      groups.map(function(g){ return '<th colspan="'+g.items.length+'" class="matrix-cat-head">'+g.cat+'</th>'; }).join('') +
+      '<th rowspan="2">Detalle</th>';
+
+    document.getElementById('matrix-head-row').innerHTML = groups.map(function(g){
+      return g.items.map(function(it){
+        return '<th><span class="matrix-col-head" title="'+it.perm.name+': '+it.perm.desc+'">'+
+          '<span class="perm-row-icon" style="width:26px; height:26px;">'+PERM_ICONS[it.perm.icon]+'</span>'+
+          '<span>'+it.perm.short+'</span>'+
+        '</span></th>';
       }).join('');
-      return groupHeader + rows;
     }).join('');
-    document.getElementById('matrix-body').innerHTML = rowsHtml;
+
+    document.getElementById('matrix-body').innerHTML = ROLES.map(function(r){
+      var perms = ROLE_PERMISSIONS[r.key] || [];
+      var userCount = USERS.filter(function(u){ return u.role===r.key; }).length;
+      var cells = PERMISSIONS.map(function(p, idx){
+        var v = perms[idx];
+        return '<td class="check">'+(v? '<span class="check-yes">✓</span>' : '<span class="check-no">—</span>')+'</td>';
+      }).join('');
+      return '<tr>'+
+        '<td><span class="matrix-role-name"><span class="role-card-name">'+r.label+'</span><span class="badge '+r.cls+'">'+(r.builtin ? r.key : 'Personalizado')+'</span></span></td>'+
+        '<td class="mono">'+userCount+'</td>'+
+        cells+
+        '<td><button class="role-card-link matrix-detail-btn" type="button" data-role="'+r.key+'">Ver permisos'+
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>'+
+        '</button></td>'+
+      '</tr>';
+    }).join('');
+
+    document.querySelectorAll('.matrix-detail-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){ openRolePermissionsModal(btn.dataset.role); });
+    });
   }
 
   /* ---- Modal: crear usuario / crear rol ---- */
@@ -1210,7 +1205,7 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
       });
       renderUsers();
       renderRoleSelect();
-      renderRoleCards();
+      renderMatrix();
       closeModal();
       toast('Usuario "'+name+'" creado correctamente');
     });
@@ -1291,7 +1286,6 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
       ROLES.push({key:key, label:name, cls:style.cls, dot:style.dot, builtin:false});
       ROLE_PERMISSIONS[key] = perms;
       renderRoleSelect();
-      renderRoleCards();
       renderMatrix();
       closeModal();
       toast('Rol "'+name+'" creado con '+perms.filter(Boolean).length+' permisos');
@@ -1500,7 +1494,6 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   renderFlowMini();
   renderRoleSelect();
   renderUsers();
-  renderRoleCards();
   renderMatrix();
   renderTemplates();
   renderHistory();
