@@ -1,0 +1,1360 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Prototipo interactivo de Sedga: usuarios y permisos, cargue de plantillas y calculo de tasas academicas.">
+<title>Sedga · Prototipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: sidebar de navegación + franja de flujo superior + lienzo de contenido por módulo */
+:root{
+  --bg:#F5F7F5;
+  --surface:#FFFFFF;
+  --surface-alt:#EEF2EF;
+  --border:#DEE4E0;
+  --text:#333B38;
+  --text-muted:#75807A;
+  --accent:#468377;
+  --accent-strong:#346459;
+  --accent-soft:#E3EFEB;
+  --gold:#BD9552;
+  --gold-soft:#F7EEDA;
+  --success:#55946A;
+  --success-soft:#E6F2E9;
+  --warning:#BD8C3C;
+  --warning-soft:#FAF0DA;
+  --danger:#C06B5B;
+  --danger-soft:#FAE6E1;
+  --shadow: 0 1px 2px rgba(23,30,28,0.05), 0 6px 18px -10px rgba(23,30,28,0.14);
+  color-scheme: light;
+}
+/* Diseño comprometido deliberadamente con un tono claro: sin variante oscura. */
+
+*{box-sizing:border-box;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Work Sans', ui-sans-serif, system-ui, sans-serif;
+  padding-left:max(0px, env(safe-area-inset-left,0px));
+  padding-right:max(0px, env(safe-area-inset-right,0px));
+}
+h1,h2,h3,.brand-word{ font-family:'Fraunces', Georgia, serif; text-wrap:balance; }
+.mono{ font-family:'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+a{ color:var(--accent-strong); }
+
+/* ---------- Shell ---------- */
+.shell{
+  display:grid;
+  grid-template-columns: 248px 1fr;
+  min-height:100vh;
+}
+.sidebar{
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  padding: calc(22px + env(safe-area-inset-top,0px)) 16px 22px max(16px, env(safe-area-inset-left,0px));
+  display:flex;
+  flex-direction:column;
+  gap:28px;
+  position:sticky;
+  top:0;
+  height:100vh;
+}
+.brand{ display:flex; flex-direction:column; gap:2px; padding:0 8px; }
+.brand-word{ font-size:1.5rem; font-weight:600; color:var(--accent-strong); letter-spacing:0.01em; }
+.brand-sub{ font-size:0.72rem; color:var(--text-muted); letter-spacing:0.04em; text-transform:uppercase; }
+
+.nav{ display:flex; flex-direction:column; gap:3px; }
+.nav-item{
+  display:flex; align-items:center; gap:11px;
+  padding:10px 12px; border-radius:9px;
+  color:var(--text-muted); font-size:0.9rem; font-weight:500;
+  cursor:pointer; border:1px solid transparent; text-align:left; background:none;
+  width:100%;
+}
+.nav-item:hover{ background:var(--surface-alt); color:var(--text); }
+.nav-item.active{ background:var(--accent-soft); color:var(--accent-strong); font-weight:600; border-color:var(--accent-soft); }
+.nav-item .ic{ width:18px; height:18px; flex:none; opacity:0.85; }
+.nav-footnote{ margin-top:auto; font-size:0.72rem; color:var(--text-muted); padding:0 8px; line-height:1.5; border-top:1px solid var(--border); padding-top:14px; }
+
+.main{ display:flex; flex-direction:column; min-width:0; }
+
+/* ---------- Topbar: título, notificaciones y perfil ---------- */
+.topbar{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding: calc(14px + env(safe-area-inset-top,0px)) max(20px, env(safe-area-inset-right,0px)) 14px max(20px, env(safe-area-inset-left,0px));
+  display:flex; align-items:center; justify-content:space-between; gap:14px;
+}
+.topbar-title{ font-family:'Fraunces', Georgia, serif; font-weight:600; font-size:1.08rem; color:var(--text); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.topbar-actions{ display:flex; align-items:center; gap:9px; flex:none; }
+
+.icon-btn{
+  position:relative; width:38px; height:38px; flex:none; border-radius:10px;
+  border:1px solid var(--border); background:var(--surface); color:var(--text-muted);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.icon-btn:hover{ background:var(--surface-alt); color:var(--text); }
+.notif-dot{ position:absolute; top:7px; right:7px; width:8px; height:8px; border-radius:50%; background:var(--danger); border:1.5px solid var(--surface); }
+
+.notif{ position:relative; }
+.notif-panel{
+  position:absolute; top:calc(100% + 8px); right:0; width:300px; max-height:360px; overflow-y:auto;
+  background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow);
+  z-index:45; padding:6px;
+}
+.notif-panel[hidden]{ display:none; }
+.notif-head{ display:flex; justify-content:space-between; align-items:center; padding:9px 10px 10px; font-size:0.76rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; border-bottom:1px solid var(--border); margin-bottom:4px; }
+.notif-item{ display:flex; flex-direction:column; gap:3px; padding:10px 11px; border-radius:9px; }
+.notif-item:hover{ background:var(--surface-alt); }
+.notif-item .t{ font-size:0.84rem; font-weight:600; color:var(--text); }
+.notif-item .d{ font-size:0.78rem; color:var(--text-muted); }
+.notif-item .time{ font-size:0.7rem; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; }
+
+.profile{ position:relative; }
+.profile-btn{
+  display:flex; align-items:center; gap:8px; padding:5px 11px 5px 5px; border-radius:999px;
+  border:1px solid var(--border); background:var(--surface); cursor:pointer; color:var(--text-muted);
+}
+.profile-btn:hover{ background:var(--surface-alt); }
+.profile-name{ font-size:0.84rem; font-weight:600; color:var(--text); max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.profile-panel{
+  position:absolute; top:calc(100% + 8px); right:0; width:222px;
+  background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow);
+  z-index:45; padding:8px;
+}
+.profile-panel[hidden]{ display:none; }
+.profile-panel-head{ padding:8px 10px 10px; border-bottom:1px solid var(--border); margin-bottom:6px; }
+.profile-panel-head .n{ font-size:0.86rem; font-weight:600; color:var(--text); }
+.profile-panel-head .m{ font-size:0.76rem; color:var(--text-muted); }
+.profile-panel-item{
+  width:100%; text-align:left; background:none; border:none; padding:9px 10px; border-radius:8px;
+  font-size:0.84rem; font-weight:600; color:var(--danger); cursor:pointer; font-family:inherit;
+  display:flex; align-items:center; gap:8px;
+}
+.profile-panel-item:hover{ background:var(--danger-soft); }
+
+.content{ padding: 26px max(20px, env(safe-area-inset-right,0px)) 60px max(20px, env(safe-area-inset-left,0px)); display:flex; flex-direction:column; gap:22px; }
+
+.view{ display:none; flex-direction:column; gap:22px; }
+.view.active{ display:flex; }
+
+.page-head{ display:flex; flex-direction:column; gap:4px; }
+.page-head h1{ font-size:1.5rem; font-weight:600; margin:0; }
+.page-head p{ margin:0; color:var(--text-muted); font-size:0.92rem; max-width:62ch; }
+
+/* ---------- Cards / KPIs ---------- */
+.kpi-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+.kpi{
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  padding:16px 18px; display:flex; flex-direction:column; gap:8px; box-shadow:var(--shadow);
+  min-width:0;
+}
+.kpi-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.kpi-label{ font-size:0.76rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; font-weight:600; }
+.kpi-value{ font-size:1.65rem; font-weight:600; font-family:'IBM Plex Mono',monospace; }
+.kpi-delta{ font-size:0.78rem; font-weight:600; display:inline-flex; align-items:center; gap:4px; width:fit-content; padding:2px 8px; border-radius:999px; }
+.kpi-delta.up{ color:var(--success); background:var(--success-soft); }
+.kpi-delta.down{ color:var(--danger); background:var(--danger-soft); }
+.kpi-icon{ width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:var(--accent-soft); color:var(--accent-strong); flex:none; }
+
+/* ---------- Panels ---------- */
+.panel{ background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); min-width:0; }
+.panel-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 20px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.panel-head h2{ font-size:1.05rem; margin:0; font-weight:600; }
+.panel-head .hint{ font-size:0.8rem; color:var(--text-muted); }
+.panel-body{ padding:18px 20px; }
+
+.row-split{ display:grid; grid-template-columns: 1.55fr 1fr; gap:18px; align-items:start; }
+
+.seg{ display:inline-flex; background:var(--surface-alt); border-radius:9px; padding:3px; gap:2px; }
+.seg button{ border:none; background:none; padding:6px 13px; font-size:0.8rem; font-weight:600; color:var(--text-muted); border-radius:7px; cursor:pointer; font-family:inherit; }
+.seg button.active{ background:var(--surface); color:var(--accent-strong); box-shadow:var(--shadow); }
+
+/* bar chart */
+.chart-wrap{ display:flex; flex-direction:column; gap:10px; }
+.bar-tooltip{ font-size:0.72rem; fill:var(--text); font-family:'IBM Plex Mono',monospace; }
+.legend{ display:flex; gap:16px; font-size:0.78rem; color:var(--text-muted); flex-wrap:wrap; }
+.legend span{ display:inline-flex; align-items:center; gap:6px; }
+.legend i{ width:10px; height:10px; border-radius:3px; display:inline-block; }
+
+/* ---------- Tables ---------- */
+table{ width:100%; border-collapse:collapse; font-size:0.86rem; }
+thead th{ text-align:left; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted); font-weight:600; padding:0 12px 10px; border-bottom:1px solid var(--border); white-space:nowrap; }
+tbody td{ padding:11px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+tbody tr:last-child td{ border-bottom:none; }
+.table-scroll{ overflow-x:auto; }
+
+.badge{ display:inline-flex; align-items:center; gap:5px; font-size:0.74rem; font-weight:600; padding:3px 10px; border-radius:999px; white-space:nowrap; }
+.badge.role-admin{ background:var(--accent-soft); color:var(--accent-strong); }
+.badge.role-analista{ background:var(--gold-soft); color:var(--gold); }
+.badge.role-auditor{ background:var(--surface-alt); color:var(--text-muted); }
+.badge.role-consulta{ background:var(--surface-alt); color:var(--text-muted); }
+.badge.role-extra-a{ background:var(--success-soft); color:var(--success); }
+.badge.role-extra-b{ background:var(--warning-soft); color:var(--warning); }
+.badge.role-extra-c{ background:var(--danger-soft); color:var(--danger); }
+.badge.role-extra-d{ background:var(--accent-soft); color:var(--accent); }
+.badge.ok{ background:var(--success-soft); color:var(--success); }
+.badge.warn{ background:var(--warning-soft); color:var(--warning); }
+.badge.err{ background:var(--danger-soft); color:var(--danger); }
+.dot-status{ width:7px; height:7px; border-radius:50%; display:inline-block; background:currentColor; }
+
+.avatar{ width:30px; height:30px; border-radius:50%; background:var(--accent-soft); color:var(--accent-strong); font-weight:600; font-size:0.75rem; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+.user-cell{ display:flex; align-items:center; gap:10px; }
+.user-name-wrap{ display:flex; flex-direction:column; line-height:1.3; }
+.user-mail{ color:var(--text-muted); font-size:0.78rem; }
+
+/* subpestañas Usuarios / Roles dentro del módulo */
+.subview{ display:none; flex-direction:column; gap:18px; }
+.subview.active{ display:flex; }
+
+/* selector de rol: combobox propio, no chips ni tabs */
+.role-select{ position:relative; }
+.role-select-btn{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  min-width:184px; padding:9px 12px; border:1px solid var(--border); border-radius:9px;
+  background:var(--surface); color:var(--text); font-size:0.85rem; font-weight:600;
+  font-family:inherit; cursor:pointer;
+}
+.role-select-btn:hover{ background:var(--surface-alt); }
+.role-select-left{ display:flex; align-items:center; gap:8px; min-width:0; }
+.role-select-left span:last-child{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.role-select-dot{ width:9px; height:9px; border-radius:50%; flex:none; background:var(--text-muted); }
+.role-select-btn .chev{ flex:none; color:var(--text-muted); }
+.role-select-panel{
+  position:absolute; top:calc(100% + 6px); right:0; min-width:230px; max-height:280px; overflow-y:auto;
+  background:var(--surface); border:1px solid var(--border); border-radius:11px; box-shadow:var(--shadow);
+  padding:6px; z-index:15;
+}
+.role-select-panel[hidden]{ display:none; }
+.role-select-opt{ display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; cursor:pointer; font-size:0.84rem; }
+.role-select-opt:hover{ background:var(--surface-alt); }
+.role-select-opt.active{ background:var(--accent-soft); color:var(--accent-strong); font-weight:600; }
+.role-select-opt .dot{ width:9px; height:9px; border-radius:50%; flex:none; }
+.role-select-opt .count{ margin-left:auto; font-size:0.74rem; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; }
+
+.role-card-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(208px, 1fr)); gap:12px; }
+.role-card{ border:1px solid var(--border); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:10px; background:var(--surface); }
+.role-card-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.role-card-name{ font-weight:600; font-size:0.92rem; }
+.role-card-stats{ display:flex; gap:14px; }
+.role-card-stat{ display:flex; flex-direction:column; gap:2px; }
+.role-card-stat b{ font-family:'IBM Plex Mono',monospace; font-size:1.05rem; font-weight:600; }
+.role-card-stat span{ font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; }
+
+input[type=text], input[type=number], select{
+  width:100%; padding:9px 11px; border-radius:8px; border:1px solid var(--border);
+  background:var(--surface); color:var(--text); font-size:0.88rem; font-family:inherit;
+}
+input:focus, select:focus, button:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex; flex-direction:column; gap:6px; }
+
+.btn{ border:none; border-radius:9px; padding:10px 18px; font-weight:600; font-size:0.88rem; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:7px; }
+.btn-sm{ padding:8px 14px; font-size:0.82rem; }
+.btn-primary{ background:var(--accent); color:#fff; }
+.btn-primary:hover{ background:var(--accent-strong); }
+.btn-ghost{ background:var(--surface-alt); color:var(--text); }
+.btn-ghost:hover{ background:var(--border); }
+
+/* permission matrix */
+.matrix{ overflow-x:auto; }
+.matrix table{ min-width:560px; }
+.matrix td.check{ text-align:center; }
+.check-yes{ color:var(--success); font-weight:700; }
+.check-no{ color:var(--border); }
+
+/* dropzone */
+.dropzone{
+  border:1.5px dashed var(--border); border-radius:12px; padding:30px 20px; text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap:10px; background:var(--surface-alt);
+  cursor:pointer;
+}
+.dropzone.drag{ border-color:var(--accent); background:var(--accent-soft); }
+.dropzone svg{ width:34px; height:34px; color:var(--accent-strong); }
+.dropzone .dz-title{ font-weight:600; font-size:0.92rem; }
+.dropzone .dz-sub{ font-size:0.78rem; color:var(--text-muted); }
+
+.steps-mini{ display:flex; gap:0; }
+.steps-mini .s{ flex:1; display:flex; flex-direction:column; gap:7px; position:relative; }
+.steps-mini .bar{ height:4px; border-radius:99px; background:var(--border); }
+.steps-mini .s.on .bar{ background:var(--accent); }
+.steps-mini .lab{ font-size:0.72rem; color:var(--text-muted); font-weight:600; }
+.steps-mini .s.on .lab{ color:var(--accent-strong); }
+
+.progress{ height:6px; border-radius:99px; background:var(--surface-alt); overflow:hidden; }
+.progress > div{ height:100%; background:var(--accent); border-radius:99px; transition:width .6s ease; }
+
+.form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.result-card{ border:1px solid var(--border); border-radius:12px; padding:16px; background:var(--accent-soft); display:flex; flex-direction:column; gap:10px; }
+.result-row{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+.result-row .l{ font-size:0.8rem; color:var(--text-muted); }
+.result-row .v{ font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:1.05rem; color:var(--accent-strong); }
+
+.toast{
+  position:fixed; bottom:calc(22px + env(safe-area-inset-bottom,0px)); left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--text); color:var(--bg); padding:11px 18px; border-radius:10px; font-size:0.85rem; font-weight:500;
+  box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:all .25s ease; z-index:30;
+}
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ---------------- Modal: crear usuario / crear rol ---------------- */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(26,32,29,0.42); backdrop-filter:blur(1px);
+  display:flex; align-items:center; justify-content:center; padding:20px; z-index:50;
+}
+.modal-overlay[hidden]{ display:none; }
+.modal{
+  background:var(--surface); border:1px solid var(--border); border-radius:16px;
+  width:100%; max-width:480px; max-height:86vh; overflow-y:auto; box-shadow:var(--shadow);
+}
+.modal-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px 20px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--surface); }
+.modal-head h3{ margin:0; font-size:1.05rem; font-weight:600; }
+.modal-sub{ margin:2px 0 0; font-size:0.78rem; color:var(--text-muted); font-weight:400; }
+.modal-close{ background:none; border:none; cursor:pointer; color:var(--text-muted); width:30px; height:30px; flex:none; display:flex; align-items:center; justify-content:center; border-radius:8px; font-size:1rem; }
+.modal-close:hover{ background:var(--surface-alt); color:var(--text); }
+.modal-body{ padding:20px; }
+
+.perm-check-list{ display:flex; flex-direction:column; gap:7px; }
+.perm-check-row{ display:flex; align-items:center; gap:10px; padding:9px 11px; border:1px solid var(--border); border-radius:9px; font-size:0.84rem; cursor:pointer; }
+.perm-check-row:hover{ background:var(--surface-alt); }
+.perm-check-row input{ width:16px; height:16px; accent-color:var(--accent); flex:none; }
+
+@media (max-width: 860px){
+  .shell{ grid-template-columns:1fr; }
+  .sidebar{ position:static; height:auto; flex-direction:row; align-items:center; overflow-x:auto; padding:14px max(16px, env(safe-area-inset-left,0px)); }
+  .nav{ flex-direction:row; }
+  .nav-footnote{ display:none; }
+  .brand{ padding:0 8px 0 0; }
+  .kpi-grid{ grid-template-columns:1fr 1fr; }
+  .row-split{ grid-template-columns:1fr; }
+  .form-grid{ grid-template-columns:1fr; }
+}
+
+/* Teléfonos: el menú lateral se convierte en una barra de navegación inferior,
+   como en una app móvil. */
+@media (max-width: 680px){
+  body{ padding-bottom: env(safe-area-inset-bottom,0px); }
+  .shell{ grid-template-columns:1fr; }
+  .sidebar{
+    position:fixed; left:0; right:0; bottom:0; top:auto; height:auto;
+    flex-direction:row; align-items:stretch; overflow-x:visible;
+    border-right:none; border-top:1px solid var(--border);
+    padding: 6px max(8px, env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px, env(safe-area-inset-left,0px));
+    box-shadow: 0 -6px 20px -10px rgba(23,30,28,0.25);
+    z-index:40; gap:0;
+  }
+  .brand, .nav-footnote{ display:none; }
+  .nav{ flex-direction:row; flex:1; gap:2px; }
+  .nav-item{
+    flex:1; flex-direction:column; justify-content:center; gap:3px;
+    padding:7px 2px 6px; font-size:0.64rem; text-align:center; border-radius:10px;
+    line-height:1.15; white-space:normal;
+  }
+  .nav-item .ic{ width:20px; height:20px; margin:0 auto; }
+  .nav-item.active{ border-color:transparent; }
+  .main{ padding-bottom: calc(60px + env(safe-area-inset-bottom,0px)); }
+  .content{ padding-bottom: 40px; }
+  .toast{ bottom: calc(76px + env(safe-area-inset-bottom,0px)); }
+  .kpi-grid{ grid-template-columns:1fr 1fr; gap:10px; }
+  .kpi{ padding:13px 14px; }
+  .kpi-value{ font-size:1.35rem; }
+  .topbar{ padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); }
+  .topbar-title{ max-width:40vw; }
+  .profile-name{ display:none; }
+  .profile-btn{ padding:5px; }
+}
+
+/* ---------- Footer ---------- */
+.app-footer{
+  text-align:center; font-size:0.76rem; color:var(--text-muted);
+  padding-top:16px; border-top:1px solid var(--border); margin-top:4px;
+}
+</style>
+</head>
+<body>
+
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-word">Sedga</span>
+      <span class="brand-sub">Motor de tasas &amp; plantillas</span>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="nav-item active" data-view="resumen">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9"/></svg>
+        Página principal
+      </button>
+      <button class="nav-item" data-view="tasas">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="7" width="4" height="13" rx="1"/><rect x="17" y="3" width="4" height="17" rx="1"/></svg>
+        Consultar tasas
+      </button>
+      <button class="nav-item" data-view="usuarios">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.3a3.2 3.2 0 0 1 0 6.1"/><path d="M15.5 14.2c2.6.5 4.5 2.8 4.5 5.8"/></svg>
+        Gestión de usuarios
+      </button>
+      <button class="nav-item" data-view="plantillas">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1Z"/><path d="M15 2v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+        Gestión de plantillas
+      </button>
+    </nav>
+    <div class="nav-footnote">Prototipo navegable.<br>Los datos se generan localmente para ilustrar el flujo; no representan información real.</div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <span class="topbar-title" id="topbar-title">Página principal</span>
+      <div class="topbar-actions">
+        <div class="notif" id="notif">
+          <button class="icon-btn" id="notif-btn" type="button" aria-label="Notificaciones">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 0 1 12 0c0 4 1.5 5.5 2 6.5H4c.5-1 2-2.5 2-6.5Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>
+            <span class="notif-dot" id="notif-dot"></span>
+          </button>
+          <div class="notif-panel" id="notif-panel" hidden></div>
+        </div>
+        <div class="profile" id="profile">
+          <button class="profile-btn" id="profile-btn" type="button">
+            <span class="avatar" id="profile-avatar">CH</span>
+            <span class="profile-name">Camila Herrera</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="profile-panel" id="profile-panel" hidden>
+            <div class="profile-panel-head">
+              <div class="n">Camila Herrera</div>
+              <div class="m">camila.herrera@sedga.co</div>
+            </div>
+            <button class="profile-panel-item" id="btn-logout" type="button">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+              Cerrar sesión
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ========== RESUMEN ========== -->
+      <section class="view active" id="view-resumen">
+        <div class="page-head">
+          <h1>Resumen operativo</h1>
+          <p>Vista general del flujo Sedga: desde la administración de accesos hasta el cálculo final de tasas, con el estado agregado de cada módulo.</p>
+        </div>
+
+        <div class="kpi-grid" id="kpi-grid"></div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Deserción vs. graduación</h2>
+              <div class="hint">TDA y TGA agregadas por programa, según periodo</div>
+            </div>
+            <div class="seg" id="chart-period">
+              <button class="active" data-period="mensual">Semestral</button>
+              <button data-period="trimestral">Anual</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="chart-wrap">
+              <svg id="bar-chart" viewBox="0 0 760 260" style="width:100%; height:auto; overflow:visible;"></svg>
+              <div class="legend">
+                <span><i style="background:var(--danger)"></i>TDA · Deserción anual</span>
+                <span><i style="background:var(--accent)"></i>TGA · Graduación acumulada</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row-split">
+          <div class="panel">
+            <div class="panel-head"><h2>Actividad reciente</h2></div>
+            <div class="panel-body table-scroll">
+              <table>
+                <thead><tr><th>Evento</th><th>Módulo</th><th>Usuario</th><th>Fecha</th></tr></thead>
+                <tbody id="activity-body"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h2>Estado del flujo</h2></div>
+            <div class="panel-body" style="display:flex; flex-direction:column; gap:16px;">
+              <div class="steps-mini" id="flow-mini"></div>
+              <p style="margin:0; font-size:0.84rem; color:var(--text-muted); line-height:1.6;">
+                El flujo completo inicia asignando roles y permisos, continúa con el cargue y validación de la plantilla de datos,
+                y finaliza con el cálculo de tasas y la consulta de resultados consolidados.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== USUARIOS Y ROLES ========== -->
+      <section class="view" id="view-usuarios">
+        <div class="page-head">
+          <h1>Usuarios, roles y permisos</h1>
+          <p>Gestión de accesos del equipo: cada rol habilita un conjunto específico de acciones dentro del motor de tasas.</p>
+        </div>
+
+        <div class="seg" id="ur-tabs" style="align-self:flex-start;">
+          <button class="active" data-subtab="usuarios">Usuarios</button>
+          <button data-subtab="roles">Roles y permisos</button>
+        </div>
+
+        <div class="subview active" id="ur-usuarios">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Directorio de usuarios</h2>
+              <button class="btn btn-primary btn-sm" id="btn-new-user" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+                Nuevo usuario
+              </button>
+            </div>
+            <div class="panel-body">
+              <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:16px;">
+                <input type="text" id="user-search" placeholder="Buscar por nombre o correo" style="max-width:220px;">
+                <div class="role-select" id="role-select">
+                  <button type="button" class="role-select-btn" id="role-select-btn">
+                    <span class="role-select-left">
+                      <span class="role-select-dot" id="role-select-dot"></span>
+                      <span id="role-select-label">Todos los roles</span>
+                    </span>
+                    <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                  </button>
+                  <div class="role-select-panel" id="role-select-panel" hidden></div>
+                </div>
+              </div>
+              <div class="table-scroll">
+                <table>
+                  <thead><tr><th>Usuario</th><th>Rol</th><th>Área</th><th>Último acceso</th><th>Estado</th></tr></thead>
+                  <tbody id="users-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subview" id="ur-roles">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Roles</h2>
+              <button class="btn btn-primary btn-sm" id="btn-new-role" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+                Nuevo rol
+              </button>
+            </div>
+            <div class="panel-body">
+              <div class="role-card-grid" id="role-cards"></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>Matriz de permisos</h2></div>
+            <div class="panel-body matrix">
+              <table>
+                <thead>
+                  <tr id="matrix-head-row"><th>Permiso</th></tr>
+                </thead>
+                <tbody id="matrix-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== CARGUE DE PLANTILLAS ========== -->
+      <section class="view" id="view-plantillas">
+        <div class="page-head">
+          <h1>Cargue de plantillas</h1>
+          <p>Sube la base de datos de estudiantes y Sedga valida su estructura antes de habilitarla para el cálculo de tasas.</p>
+        </div>
+
+        <div class="row-split">
+          <div class="panel">
+            <div class="panel-head"><h2>Nueva plantilla</h2></div>
+            <div class="panel-body" style="display:flex; flex-direction:column; gap:16px;">
+              <label>Tipo de plantilla
+                <select id="template-type">
+                  <option value="Primer curso">Primer curso</option>
+                  <option value="Matriculados">Matriculados</option>
+                  <option value="Graduados">Graduados</option>
+                  <option value="Programas">Programas</option>
+                </select>
+              </label>
+              <div class="dropzone" id="dropzone">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16.5V18a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1.5"/></svg>
+                <div class="dz-title">Arrastra tu archivo .xlsx o .csv aquí</div>
+                <div class="dz-sub" id="dz-sub-text">o haz clic para simular la selección de un archivo</div>
+              </div>
+              <input type="file" id="file-input" hidden>
+              <div>
+                <div class="steps-mini" id="upload-steps"></div>
+              </div>
+              <div id="upload-progress-wrap" hidden>
+                <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted); margin-bottom:6px;">
+                  <span id="upload-file-name">—</span><span id="upload-pct" class="mono">0%</span>
+                </div>
+                <div class="progress"><div id="upload-bar" style="width:0%"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>Guía de validación</h2></div>
+            <div class="panel-body" style="display:flex; flex-direction:column; gap:12px; font-size:0.85rem; color:var(--text-muted); line-height:1.6;">
+              <div><strong style="color:var(--text)">1. Formato</strong><br>Cada tipo de plantilla tiene su propia estructura: primer curso y matriculados registran estudiante, programa y periodo; graduados agrega fecha de grado; programas trae el catálogo SNIES.</div>
+              <div><strong style="color:var(--text)">2. Validación</strong><br>Sedga revisa códigos de programa, periodos y duplicados antes de aceptar la plantilla.</div>
+              <div><strong style="color:var(--text)">3. Mapeo</strong><br>Las columnas se asocian a los campos que usa el motor de cálculo de tasas.</div>
+              <div><strong style="color:var(--text)">4. Confirmación</strong><br>La plantilla queda disponible para el módulo de cálculo de tasas.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Plantillas cargadas</h2>
+            <div class="hint" id="plantillas-count">—</div>
+          </div>
+          <div class="panel-body table-scroll">
+            <table>
+              <thead><tr><th>Archivo</th><th>Tipo</th><th>Registros</th><th>Cargado por</th><th>Fecha</th><th>Estado</th></tr></thead>
+              <tbody id="templates-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== CALCULO DE TASAS ========== -->
+      <section class="view" id="view-tasas">
+        <div class="page-head">
+          <h1>Cálculo de tasas</h1>
+          <p>Calcula las tasas de permanencia académica (metodología SPADIES) a partir de los primíparos, matriculados, ausentes, desertores o graduados de un programa y una cohorte.</p>
+        </div>
+
+        <div class="row-split">
+          <div class="panel">
+            <div class="panel-head"><h2>Parámetros del cálculo</h2></div>
+            <div class="panel-body">
+              <form id="rate-form" style="display:flex; flex-direction:column; gap:14px;">
+                <label>Tasa a calcular
+                  <select id="f-tasa"></select>
+                </label>
+                <div id="f-tasa-desc" style="font-size:0.8rem; color:var(--text-muted); line-height:1.5; margin-top:-4px;"></div>
+                <div id="f-tasa-formula" class="mono" style="font-size:0.8rem; color:var(--accent-strong); background:var(--accent-soft); padding:8px 11px; border-radius:8px;"></div>
+
+                <div class="form-grid">
+                  <label>Programa
+                    <select id="f-programa">
+                      <option>Administración Turística y Hotelera</option>
+                      <option>Ingeniería de Sistemas</option>
+                      <option>Contaduría Pública</option>
+                      <option>Derecho</option>
+                      <option>Tecnología en Gestión de Obras</option>
+                    </select>
+                  </label>
+                  <label>Cohorte / periodo
+                    <input type="text" id="f-periodo" value="2023-1" placeholder="AAAA-S">
+                  </label>
+                </div>
+                <div class="form-grid">
+                  <label id="f-base-label">Primíparos de la cohorte
+                    <input type="number" id="f-base" value="312" min="0">
+                  </label>
+                  <label id="f-conteo-label">Desertores en el periodo
+                    <input type="number" id="f-conteo" value="47" min="0">
+                  </label>
+                </div>
+                <button type="submit" class="btn btn-primary" style="align-self:flex-start;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+                  Calcular tasa
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>Resultado</h2></div>
+            <div class="panel-body">
+              <div class="result-card">
+                <div class="result-row"><span class="l">Tasa calculada</span><span class="v" id="r-nombre">—</span></div>
+                <div class="result-row"><span class="l">Resultado</span><span class="v" id="r-valor">—</span></div>
+                <div class="result-row"><span class="l">Base utilizada</span><span class="v" id="r-base">—</span></div>
+                <div class="result-row"><span class="l">Conteo utilizado</span><span class="v" id="r-conteo">—</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Historial de cálculos</h2>
+            <div class="hint">Tasas de riesgo y deserción en tonos cálidos; permanencia y graduación en verde</div>
+          </div>
+          <div class="panel-body">
+            <div class="chart-wrap" style="margin-bottom:18px;">
+              <svg id="compare-chart" viewBox="0 0 760 180" style="width:100%; height:auto; overflow:visible;"></svg>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Tasa</th><th>Programa</th><th>Cohorte</th><th>Base</th><th>Conteo</th><th>Resultado</th></tr></thead>
+                <tbody id="history-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="app-footer">© <span id="footer-year">2026</span> Sedga. Desarrollado por Partikle.</footer>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="modal-overlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-head">
+      <div>
+        <h3 id="modal-title">—</h3>
+        <p class="modal-sub" id="modal-subtitle"></p>
+      </div>
+      <button class="modal-close" id="modal-close" type="button" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var fmtCOP = new Intl.NumberFormat('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0});
+  var fmtNum = new Intl.NumberFormat('es-CO');
+
+  function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._h);
+    toast._h = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+  }
+
+  /* ---------------- Topbar: notificaciones y perfil ---------------- */
+  var NOTIFICATIONS = [
+    {t:'Plantilla validada', d:'"Unoauno_matriculados.xlsx" quedó lista para el cálculo de tasas.', time:'Hace 12 min'},
+    {t:'TGA calculada', d:'Contaduría Pública · cohorte 2023-1 alcanzó 43.5% de graduación.', time:'Hace 1 h'},
+    {t:'Nuevo usuario creado', d:'Se asignó el rol Analista a un nuevo integrante.', time:'Ayer'}
+  ];
+
+  function renderNotifications(){
+    var panel = document.getElementById('notif-panel');
+    panel.innerHTML = '<div class="notif-head">Notificaciones</div>' + NOTIFICATIONS.map(function(n){
+      return '<div class="notif-item"><span class="t">'+n.t+'</span><span class="d">'+n.d+'</span><span class="time">'+n.time+'</span></div>';
+    }).join('');
+  }
+  renderNotifications();
+
+  document.getElementById('notif-btn').addEventListener('click', function(e){
+    e.stopPropagation();
+    document.getElementById('profile-panel').hidden = true;
+    var panel = document.getElementById('notif-panel');
+    panel.hidden = !panel.hidden;
+    if(!panel.hidden) document.getElementById('notif-dot').style.display = 'none';
+  });
+
+  document.getElementById('profile-btn').addEventListener('click', function(e){
+    e.stopPropagation();
+    document.getElementById('notif-panel').hidden = true;
+    var panel = document.getElementById('profile-panel');
+    panel.hidden = !panel.hidden;
+  });
+
+  document.addEventListener('click', function(e){
+    if(!document.getElementById('notif').contains(e.target)) document.getElementById('notif-panel').hidden = true;
+    if(!document.getElementById('profile').contains(e.target)) document.getElementById('profile-panel').hidden = true;
+  });
+
+  document.getElementById('btn-logout').addEventListener('click', function(){
+    document.getElementById('profile-panel').hidden = true;
+    toast('Sesión cerrada. Hasta pronto, Camila.');
+  });
+
+  /* ---------------- Navigation + flow strip ---------------- */
+  var VIEWS = [
+    {id:'usuarios',  label:'Usuarios y permisos'},
+    {id:'plantillas',label:'Cargue de plantillas'},
+    {id:'tasas',     label:'Cálculo de tasas'},
+    {id:'resumen',   label:'Resultados'}
+  ];
+  var visited = {resumen:true};
+  var current = 'resumen';
+
+  function renderFlowMini(){
+    var el = document.getElementById('flow-mini');
+    el.innerHTML = '';
+    VIEWS.forEach(function(v){
+      var s = document.createElement('div');
+      s.className = 's' + (visited[v.id] ? ' on' : '');
+      s.innerHTML = '<div class="bar"></div><div class="lab">'+v.label+'</div>';
+      el.appendChild(s);
+    });
+  }
+
+  var VIEW_TITLES = {resumen:'Página principal', tasas:'Consultar tasas', usuarios:'Gestión de usuarios', plantillas:'Gestión de plantillas'};
+
+  function setView(id){
+    current = id;
+    visited[id] = true;
+    document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+    document.getElementById('view-'+id).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.toggle('active', n.dataset.view===id); });
+    document.getElementById('topbar-title').textContent = VIEW_TITLES[id] || '';
+    renderFlowMini();
+  }
+
+  document.getElementById('nav').addEventListener('click', function(e){
+    var btn = e.target.closest('.nav-item');
+    if(btn) setView(btn.dataset.view);
+  });
+
+  /* ---------------- KPIs ---------------- */
+  var KPIS = [
+    {label:'Usuarios activos', value:'27', delta:'+3 este mes', up:true, icon:'users'},
+    {label:'Plantillas cargadas', value:'14', delta:'+2 esta semana', up:true, icon:'file'},
+    {label:'Tasas calculadas (mes)', value:'186', delta:'+12% vs. anterior', up:true, icon:'bolt'},
+    {label:'Tiempo prom. de cálculo', value:'1.8 s', delta:'-0.3 s', up:true, icon:'clock'}
+  ];
+  var ICONS = {
+    users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>',
+    file:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/></svg>',
+    bolt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>',
+    clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>'
+  };
+  function renderKpis(){
+    var el = document.getElementById('kpi-grid');
+    el.innerHTML = KPIS.map(function(k){
+      return '<div class="kpi">'+
+        '<div class="kpi-top"><span class="kpi-label">'+k.label+'</span><span class="kpi-icon">'+ICONS[k.icon]+'</span></div>'+
+        '<span class="kpi-value">'+k.value+'</span>'+
+        '<span class="kpi-delta '+(k.up?'up':'down')+'">'+(k.up?'▲':'▼')+' '+k.delta+'</span>'+
+      '</div>';
+    }).join('');
+  }
+
+  /* ---------------- Bar chart (resumen) ---------------- */
+  var CHART_DATA = {
+    mensual: {
+      labels:['2021-2','2022-1','2022-2','2023-1','2023-2','2024-1'],
+      desercion:[11.8,10.9,10.2,9.6,8.9,8.3],
+      graduacion:[31,36,40,44,48,52]
+    },
+    trimestral: {
+      labels:['2020','2021','2022','2023'],
+      desercion:[12.4,11.2,10.0,8.8],
+      graduacion:[34,41,47,53]
+    }
+  };
+
+  function drawGroupedBars(svgId, dataset, colorA, colorB){
+    var svg = document.getElementById(svgId);
+    var W=760,H=260, padL=42, padR=10, padT=14, padB=30;
+    var innerW = W-padL-padR, innerH = H-padT-padB;
+    var n = dataset.labels.length;
+    var groupW = innerW/n;
+    var barW = Math.min(26, groupW*0.3);
+    var maxVal = Math.max.apply(null, dataset.desercion.concat(dataset.graduacion));
+    var niceMax = Math.ceil(maxVal/10)*10;
+    var ticks = 4;
+    var parts = [];
+
+    // gridlines + y labels
+    for(var t=0;t<=ticks;t++){
+      var val = niceMax/ticks*t;
+      var y = padT + innerH - (val/niceMax)*innerH;
+      parts.push('<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="var(--border)" stroke-width="1"/>');
+      parts.push('<text x="'+(padL-8)+'" y="'+(y+4)+'" text-anchor="end" class="bar-tooltip" fill="var(--text-muted)">'+val+'%</text>');
+    }
+
+    dataset.labels.forEach(function(lab, i){
+      var gx = padL + i*groupW;
+      var vA = dataset.desercion[i], vB = dataset.graduacion[i];
+      var hA = (vA/niceMax)*innerH, hB = (vB/niceMax)*innerH;
+      var xA = gx + groupW/2 - barW - 3;
+      var xB = gx + groupW/2 + 3;
+      parts.push('<rect x="'+xA+'" y="'+(padT+innerH-hA)+'" width="'+barW+'" height="'+hA+'" rx="3" fill="'+colorA+'"><title>'+lab+' · TDA: '+vA+'%</title></rect>');
+      parts.push('<rect x="'+xB+'" y="'+(padT+innerH-hB)+'" width="'+barW+'" height="'+hB+'" rx="3" fill="'+colorB+'"><title>'+lab+' · TGA: '+vB+'%</title></rect>');
+      parts.push('<text x="'+(gx+groupW/2)+'" y="'+(H-10)+'" text-anchor="middle" class="bar-tooltip" fill="var(--text-muted)">'+lab+'</text>');
+    });
+    svg.setAttribute('viewBox','0 0 '+W+' '+H);
+    svg.innerHTML = parts.join('');
+  }
+
+  function renderMainChart(period){
+    drawGroupedBars('bar-chart', CHART_DATA[period], getVar('--danger'), getVar('--accent'));
+  }
+  function getVar(name){
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#2F5D58';
+  }
+
+  document.getElementById('chart-period').addEventListener('click', function(e){
+    var btn = e.target.closest('button');
+    if(!btn) return;
+    this.querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    renderMainChart(btn.dataset.period);
+  });
+
+  /* ---------------- Activity ---------------- */
+  var ACTIVITY = [
+    {ev:'Plantilla validada', mod:'Plantillas', user:'C. Herrera', date:'27 oct · 4:12 p.m.'},
+    {ev:'Rol "Analista" asignado', mod:'Usuarios', user:'M. Ospina', date:'27 oct · 2:05 p.m.'},
+    {ev:'TGA calculada — Contaduría Pública', mod:'Tasas', user:'J. Rendón', date:'27 oct · 11:40 a.m.'},
+    {ev:'Permiso de exportación revocado', mod:'Usuarios', user:'M. Ospina', date:'26 oct · 5:30 p.m.'},
+    {ev:'Plantilla "Unoauno_matriculados.xlsx" cargada', mod:'Plantillas', user:'C. Herrera', date:'26 oct · 9:02 a.m.'}
+  ];
+  function renderActivity(){
+    document.getElementById('activity-body').innerHTML = ACTIVITY.map(function(a){
+      return '<tr><td>'+a.ev+'</td><td>'+a.mod+'</td><td>'+a.user+'</td><td class="mono" style="color:var(--text-muted)">'+a.date+'</td></tr>';
+    }).join('');
+  }
+
+  /* ---------------- Usuarios y roles ---------------- */
+  var PERMISSIONS = [
+    'Ver dashboard y reportes',
+    'Gestionar usuarios y roles',
+    'Cargar plantillas',
+    'Validar y aprobar plantillas',
+    'Ejecutar cálculo de tasas',
+    'Exportar resultados',
+    'Auditar historial de cambios'
+  ];
+  var ROLES = [
+    {key:'admin', label:'Administrador', cls:'role-admin', dot:'var(--accent-strong)', builtin:true},
+    {key:'analista', label:'Analista', cls:'role-analista', dot:'var(--gold)', builtin:true},
+    {key:'auditor', label:'Auditor', cls:'role-auditor', dot:'var(--text-muted)', builtin:true},
+    {key:'consulta', label:'Consulta', cls:'role-consulta', dot:'var(--text-muted)', builtin:true}
+  ];
+  var ROLE_PERMISSIONS = {
+    admin:    [1,1,1,1,1,1,1],
+    analista: [1,0,1,0,1,1,0],
+    auditor:  [1,0,0,1,0,1,1],
+    consulta: [1,0,0,0,0,0,0]
+  };
+  var EXTRA_ROLE_STYLES = [
+    {cls:'role-extra-a', dot:'var(--success)'},
+    {cls:'role-extra-b', dot:'var(--warning)'},
+    {cls:'role-extra-c', dot:'var(--danger)'},
+    {cls:'role-extra-d', dot:'var(--accent)'}
+  ];
+  var extraRoleCount = 0;
+
+  function getRole(key){
+    for(var i=0;i<ROLES.length;i++){ if(ROLES[i].key===key) return ROLES[i]; }
+    return ROLES[0];
+  }
+
+  var USERS = [
+    {name:'Camila Herrera', mail:'camila.herrera@sedga.co', role:'admin', area:'Operaciones', last:'Hoy, 10:14', status:'ok'},
+    {name:'Julián Rendón', mail:'julian.rendon@sedga.co', role:'analista', area:'Permanencia académica', last:'Hoy, 9:02', status:'ok'},
+    {name:'Mariana Ospina', mail:'mariana.ospina@sedga.co', role:'admin', area:'Operaciones', last:'Ayer, 17:30', status:'ok'},
+    {name:'David Cárdenas', mail:'david.cardenas@sedga.co', role:'auditor', area:'Cumplimiento', last:'Ayer, 13:20', status:'warn'},
+    {name:'Laura Pinzón', mail:'laura.pinzon@sedga.co', role:'analista', area:'Permanencia académica', last:'25 oct, 15:44', status:'ok'},
+    {name:'Santiago Buriticá', mail:'santiago.buritica@sedga.co', role:'consulta', area:'Registro académico', last:'22 oct, 11:05', status:'err'},
+    {name:'Valentina Trujillo', mail:'valentina.trujillo@sedga.co', role:'auditor', area:'Cumplimiento', last:'21 oct, 8:50', status:'ok'}
+  ];
+  var STATUS = {ok:['ok','Activo'], warn:['warn','Pendiente'], err:['err','Suspendido']};
+  var activeRoleFilter = 'todos';
+
+  function roleSelectItems(){
+    return [{key:'todos', label:'Todos los roles', dot:'var(--text-muted)'}].concat(ROLES);
+  }
+
+  function renderRoleSelect(){
+    var items = roleSelectItems();
+    var current = items.filter(function(r){ return r.key===activeRoleFilter; })[0] || items[0];
+    document.getElementById('role-select-label').textContent = current.label;
+    document.getElementById('role-select-dot').style.background = current.dot;
+
+    var panel = document.getElementById('role-select-panel');
+    panel.innerHTML = items.map(function(r){
+      var count = r.key==='todos' ? USERS.length : USERS.filter(function(u){ return u.role===r.key; }).length;
+      return '<div class="role-select-opt'+(r.key===activeRoleFilter?' active':'')+'" data-role="'+r.key+'">'+
+        '<span class="dot" style="background:'+r.dot+'"></span>'+r.label+
+        '<span class="count">'+count+'</span></div>';
+    }).join('');
+    panel.querySelectorAll('.role-select-opt').forEach(function(opt){
+      opt.addEventListener('click', function(){
+        activeRoleFilter = opt.dataset.role;
+        panel.hidden = true;
+        renderUsers();
+        renderRoleSelect();
+      });
+    });
+  }
+
+  document.getElementById('role-select-btn').addEventListener('click', function(e){
+    e.stopPropagation();
+    var panel = document.getElementById('role-select-panel');
+    panel.hidden = !panel.hidden;
+  });
+  document.addEventListener('click', function(e){
+    var wrap = document.getElementById('role-select');
+    if(wrap && !wrap.contains(e.target)) document.getElementById('role-select-panel').hidden = true;
+  });
+
+  function renderRoleCards(){
+    document.getElementById('role-cards').innerHTML = ROLES.map(function(r){
+      var userCount = USERS.filter(function(u){ return u.role===r.key; }).length;
+      var permCount = (ROLE_PERMISSIONS[r.key]||[]).filter(Boolean).length;
+      return '<div class="role-card">'+
+        '<div class="role-card-top"><span class="role-card-name">'+r.label+'</span><span class="badge '+r.cls+'">'+r.key+'</span></div>'+
+        '<div class="role-card-stats">'+
+          '<div class="role-card-stat"><b>'+userCount+'</b><span>Usuarios</span></div>'+
+          '<div class="role-card-stat"><b>'+permCount+'/'+PERMISSIONS.length+'</b><span>Permisos</span></div>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  var urTabs = document.getElementById('ur-tabs');
+  urTabs.addEventListener('click', function(e){
+    var btn = e.target.closest('button');
+    if(!btn) return;
+    urTabs.querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('ur-usuarios').classList.toggle('active', btn.dataset.subtab==='usuarios');
+    document.getElementById('ur-roles').classList.toggle('active', btn.dataset.subtab==='roles');
+  });
+
+  function renderUsers(){
+    var q = (document.getElementById('user-search').value||'').toLowerCase();
+    var rows = USERS.filter(function(u){
+      var matchRole = activeRoleFilter==='todos' || u.role===activeRoleFilter;
+      var matchQ = !q || u.name.toLowerCase().indexOf(q)>-1 || u.mail.toLowerCase().indexOf(q)>-1;
+      return matchRole && matchQ;
+    });
+    document.getElementById('users-body').innerHTML = rows.map(function(u){
+      var initials = u.name.split(' ').map(function(p){return p[0];}).slice(0,2).join('');
+      var st = STATUS[u.status];
+      var role = getRole(u.role);
+      return '<tr>'+
+        '<td><div class="user-cell"><span class="avatar">'+initials+'</span>'+
+          '<div class="user-name-wrap"><span>'+u.name+'</span><span class="user-mail">'+u.mail+'</span></div></div></td>'+
+        '<td><span class="badge '+role.cls+'">'+role.label+'</span></td>'+
+        '<td>'+u.area+'</td>'+
+        '<td class="mono" style="color:var(--text-muted)">'+u.last+'</td>'+
+        '<td><span class="badge '+st[0]+'"><span class="dot-status"></span>'+st[1]+'</span></td>'+
+      '</tr>';
+    }).join('') || '<tr><td colspan="5" style="color:var(--text-muted); text-align:center; padding:20px;">No hay usuarios que coincidan con el filtro.</td></tr>';
+  }
+  document.getElementById('user-search').addEventListener('input', renderUsers);
+
+  function renderMatrix(){
+    document.getElementById('matrix-head-row').innerHTML = '<th>Permiso</th>' +
+      ROLES.map(function(r){ return '<th>'+r.label+'</th>'; }).join('');
+    document.getElementById('matrix-body').innerHTML = PERMISSIONS.map(function(permName, pIdx){
+      return '<tr><td>'+permName+'</td>'+ ROLES.map(function(r){
+        var v = (ROLE_PERMISSIONS[r.key] || [])[pIdx];
+        return '<td class="check">'+(v? '<span class="check-yes">✓</span>' : '<span class="check-no">—</span>')+'</td>';
+      }).join('') +'</tr>';
+    }).join('');
+  }
+
+  /* ---- Modal: crear usuario / crear rol ---- */
+  var modalOverlay = document.getElementById('modal-overlay');
+  function closeModal(){
+    modalOverlay.hidden = true;
+    document.getElementById('modal-body').innerHTML = '';
+  }
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', function(e){ if(e.target === modalOverlay) closeModal(); });
+
+  function openUserModal(){
+    document.getElementById('modal-title').textContent = 'Nuevo usuario';
+    document.getElementById('modal-subtitle').textContent = 'Crea una cuenta y asígnale un rol existente.';
+    var roleOptions = ROLES.map(function(r){ return '<option value="'+r.key+'">'+r.label+'</option>'; }).join('');
+    document.getElementById('modal-body').innerHTML =
+      '<form id="user-form" style="display:flex; flex-direction:column; gap:14px;">'+
+        '<label>Nombre completo<input type="text" id="nu-name" required placeholder="Ej. Ana Gómez"></label>'+
+        '<label>Correo institucional<input type="text" id="nu-mail" required placeholder="ana.gomez@sedga.co"></label>'+
+        '<div class="form-grid">'+
+          '<label>Rol<select id="nu-role">'+roleOptions+'</select></label>'+
+          '<label>Área<input type="text" id="nu-area" placeholder="Ej. Registro académico"></label>'+
+        '</div>'+
+        '<button type="submit" class="btn btn-primary" style="align-self:flex-start;">Crear usuario</button>'+
+      '</form>';
+    modalOverlay.hidden = false;
+    document.getElementById('user-form').addEventListener('submit', function(e){
+      e.preventDefault();
+      var name = document.getElementById('nu-name').value.trim();
+      var mail = document.getElementById('nu-mail').value.trim();
+      if(!name || !mail) return;
+      USERS.unshift({
+        name:name, mail:mail, role:document.getElementById('nu-role').value,
+        area:document.getElementById('nu-area').value.trim() || 'Sin asignar',
+        last:'Recién creado', status:'ok'
+      });
+      renderUsers();
+      renderRoleSelect();
+      renderRoleCards();
+      closeModal();
+      toast('Usuario "'+name+'" creado correctamente');
+    });
+  }
+
+  function openRoleModal(){
+    document.getElementById('modal-title').textContent = 'Nuevo rol';
+    document.getElementById('modal-subtitle').textContent = 'Define el nombre y los permisos que tendrá este rol.';
+    var checksHtml = PERMISSIONS.map(function(p, i){
+      return '<label class="perm-check-row"><input type="checkbox" id="nr-perm-'+i+'">'+p+'</label>';
+    }).join('');
+    document.getElementById('modal-body').innerHTML =
+      '<form id="role-form" style="display:flex; flex-direction:column; gap:14px;">'+
+        '<label>Nombre del rol<input type="text" id="nr-name" required placeholder="Ej. Coordinador de programa"></label>'+
+        '<label>Descripción breve<input type="text" id="nr-desc" placeholder="Para qué se usa este rol"></label>'+
+        '<div style="display:flex; flex-direction:column; gap:8px;">'+
+          '<span style="font-size:0.78rem; font-weight:600; color:var(--text-muted);">Permisos habilitados</span>'+
+          '<div class="perm-check-list">'+checksHtml+'</div>'+
+        '</div>'+
+        '<button type="submit" class="btn btn-primary" style="align-self:flex-start;">Crear rol</button>'+
+      '</form>';
+    document.getElementById('nr-perm-0').checked = true;
+    modalOverlay.hidden = false;
+    document.getElementById('role-form').addEventListener('submit', function(e){
+      e.preventDefault();
+      var name = document.getElementById('nr-name').value.trim();
+      if(!name) return;
+      var key = 'rol_' + name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'') + '_' + (ROLES.length+1);
+      var style = EXTRA_ROLE_STYLES[extraRoleCount % EXTRA_ROLE_STYLES.length];
+      extraRoleCount++;
+      var perms = PERMISSIONS.map(function(p,i){ return document.getElementById('nr-perm-'+i).checked ? 1 : 0; });
+      ROLES.push({key:key, label:name, cls:style.cls, dot:style.dot, builtin:false});
+      ROLE_PERMISSIONS[key] = perms;
+      renderRoleSelect();
+      renderRoleCards();
+      renderMatrix();
+      closeModal();
+      toast('Rol "'+name+'" creado con '+perms.filter(Boolean).length+' permisos');
+    });
+  }
+
+  document.getElementById('btn-new-user').addEventListener('click', openUserModal);
+  document.getElementById('btn-new-role').addEventListener('click', openRoleModal);
+
+  /* ---------------- Plantillas ---------------- */
+  var TEMPLATES = [
+    {name:'UnoAUno_Estudiantes_Primer_Curso.xlsx', type:'Primer curso', rows:'9,119', by:'Camila Herrera', date:'27 oct 2026', status:'ok'},
+    {name:'Unoauno_matriculados.xlsx', type:'Matriculados', rows:'58,402', by:'Julián Rendón', date:'22 sep 2026', status:'ok'},
+    {name:'Unoauno_graduados.xlsx', type:'Graduados', rows:'6,870', by:'Laura Pinzón', date:'18 sep 2026', status:'warn'},
+    {name:'Programas_snies.xlsx', type:'Programas', rows:'184', by:'Camila Herrera', date:'30 ago 2026', status:'ok'}
+  ];
+  var STATUS_T = {ok:['ok','Procesada'], warn:['warn','En revisión'], err:['err','Error de formato']};
+
+  function renderTemplates(){
+    document.getElementById('templates-body').innerHTML = TEMPLATES.map(function(t){
+      var st = STATUS_T[t.status];
+      return '<tr><td>'+t.name+'</td><td>'+t.type+'</td><td class="mono">'+t.rows+'</td><td>'+t.by+'</td>'+
+        '<td class="mono" style="color:var(--text-muted)">'+t.date+'</td>'+
+        '<td><span class="badge '+st[0]+'"><span class="dot-status"></span>'+st[1]+'</span></td></tr>';
+    }).join('');
+    document.getElementById('plantillas-count').textContent = TEMPLATES.length + ' plantillas registradas';
+  }
+
+  var UPLOAD_STAGES = ['Cargar','Validar','Mapear campos','Confirmar'];
+  function renderUploadSteps(activeIdx){
+    document.getElementById('upload-steps').innerHTML = UPLOAD_STAGES.map(function(s,i){
+      return '<div class="s'+(i<=activeIdx?' on':'')+'"><div class="bar"></div><div class="lab">'+s+'</div></div>';
+    }).join('');
+  }
+  renderUploadSteps(-1);
+
+  var dz = document.getElementById('dropzone');
+  var fileInput = document.getElementById('file-input');
+  ['dragover'].forEach(function(evt){
+    dz.addEventListener(evt, function(e){ e.preventDefault(); dz.classList.add('drag'); });
+  });
+  ['dragleave','drop'].forEach(function(evt){
+    dz.addEventListener(evt, function(e){ e.preventDefault(); dz.classList.remove('drag'); if(evt==='drop') simulateUpload(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0] ? e.dataTransfer.files[0].name : null); });
+  });
+  dz.addEventListener('click', function(){ fileInput.click(); });
+  fileInput.addEventListener('change', function(){
+    simulateUpload(fileInput.files[0] ? fileInput.files[0].name : null);
+  });
+
+  var TEMPLATE_FILE_HINT = {
+    'Primer curso':'UnoAUno_Primer_Curso',
+    'Matriculados':'Unoauno_matriculados',
+    'Graduados':'Unoauno_graduados',
+    'Programas':'Programas_snies'
+  };
+
+  var uploading = false;
+  function simulateUpload(name){
+    if(uploading) return;
+    uploading = true;
+    var tipo = document.getElementById('template-type').value;
+    name = name || (TEMPLATE_FILE_HINT[tipo]+'_'+(Math.floor(Math.random()*900)+100)+'.xlsx');
+    var wrap = document.getElementById('upload-progress-wrap');
+    var bar = document.getElementById('upload-bar');
+    var pct = document.getElementById('upload-pct');
+    document.getElementById('upload-file-name').textContent = name;
+    wrap.hidden = false;
+    var p = 0;
+    renderUploadSteps(0);
+    var iv = setInterval(function(){
+      p += Math.random()*18 + 7;
+      if(p >= 100){ p = 100; clearInterval(iv); }
+      bar.style.width = p+'%';
+      pct.textContent = Math.round(p)+'%';
+      if(p>20) renderUploadSteps(1);
+      if(p>55) renderUploadSteps(2);
+      if(p>=100){
+        renderUploadSteps(3);
+        TEMPLATES.unshift({name:name, type:tipo, rows: fmtNum.format(Math.floor(Math.random()*4000)+500), by:'Tú', date:'28 oct 2026', status:'ok'});
+        renderTemplates();
+        toast('Plantilla "'+name+'" ('+tipo+') cargada y validada correctamente');
+        uploading = false;
+        setTimeout(function(){ wrap.hidden = true; renderUploadSteps(-1); }, 1600);
+      }
+    }, 260);
+  }
+
+  /* ---------------- Cálculo de tasas (metodología SPADIES) ---------------- */
+  var RATES = {
+    TAI:   { nombre:'Tasa de Ausencia Intersemestral', formula:'TAI_t = ( Ausentes_t / Matriculados_t-1 ) × 100',
+             desc:'Señal temprana de riesgo: matriculado en t-1 y ausente en t. Aún no es desertor confirmado.',
+             base:'Matriculados en el periodo anterior (t-1)', conteo:'Ausentes en el periodo actual (t)', grupo:'riesgo' },
+    TDA:   { nombre:'Tasa de Deserción Anual', formula:'TDA_t = ( Desertores_t / Matriculados_t-2 ) × 100',
+             desc:'Desertores confirmados: ausentes en t-1 y en t, habiendo estado matriculados en t-2.',
+             base:'Matriculados dos periodos atrás (t-2)', conteo:'Desertores confirmados en el periodo', grupo:'riesgo' },
+    TDC:   { nombre:'Tasa de Deserción por Cohorte', formula:'TDC(c,s) = ( Σ Desertores(c,s) / Primíparos_c ) × 100',
+             desc:'Acumula desertores distintos de una cohorte desde su ingreso hasta el semestre s.',
+             base:'Primíparos de la cohorte', conteo:'Desertores acumulados hasta el semestre s', grupo:'riesgo' },
+    TDPA:  { nombre:'Tasa de Deserción Promedio Acumulada', formula:'TDPA_s = ( ΣΣ Desertores / Σ Primíparos ) × 100',
+             desc:'Igual que TDC pero agregando todas las cohortes que alcanzan el semestre s.',
+             base:'Primíparos acumulados de todas las cohortes', conteo:'Desertores acumulados de todas las cohortes', grupo:'riesgo' },
+    TDP_2_8:{ nombre:'Tasa de Deserción por Periodo (legado 2.8)', formula:'TDP_t = ( Desertores_t / Matriculados no graduados_t-2 ) × 100',
+             desc:'Metodología SPADIES 2.8: mismo numerador que TDA, con un denominador más estricto que excluye graduados.',
+             base:'Matriculados no graduados en t-2', conteo:'Desertores identificados en el periodo', grupo:'riesgo' },
+    TGA:   { nombre:'Tasa de Graduación Acumulada', formula:'TGA_s = ( ΣΣ Graduados / Σ Primíparos ) × 100',
+             desc:'Fracción de primíparos que se gradúa hasta el semestre s, agregando todas las cohortes.',
+             base:'Primíparos acumulados de todas las cohortes', conteo:'Graduados acumulados hasta el semestre s', grupo:'permanencia' },
+    TS:    { nombre:'Tasa de Supervivencia', formula:'TS_s = ( Matriculados_s / Primíparos ) × 100',
+             desc:'Fracción de primíparos que continúa matriculada en el semestre relativo s.',
+             base:'Primíparos de las cohortes consideradas', conteo:'Matriculados en el semestre s', grupo:'permanencia' }
+  };
+  var RATE_DEFAULTS = {
+    TAI:[340,29], TDA:[318,27], TDC:[312,47], TDPA:[1840,231], TDP_2_8:[286,24], TGA:[312,162], TS:[312,198]
+  };
+
+  function fillRateSelect(){
+    var sel = document.getElementById('f-tasa');
+    sel.innerHTML = Object.keys(RATES).map(function(k){
+      return '<option value="'+k+'">'+k+' — '+RATES[k].nombre+'</option>';
+    }).join('');
+  }
+
+  function syncRateFields(){
+    var code = document.getElementById('f-tasa').value;
+    var r = RATES[code];
+    document.getElementById('f-tasa-desc').textContent = r.desc;
+    document.getElementById('f-tasa-formula').textContent = r.formula;
+    document.getElementById('f-base-label').firstChild.textContent = r.base;
+    document.getElementById('f-conteo-label').firstChild.textContent = r.conteo;
+    var d = RATE_DEFAULTS[code];
+    document.getElementById('f-base').value = d[0];
+    document.getElementById('f-conteo').value = d[1];
+  }
+
+  fillRateSelect();
+  document.getElementById('f-tasa').addEventListener('change', syncRateFields);
+  syncRateFields();
+
+  var HISTORY = [
+    {codigo:'TDA', programa:'Ingeniería de Sistemas', periodo:'2023-2', base:420, conteo:34, valor:8.1},
+    {codigo:'TGA', programa:'Contaduría Pública', periodo:'2023-1', base:1120, conteo:487, valor:43.5},
+    {codigo:'TS', programa:'Derecho', periodo:'2022-2', base:268, conteo:201, valor:75.0}
+  ];
+
+  document.getElementById('rate-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    var codigo = document.getElementById('f-tasa').value;
+    var programa = document.getElementById('f-programa').value;
+    var periodo = document.getElementById('f-periodo').value || '—';
+    var base = parseFloat(document.getElementById('f-base').value) || 0;
+    var conteo = parseFloat(document.getElementById('f-conteo').value) || 0;
+    var valor = base > 0 ? (conteo/base)*100 : 0;
+
+    document.getElementById('r-nombre').textContent = codigo+' — '+RATES[codigo].nombre;
+    document.getElementById('r-valor').textContent = valor.toFixed(2)+'%';
+    document.getElementById('r-base').textContent = fmtNum.format(base);
+    document.getElementById('r-conteo').textContent = fmtNum.format(conteo);
+
+    HISTORY.unshift({codigo:codigo, programa:programa, periodo:periodo, base:base, conteo:conteo, valor:+valor.toFixed(2)});
+    renderHistory();
+    renderCompareChart();
+    toast(codigo+' calculada para '+programa+': '+valor.toFixed(2)+'%');
+  });
+
+  function renderHistory(){
+    document.getElementById('history-body').innerHTML = HISTORY.slice(0,8).map(function(h){
+      var color = RATES[h.codigo].grupo==='permanencia' ? 'var(--accent-strong)' : 'var(--danger)';
+      return '<tr><td><span class="badge" style="background:var(--surface-alt); color:var(--text);">'+h.codigo+'</span></td>'+
+        '<td>'+h.programa+'</td><td class="mono">'+h.periodo+'</td>'+
+        '<td class="mono">'+fmtNum.format(h.base)+'</td><td class="mono">'+fmtNum.format(h.conteo)+'</td>'+
+        '<td class="mono" style="color:'+color+'; font-weight:600;">'+h.valor.toFixed(2)+'%</td></tr>';
+    }).join('');
+  }
+
+  function renderCompareChart(){
+    var svg = document.getElementById('compare-chart');
+    var W=760,H=180, padL=42, padR=10, padT=14, padB=30;
+    var innerW=W-padL-padR, innerH=H-padT-padB;
+    var items = HISTORY.slice(0,6).reverse();
+    var maxVal = Math.max(10, Math.max.apply(null, items.map(function(h){return h.valor;})));
+    var niceMax = Math.ceil(maxVal/10)*10;
+    var groupW = innerW/items.length;
+    var barW = Math.min(36, groupW*0.42);
+    var parts = [];
+    for(var t=0;t<=4;t++){
+      var val = niceMax/4*t;
+      var y = padT + innerH - (val/niceMax)*innerH;
+      parts.push('<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="var(--border)" stroke-width="1"/>');
+      parts.push('<text x="'+(padL-8)+'" y="'+(y+4)+'" text-anchor="end" class="bar-tooltip" fill="var(--text-muted)">'+val+'%</text>');
+    }
+    items.forEach(function(h,i){
+      var x = padL + i*groupW + groupW/2 - barW/2;
+      var hgt = (h.valor/niceMax)*innerH;
+      var color = RATES[h.codigo].grupo==='permanencia' ? 'var(--accent)' : 'var(--danger)';
+      parts.push('<rect x="'+x+'" y="'+(padT+innerH-hgt)+'" width="'+barW+'" height="'+hgt+'" rx="4" fill="'+color+'"><title>'+h.codigo+' · '+h.programa+': '+h.valor.toFixed(2)+'%</title></rect>');
+      parts.push('<text x="'+(x+barW/2)+'" y="'+(padT+innerH-hgt-8)+'" text-anchor="middle" class="bar-tooltip" fill="var(--text)">'+h.valor.toFixed(1)+'%</text>');
+      parts.push('<text x="'+(x+barW/2)+'" y="'+(H-10)+'" text-anchor="middle" class="bar-tooltip" fill="var(--text-muted)">'+h.codigo+'</text>');
+    });
+    svg.setAttribute('viewBox','0 0 '+W+' '+H);
+    svg.innerHTML = parts.join('');
+  }
+
+  /* ---------------- init ---------------- */
+  renderKpis();
+  renderActivity();
+  renderFlowMini();
+  renderRoleSelect();
+  renderUsers();
+  renderRoleCards();
+  renderMatrix();
+  renderTemplates();
+  renderHistory();
+  renderMainChart('mensual');
+  renderCompareChart();
+
+  window.addEventListener('resize', function(){
+    renderMainChart(document.querySelector('#chart-period button.active').dataset.period);
+    renderCompareChart();
+  });
+})();
+</script>
+
+</body>
+</html>
