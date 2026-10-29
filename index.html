@@ -5,52 +5,192 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Prototipos — Partikle</title>
 <meta name="description" content="Índice de prototipos interactivos publicados por Partikle.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#f5f6f4; --surface:#ffffff; --border:#dfe3df; --text:#262b27; --text-muted:#6a736c; --accent:#3b6a5c;
-  }
-  @media (prefers-color-scheme: dark){
-    :root{ --bg:#15181a; --surface:#1d2321; --border:#323a36; --text:#e9ece9; --text-muted:#9aa49d; --accent:#7fb8a6; }
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0; background:var(--bg); color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    padding:56px max(20px, env(safe-area-inset-right,0px)) 56px max(20px, env(safe-area-inset-left,0px));
-  }
-  .wrap{ max-width:760px; margin:0 auto; }
-  h1{ font-size:1.6rem; margin:0 0 6px; }
-  p.lead{ color:var(--text-muted); margin:0 0 36px; font-size:0.95rem; }
-  .grid{ display:grid; gap:16px; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); }
-  a.card{
-    display:block; text-decoration:none; color:inherit; background:var(--surface);
-    border:1px solid var(--border); border-radius:14px; padding:22px;
-    transition:border-color .15s ease, transform .15s ease;
-  }
-  a.card:hover{ border-color:var(--accent); transform:translateY(-2px); }
-  .card h2{ margin:0 0 8px; font-size:1.1rem; }
-  .card p{ margin:0; color:var(--text-muted); font-size:0.88rem; line-height:1.5; }
-  .card .tag{ display:inline-block; margin-bottom:10px; font-size:0.7rem; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:var(--accent); }
-  footer{ margin-top:48px; font-size:0.78rem; color:var(--text-muted); }
+/* Paleta deliberadamente clara: fondo cálido neutro, un azul tomado del logo
+   de Sedga y un violeta para DiversIA como acentos de cada tarjeta. */
+:root{
+  --bg:#f7f8f5;
+  --surface:#ffffff;
+  --border:#e4e7e1;
+  --text:#20241f;
+  --text-muted:#666f64;
+  --sedga:#0ca8ec;
+  --sedga-soft:#e3f4fd;
+  --diversia:#7c5cfc;
+  --diversia-soft:#efeafe;
+  --shadow: 0 1px 2px rgba(32,36,31,0.05), 0 10px 26px -12px rgba(32,36,31,0.14);
+  --shadow-hover: 0 18px 38px -16px rgba(32,36,31,0.28);
+  color-scheme: light;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 64px max(20px, env(safe-area-inset-right,0px)) 48px max(20px, env(safe-area-inset-left,0px));
+  min-height:100vh;
+}
+img{ max-width:100%; display:block; }
+
+.bg-shape{
+  position:fixed; border-radius:50%; filter:blur(60px); z-index:-1; opacity:0.35;
+}
+.bg-shape.a{ width:380px; height:380px; background:var(--sedga-soft); top:-120px; right:-100px; }
+.bg-shape.b{ width:320px; height:320px; background:var(--diversia-soft); bottom:-100px; left:-80px; }
+
+.wrap{ max-width:880px; margin:0 auto; position:relative; }
+
+.eyebrow{
+  display:inline-flex; align-items:center; gap:6px; font-size:0.72rem; font-weight:600;
+  letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted);
+  background:var(--surface); border:1px solid var(--border); padding:6px 12px; border-radius:999px;
+  margin-bottom:18px;
+}
+.eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--sedga); }
+
+h1{
+  font-family:'Outfit', sans-serif; font-weight:700; font-size:clamp(2rem, 4vw, 2.6rem);
+  margin:0 0 10px; letter-spacing:-0.01em; text-wrap:balance;
+}
+p.lead{ color:var(--text-muted); margin:0 0 42px; font-size:1.02rem; max-width:52ch; line-height:1.55; }
+
+.grid{ display:grid; gap:20px; grid-template-columns:repeat(2, 1fr); }
+@media (max-width: 640px){ .grid{ grid-template-columns:1fr; } }
+
+.card{
+  position:relative; display:flex; flex-direction:column; gap:18px;
+  text-decoration:none; color:inherit; background:var(--surface);
+  border:1px solid var(--border); border-radius:20px; padding:26px;
+  box-shadow:var(--shadow); overflow:hidden;
+  transform:translateY(0) scale(1);
+  transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease, border-color .35s ease;
+  animation:card-in .5s cubic-bezier(.2,.8,.2,1) both;
+}
+.card:nth-child(2){ animation-delay:.08s; }
+.card::before{
+  content:""; position:absolute; inset:0; opacity:0; pointer-events:none;
+  background:radial-gradient(420px circle at var(--mx,50%) var(--my,0%), rgba(0,0,0,0.035), transparent 60%);
+  transition:opacity .35s ease;
+}
+.card:hover::before{ opacity:1; }
+.card:hover{
+  transform:translateY(-8px) scale(1.012);
+  box-shadow:var(--shadow-hover);
+}
+.card.sedga:hover{ border-color:var(--sedga); }
+.card.diversia:hover{ border-color:var(--diversia); }
+.card:active{ transform:translateY(-4px) scale(1.005); }
+
+.card-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.logo-badge{
+  width:56px; height:56px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  padding:10px; flex:none; transition:transform .35s cubic-bezier(.2,.8,.2,1);
+}
+.card.sedga .logo-badge{ background:var(--sedga-soft); }
+.card.diversia .logo-badge{ background:var(--diversia-soft); }
+.card:hover .logo-badge{ transform:scale(1.08) rotate(-4deg); }
+.logo-badge img, .logo-badge svg{ width:100%; height:100%; object-fit:contain; }
+
+.go-arrow{
+  width:34px; height:34px; border-radius:50%; border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center; color:var(--text-muted);
+  flex:none; transition:transform .35s cubic-bezier(.2,.8,.2,1), background .35s ease, color .35s ease, border-color .35s ease;
+}
+.card.sedga:hover .go-arrow{ background:var(--sedga); border-color:var(--sedga); color:#fff; transform:translate(3px,-3px); }
+.card.diversia:hover .go-arrow{ background:var(--diversia); border-color:var(--diversia); color:#fff; transform:translate(3px,-3px); }
+
+.card-tag{ font-size:0.72rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; }
+.card.sedga .card-tag{ color:var(--sedga); }
+.card.diversia .card-tag{ color:var(--diversia); }
+
+.card h2{ font-family:'Outfit', sans-serif; margin:4px 0 0; font-size:1.2rem; font-weight:600; }
+.card p{ margin:0; color:var(--text-muted); font-size:0.92rem; line-height:1.55; }
+
+.card-foot{ display:flex; align-items:center; gap:6px; font-size:0.84rem; font-weight:600; margin-top:auto; }
+.card.sedga .card-foot{ color:var(--sedga); }
+.card.diversia .card-foot{ color:var(--diversia); }
+.card-foot svg{ transition:transform .35s cubic-bezier(.2,.8,.2,1); }
+.card:hover .card-foot svg{ transform:translateX(4px); }
+
+@keyframes card-in{
+  from{ opacity:0; transform:translateY(14px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+@media (prefers-reduced-motion: reduce){
+  .card{ animation:none; transition:box-shadow .2s ease, border-color .2s ease; }
+  .card:hover{ transform:none; }
+  .card:hover .logo-badge, .card:hover .go-arrow, .card:hover .card-foot svg{ transform:none; }
+}
+
+footer{ margin-top:52px; font-size:0.8rem; color:var(--text-muted); }
 </style>
 </head>
 <body>
+  <div class="bg-shape a"></div>
+  <div class="bg-shape b"></div>
+
   <div class="wrap">
+    <span class="eyebrow"><span class="dot"></span>Partikle · Galería de prototipos</span>
     <h1>Prototipos</h1>
-    <p class="lead">Prototipos interactivos de producto, para explorar el flujo y funcionamiento de cada proyecto.</p>
+    <p class="lead">Prototipos interactivos de producto, pensados para explorar el flujo y el funcionamiento de cada proyecto antes de construirlo.</p>
+
     <div class="grid">
-      <a class="card" href="sedga/">
-        <span class="tag">Sedga</span>
-        <h2>Gestión académica y tasas</h2>
-        <p>Usuarios y permisos, cargue de plantillas y cálculo de tasas de deserción, retención y graduación (metodología SPADIES).</p>
+      <a class="card sedga" href="sedga/" id="js-card" data-tilt>
+        <div class="card-top">
+          <span class="logo-badge"><img src="assets/sedga-logo.png" alt="Logo de Sedga" width="56" height="56"></span>
+          <span class="go-arrow">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+          </span>
+        </div>
+        <div>
+          <span class="card-tag">Sedga</span>
+          <h2>Gestión académica y tasas</h2>
+        </div>
+        <p>Usuarios y permisos, cargue de plantillas y cálculo de tasas de deserción, retención y graduación con metodología SPADIES.</p>
+        <span class="card-foot">Ver prototipo
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </span>
       </a>
-      <a class="card" href="diversia/">
-        <span class="tag">DiversIA</span>
-        <h2>Flujo funcional v2</h2>
+
+      <a class="card diversia" href="diversia/" data-tilt>
+        <div class="card-top">
+          <span class="logo-badge">
+            <svg viewBox="0 0 56 56" fill="none">
+              <circle cx="22" cy="22" r="13" fill="#7C5CFC" opacity="0.9"/>
+              <circle cx="36" cy="24" r="11" fill="#FF8A5B" opacity="0.85"/>
+              <circle cx="27" cy="37" r="11" fill="#2BC9A5" opacity="0.85"/>
+            </svg>
+          </span>
+          <span class="go-arrow">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+          </span>
+        </div>
+        <div>
+          <span class="card-tag">DiversIA</span>
+          <h2>Flujo funcional v2</h2>
+        </div>
         <p>Gestión de árboles de proyecto, revisión por grupos y seguimiento de avance por formato.</p>
+        <span class="card-foot">Ver prototipo
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </span>
       </a>
     </div>
+
     <footer>© 2026 Partikle.</footer>
   </div>
+
+  <script>
+    document.querySelectorAll('[data-tilt]').forEach(function(card){
+      card.addEventListener('mousemove', function(e){
+        var r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+        card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+      });
+    });
+  </script>
 </body>
 </html>
