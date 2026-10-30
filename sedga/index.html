@@ -519,8 +519,8 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
         <h1>Inicia sesión</h1>
         <p>Ingresa con las credenciales que te asignó tu administrador.</p>
       </div>
-      <label>Correo institucional
-        <input type="text" id="login-email" placeholder="nombre.apellido@sedga.co" autocomplete="username" value="camila.herrera@sedga.co">
+      <label>Usuario
+        <input type="text" id="login-username" placeholder="Ej. CH1028" autocomplete="username" value="CH1028">
       </label>
       <label>Contraseña
         <div class="pw-field">
@@ -1173,13 +1173,13 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   }
 
   var USERS = [
-    {id:1, name:'Camila Herrera', mail:'camila.herrera@sedga.co', role:'admin', area:'Operaciones', last:'Hoy, 10:14', status:'ok'},
-    {id:2, name:'Julián Rendón', mail:'julian.rendon@sedga.co', role:'analista', area:'Permanencia académica', last:'Hoy, 9:02', status:'ok'},
-    {id:3, name:'Mariana Ospina', mail:'mariana.ospina@sedga.co', role:'admin', area:'Operaciones', last:'Ayer, 17:30', status:'ok'},
-    {id:4, name:'David Cárdenas', mail:'david.cardenas@sedga.co', role:'auditor', area:'Cumplimiento', last:'Ayer, 13:20', status:'warn'},
-    {id:5, name:'Laura Pinzón', mail:'laura.pinzon@sedga.co', role:'analista', area:'Permanencia académica', last:'25 oct, 15:44', status:'ok'},
-    {id:6, name:'Santiago Buriticá', mail:'santiago.buritica@sedga.co', role:'consulta', area:'Registro académico', last:'22 oct, 11:05', status:'err'},
-    {id:7, name:'Valentina Trujillo', mail:'valentina.trujillo@sedga.co', role:'auditor', area:'Cumplimiento', last:'21 oct, 8:50', status:'ok'}
+    {id:1, name:'Camila Herrera', user:'CH1028', mail:'camila.herrera@sedga.co', role:'admin', area:'Operaciones', last:'Hoy, 10:14', status:'ok'},
+    {id:2, name:'Julián Rendón', user:'JR2041', mail:'julian.rendon@sedga.co', role:'analista', area:'Permanencia académica', last:'Hoy, 9:02', status:'ok'},
+    {id:3, name:'Mariana Ospina', user:'MO1193', mail:'mariana.ospina@sedga.co', role:'admin', area:'Operaciones', last:'Ayer, 17:30', status:'ok'},
+    {id:4, name:'David Cárdenas', user:'DC3307', mail:'david.cardenas@sedga.co', role:'auditor', area:'Cumplimiento', last:'Ayer, 13:20', status:'warn'},
+    {id:5, name:'Laura Pinzón', user:'LP4822', mail:'laura.pinzon@sedga.co', role:'analista', area:'Permanencia académica', last:'25 oct, 15:44', status:'ok'},
+    {id:6, name:'Santiago Buriticá', user:'SB5519', mail:'santiago.buritica@sedga.co', role:'consulta', area:'Registro académico', last:'22 oct, 11:05', status:'err'},
+    {id:7, name:'Valentina Trujillo', user:'VT6650', mail:'valentina.trujillo@sedga.co', role:'auditor', area:'Cumplimiento', last:'21 oct, 8:50', status:'ok'}
   ];
   var nextUserId = 8;
   var STATUS = {ok:['ok','Activo'], warn:['warn','Pendiente'], err:['err','Suspendido']};
@@ -1398,6 +1398,8 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
       '<form id="user-form" style="display:flex; flex-direction:column; gap:14px;">'+
         '<label>Nombre completo<input type="text" id="nu-name" required placeholder="Ej. Ana Gómez"></label>'+
         '<label>Correo institucional<input type="text" id="nu-mail" required placeholder="ana.gomez@sedga.co"></label>'+
+        '<label>Usuario de acceso<input type="text" id="nu-user" readonly style="background:var(--surface-alt); color:var(--text-muted);"></label>'+
+        '<div style="font-size:0.76rem; color:var(--text-muted); margin-top:-8px;">Sedga lo genera automáticamente; es lo que la persona usará para iniciar sesión.</div>'+
         '<div class="form-grid">'+
           '<label>Rol<select id="nu-role">'+roleOptions+'</select></label>'+
           '<label>Área<input type="text" id="nu-area" placeholder="Ej. Registro académico"></label>'+
@@ -1409,8 +1411,15 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     if(editing){
       document.getElementById('nu-name').value = editing.name;
       document.getElementById('nu-mail').value = editing.mail;
+      document.getElementById('nu-user').value = editing.user;
       document.getElementById('nu-role').value = editing.role;
       document.getElementById('nu-area').value = editing.area;
+    } else {
+      document.getElementById('nu-user').value = '';
+      document.getElementById('nu-name').addEventListener('input', function(){
+        var n = document.getElementById('nu-name').value.trim();
+        document.getElementById('nu-user').value = n ? generateUsername(n) : '';
+      });
     }
 
     document.getElementById('user-form').addEventListener('submit', function(e){
@@ -1424,8 +1433,9 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
         editing.name = name; editing.mail = mail; editing.role = role; editing.area = area;
         toast('Usuario "'+name+'" actualizado');
       } else {
-        USERS.unshift({id:nextUserId++, name:name, mail:mail, role:role, area:area, last:'Recién creado', status:'ok'});
-        toast('Usuario "'+name+'" creado correctamente');
+        var username = document.getElementById('nu-user').value.trim() || generateUsername(name);
+        USERS.unshift({id:nextUserId++, name:name, user:username, mail:mail, role:role, area:area, last:'Recién creado', status:'ok'});
+        toast('Usuario "'+name+'" creado — usuario de acceso: '+username);
       }
       renderUsers();
       renderRoleSelect();
@@ -1792,6 +1802,19 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     return USERS.filter(function(u){ return (u.mail || '').toLowerCase() === email; })[0];
   }
 
+  function findUserByUsername(username){
+    username = (username || '').trim().toLowerCase();
+    return USERS.filter(function(u){ return (u.user || '').toLowerCase() === username; })[0];
+  }
+
+  function generateUsername(name){
+    var parts = name.trim().split(/\s+/).filter(Boolean);
+    if(!parts.length) return '';
+    var initials = (parts[0][0] + (parts[1] ? parts[1][0] : parts[0][1] || 'X')).toUpperCase();
+    var code = Math.floor(1000 + Math.random() * 9000);
+    return initials + code;
+  }
+
   function authInitials(name){
     return name.split(' ').map(function(p){ return p[0]; }).slice(0,2).join('').toUpperCase();
   }
@@ -1840,17 +1863,18 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 
   document.getElementById('form-login').addEventListener('submit', function(e){
     e.preventDefault();
-    var email = document.getElementById('login-email').value.trim();
+    var username = document.getElementById('login-username').value.trim();
     var pass = document.getElementById('login-password').value;
-    if(!email || !pass){ showAuthError('login-error', 'Ingresa tu correo y tu contraseña.'); return; }
-    var user = findUserByEmail(email);
-    if(!user){ showAuthError('login-error', 'No encontramos una cuenta con ese correo. Contacta a tu administrador.'); return; }
+    if(!username || !pass){ showAuthError('login-error', 'Ingresa tu usuario y tu contraseña.'); return; }
+    var user = findUserByUsername(username);
+    if(!user){ showAuthError('login-error', 'No encontramos una cuenta con ese usuario. Contacta a tu administrador.'); return; }
     if(pass !== DEMO_PASSWORD){ showAuthError('login-error', 'Contraseña incorrecta. (Pista del prototipo: ' + DEMO_PASSWORD + ')'); return; }
     logIn(user);
   });
 
   document.getElementById('link-forgot').addEventListener('click', function(){
-    document.getElementById('forgot-email').value = document.getElementById('login-email').value.trim();
+    var user = findUserByUsername(document.getElementById('login-username').value.trim());
+    document.getElementById('forgot-email').value = user ? user.mail : '';
     showAuthView('form-forgot');
   });
   document.getElementById('back-to-login-1').addEventListener('click', function(){ showAuthView('form-login'); });
@@ -1885,7 +1909,8 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     if(p1.length < 8){ showAuthError('reset-error', 'La contraseña debe tener al menos 8 caracteres.'); return; }
     if(p1 !== p2){ showAuthError('reset-error', 'Las contraseñas no coinciden.'); return; }
     DEMO_PASSWORD = p1;
-    document.getElementById('login-email').value = authPendingEmail;
+    var resetUser = findUserByEmail(authPendingEmail);
+    document.getElementById('login-username').value = resetUser ? resetUser.user : '';
     document.getElementById('login-password').value = p1;
     document.getElementById('reset-password').value = '';
     document.getElementById('reset-password-2').value = '';
