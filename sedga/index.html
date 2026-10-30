@@ -336,6 +336,13 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 .row-action-btn:disabled:hover{ background:var(--surface); color:var(--text-muted); border-color:var(--border); }
 
 .confirm-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:18px; }
+
+.issue-row{
+  display:flex; align-items:flex-start; gap:10px; padding:11px 13px;
+  border:1px solid var(--warning-soft); background:var(--warning-soft); border-radius:10px;
+  font-size:0.85rem; color:var(--text); line-height:1.5;
+}
+.issue-row .issue-icon{ color:var(--warning); flex:none; margin-top:1px; }
 .btn-danger{ background:var(--danger); color:#fff; }
 .btn-danger:hover{ background:#9c4030; }
 
@@ -681,7 +688,7 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
           </div>
           <div class="panel-body table-scroll">
             <table>
-              <thead><tr><th>Archivo</th><th>Tipo</th><th>Registros</th><th>Cargado por</th><th>Fecha</th><th>Estado</th></tr></thead>
+              <thead><tr><th>Archivo</th><th>Tipo</th><th>Registros</th><th>Cargado por</th><th>Fecha</th><th>Estado</th><th>Detalle</th></tr></thead>
               <tbody id="templates-body"></tbody>
             </table>
           </div>
@@ -1423,19 +1430,47 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   var TEMPLATES = [
     {name:'UnoAUno_Estudiantes_Primer_Curso.xlsx', type:'Primer curso', rows:'9,119', by:'Camila Herrera', date:'27 oct 2026', status:'ok'},
     {name:'Unoauno_matriculados.xlsx', type:'Matriculados', rows:'58,402', by:'Julián Rendón', date:'22 sep 2026', status:'ok'},
-    {name:'Unoauno_graduados.xlsx', type:'Graduados', rows:'6,870', by:'Laura Pinzón', date:'18 sep 2026', status:'warn'},
+    {name:'Unoauno_graduados.xlsx', type:'Graduados', rows:'6,870', by:'Laura Pinzón', date:'18 sep 2026', status:'issue', issues:[
+      'La columna "fecha_grado" tiene 34 registros vacíos.',
+      '12 códigos de programa no coinciden con el catálogo SNIES.',
+      'Se encontraron 3 filas duplicadas para el mismo estudiante y periodo.'
+    ]},
     {name:'Programas_snies.xlsx', type:'Programas', rows:'184', by:'Camila Herrera', date:'30 ago 2026', status:'ok'}
   ];
-  var STATUS_T = {ok:['ok','Procesada'], warn:['warn','En revisión'], err:['err','Error de formato']};
+  var STATUS_T = {ok:['ok','Procesada'], issue:['warn','Con novedades']};
+  var ICON_WARNING = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
 
   function renderTemplates(){
-    document.getElementById('templates-body').innerHTML = TEMPLATES.map(function(t){
+    document.getElementById('templates-body').innerHTML = TEMPLATES.map(function(t, idx){
       var st = STATUS_T[t.status];
+      var hasIssues = t.status==='issue' && t.issues && t.issues.length;
       return '<tr><td>'+t.name+'</td><td>'+t.type+'</td><td class="mono">'+t.rows+'</td><td>'+t.by+'</td>'+
         '<td class="mono" style="color:var(--text-muted)">'+t.date+'</td>'+
-        '<td><span class="badge '+st[0]+'"><span class="dot-status"></span>'+st[1]+'</span></td></tr>';
+        '<td><span class="badge '+st[0]+'"><span class="dot-status"></span>'+st[1]+'</span></td>'+
+        '<td>'+(hasIssues
+          ? '<button class="row-action-btn" type="button" data-view-template="'+idx+'" title="Ver novedades" aria-label="Ver novedades">'+ICON_EYE+'</button>'
+          : '<span style="color:var(--border);">—</span>')+
+        '</td></tr>';
     }).join('');
+    document.querySelectorAll('[data-view-template]').forEach(function(btn){
+      btn.addEventListener('click', function(){ openTemplateIssuesModal(Number(btn.dataset.viewTemplate)); });
+    });
     document.getElementById('plantillas-count').textContent = TEMPLATES.length + ' plantillas registradas';
+  }
+
+  function openTemplateIssuesModal(idx){
+    var t = TEMPLATES[idx];
+    if(!t || !t.issues) return;
+    document.getElementById('modal-title').textContent = 'Novedades de la plantilla';
+    document.getElementById('modal-subtitle').textContent = t.name;
+    document.getElementById('modal-body').innerHTML =
+      '<div style="display:flex; flex-direction:column; gap:10px;">'+
+        '<p style="margin:0 0 2px; font-size:0.85rem; color:var(--text-muted);">Sedga encontró '+t.issues.length+' novedades al validar esta plantilla. Revísalas y vuelve a cargarla si es necesario.</p>'+
+        t.issues.map(function(msg){
+          return '<div class="issue-row"><span class="issue-icon">'+ICON_WARNING+'</span><span>'+msg+'</span></div>';
+        }).join('')+
+      '</div>';
+    modalOverlay.hidden = false;
   }
 
   var UPLOAD_STAGES = ['Cargar','Validar','Mapear campos','Confirmar'];
