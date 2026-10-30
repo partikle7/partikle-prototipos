@@ -833,13 +833,13 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
       <!-- ========== CALCULO DE TASAS ========== -->
       <section class="view" id="view-tasas">
         <div class="page-head">
-          <h1>Cálculo de tasas</h1>
-          <p>Calcula las tasas de permanencia académica (metodología SPADIES) a partir de los primíparos, matriculados, ausentes, desertores o graduados de un programa y una cohorte.</p>
+          <h1>Consultar tasas</h1>
+          <p>Consulta las tasas de permanencia académica (metodología SPADIES) filtrando por programa, modalidad y metodología. Sedga calcula el resultado semestre a semestre a partir de la información cargada.</p>
         </div>
 
         <div class="row-split">
           <div class="panel">
-            <div class="panel-head"><h2>Parámetros del cálculo</h2></div>
+            <div class="panel-head"><h2>Parámetros de la consulta</h2></div>
             <div class="panel-body">
               <form id="rate-form" style="display:flex; flex-direction:column; gap:14px;">
                 <label>Tasa a calcular
@@ -858,21 +858,28 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
                       <option>Tecnología en Gestión de Obras</option>
                     </select>
                   </label>
-                  <label>Cohorte / periodo
-                    <input type="text" id="f-periodo" value="2023-1" placeholder="AAAA-S">
+                  <label>Modalidad
+                    <select id="f-modalidad">
+                      <option>Presencial</option>
+                      <option>Distancia</option>
+                      <option>Virtual</option>
+                      <option>Dual</option>
+                    </select>
                   </label>
                 </div>
-                <div class="form-grid">
-                  <label id="f-base-label">Primíparos de la cohorte
-                    <input type="number" id="f-base" value="312" min="0">
-                  </label>
-                  <label id="f-conteo-label">Desertores en el periodo
-                    <input type="number" id="f-conteo" value="47" min="0">
-                  </label>
-                </div>
+                <label>Metodología
+                  <select id="f-metodologia">
+                    <option>Técnica profesional</option>
+                    <option>Tecnológica</option>
+                    <option>Universitaria</option>
+                    <option>Especialización</option>
+                    <option>Maestría</option>
+                    <option>Doctorado</option>
+                  </select>
+                </label>
                 <button type="submit" class="btn btn-primary" style="align-self:flex-start;">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
-                  Calcular tasa
+                  Consultar tasa
                 </button>
               </form>
             </div>
@@ -882,10 +889,10 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
             <div class="panel-head"><h2>Resultado</h2></div>
             <div class="panel-body">
               <div class="result-card">
-                <div class="result-row"><span class="l">Tasa calculada</span><span class="v" id="r-nombre">—</span></div>
-                <div class="result-row"><span class="l">Resultado</span><span class="v" id="r-valor">—</span></div>
-                <div class="result-row"><span class="l">Base utilizada</span><span class="v" id="r-base">—</span></div>
-                <div class="result-row"><span class="l">Conteo utilizado</span><span class="v" id="r-conteo">—</span></div>
+                <div class="result-row"><span class="l">Tasa consultada</span><span class="v" id="r-nombre">—</span></div>
+                <div class="result-row"><span class="l">Resultado · último semestre</span><span class="v" id="r-valor">—</span></div>
+                <div class="result-row"><span class="l" id="r-base-label">Base utilizada</span><span class="v" id="r-base">—</span></div>
+                <div class="result-row"><span class="l" id="r-conteo-label">Conteo utilizado</span><span class="v" id="r-conteo">—</span></div>
               </div>
             </div>
           </div>
@@ -893,17 +900,33 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 
         <div class="panel">
           <div class="panel-head">
-            <h2>Historial de cálculos</h2>
-            <div class="hint">Tasas de riesgo y deserción en tonos cálidos; permanencia y graduación en verde</div>
+            <h2>Evolución por semestre · cantidades</h2>
+            <div class="hint" id="qty-chart-hint">Base y conteo utilizados en el cálculo, por semestre</div>
+          </div>
+          <div class="panel-body">
+            <div class="chart-wrap">
+              <svg id="quantity-chart" viewBox="0 0 760 220" style="width:100%; height:auto; overflow:visible;"></svg>
+              <div class="legend">
+                <span><i style="background:var(--accent)"></i><span id="legend-base-label">Base</span></span>
+                <span><i style="background:var(--gold)"></i><span id="legend-conteo-label">Conteo</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Evolución por semestre · porcentual</h2>
+            <div class="hint">Resultado de la tasa consultada en cada semestre</div>
           </div>
           <div class="panel-body">
             <div class="chart-wrap" style="margin-bottom:18px;">
-              <svg id="compare-chart" viewBox="0 0 760 180" style="width:100%; height:auto; overflow:visible;"></svg>
+              <svg id="percent-chart" viewBox="0 0 760 180" style="width:100%; height:auto; overflow:visible;"></svg>
             </div>
             <div class="table-scroll">
               <table>
-                <thead><tr><th>Tasa</th><th>Programa</th><th>Cohorte</th><th>Base</th><th>Conteo</th><th>Resultado</th></tr></thead>
-                <tbody id="history-body"></tbody>
+                <thead><tr><th>Semestre</th><th id="th-base">Base</th><th id="th-conteo">Conteo</th><th>Resultado</th></tr></thead>
+                <tbody id="series-body"></tbody>
               </table>
             </div>
           </div>
@@ -1701,8 +1724,16 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
              desc:'Fracción de primíparos que continúa matriculada en el semestre relativo s.',
              base:'Primíparos de las cohortes consideradas', conteo:'Matriculados en el semestre s', grupo:'permanencia' }
   };
-  var RATE_DEFAULTS = {
-    TAI:[340,29], TDA:[318,27], TDC:[312,47], TDPA:[1840,231], TDP_2_8:[286,24], TGA:[312,162], TS:[312,198]
+  var SEMESTERS = ['2021-2','2022-1','2022-2','2023-1','2023-2','2024-1','2024-2','2025-1'];
+  var PROGRAM_MAGNITUDE = {
+    'Administración Turística y Hotelera': 180,
+    'Ingeniería de Sistemas': 340,
+    'Contaduría Pública': 260,
+    'Derecho': 300,
+    'Tecnología en Gestión de Obras': 140
+  };
+  var RATE_PCT_RANGE = {
+    TAI:[4,11], TDA:[9,17], TDC:[14,24], TDPA:[11,19], TDP_2_8:[16,27], TGA:[32,52], TS:[46,66]
   };
 
   function fillRateSelect(){
@@ -1717,61 +1748,113 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     var r = RATES[code];
     document.getElementById('f-tasa-desc').textContent = r.desc;
     document.getElementById('f-tasa-formula').textContent = r.formula;
-    document.getElementById('f-base-label').firstChild.textContent = r.base;
-    document.getElementById('f-conteo-label').firstChild.textContent = r.conteo;
-    var d = RATE_DEFAULTS[code];
-    document.getElementById('f-base').value = d[0];
-    document.getElementById('f-conteo').value = d[1];
+    document.getElementById('r-base-label').textContent = r.base;
+    document.getElementById('r-conteo-label').textContent = r.conteo;
+    document.getElementById('legend-base-label').textContent = r.base;
+    document.getElementById('legend-conteo-label').textContent = r.conteo;
+    document.getElementById('th-base').textContent = r.base;
+    document.getElementById('th-conteo').textContent = r.conteo;
   }
 
   fillRateSelect();
   document.getElementById('f-tasa').addEventListener('change', syncRateFields);
   syncRateFields();
 
-  var HISTORY = [
-    {codigo:'TDA', programa:'Ingeniería de Sistemas', periodo:'2023-2', base:420, conteo:34, valor:8.1},
-    {codigo:'TGA', programa:'Contaduría Pública', periodo:'2023-1', base:1120, conteo:487, valor:43.5},
-    {codigo:'TS', programa:'Derecho', periodo:'2022-2', base:268, conteo:201, valor:75.0}
-  ];
+  /* Generador determinístico: la misma combinación de tasa + filtros siempre
+     produce la misma serie, como si viniera de los datos cargados. */
+  function seededRandom(seedStr){
+    var seed = 0;
+    for(var i=0;i<seedStr.length;i++){ seed = (Math.imul(31, seed) + seedStr.charCodeAt(i)) | 0; }
+    return function(){
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = (t + Math.imul(t ^ t >>> 7, 61 | t)) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function generateSeries(codigo, programa, modalidad, metodologia){
+    var rnd = seededRandom(codigo+'|'+programa+'|'+modalidad+'|'+metodologia);
+    var magnitude = PROGRAM_MAGNITUDE[programa] || 200;
+    var range = RATE_PCT_RANGE[codigo] || [10,30];
+    return SEMESTERS.map(function(periodo){
+      var base = Math.round(magnitude * (0.82 + rnd()*0.36));
+      var pct = range[0] + rnd()*(range[1]-range[0]);
+      var conteo = Math.round(base * pct / 100);
+      return {periodo:periodo, base:base, conteo:conteo, valor: base>0 ? (conteo/base*100) : 0};
+    });
+  }
+
+  function consultarTasa(silent){
+    var codigo = document.getElementById('f-tasa').value;
+    var programa = document.getElementById('f-programa').value;
+    var modalidad = document.getElementById('f-modalidad').value;
+    var metodologia = document.getElementById('f-metodologia').value;
+    var serie = generateSeries(codigo, programa, modalidad, metodologia);
+    var ultimo = serie[serie.length-1];
+
+    document.getElementById('r-nombre').textContent = codigo+' — '+RATES[codigo].nombre;
+    document.getElementById('r-valor').textContent = ultimo.valor.toFixed(2)+'%';
+    document.getElementById('r-base').textContent = fmtNum.format(ultimo.base);
+    document.getElementById('r-conteo').textContent = fmtNum.format(ultimo.conteo);
+
+    renderSeriesTable(serie, codigo);
+    renderQuantityChart(serie);
+    renderPercentChart(serie, codigo);
+    if(!silent) toast(codigo+' consultada para '+programa+' ('+modalidad+' · '+metodologia+'): '+ultimo.valor.toFixed(2)+'% en '+ultimo.periodo);
+  }
 
   document.getElementById('rate-form').addEventListener('submit', function(e){
     e.preventDefault();
-    var codigo = document.getElementById('f-tasa').value;
-    var programa = document.getElementById('f-programa').value;
-    var periodo = document.getElementById('f-periodo').value || '—';
-    var base = parseFloat(document.getElementById('f-base').value) || 0;
-    var conteo = parseFloat(document.getElementById('f-conteo').value) || 0;
-    var valor = base > 0 ? (conteo/base)*100 : 0;
-
-    document.getElementById('r-nombre').textContent = codigo+' — '+RATES[codigo].nombre;
-    document.getElementById('r-valor').textContent = valor.toFixed(2)+'%';
-    document.getElementById('r-base').textContent = fmtNum.format(base);
-    document.getElementById('r-conteo').textContent = fmtNum.format(conteo);
-
-    HISTORY.unshift({codigo:codigo, programa:programa, periodo:periodo, base:base, conteo:conteo, valor:+valor.toFixed(2)});
-    renderHistory();
-    renderCompareChart();
-    toast(codigo+' calculada para '+programa+': '+valor.toFixed(2)+'%');
+    consultarTasa(false);
   });
 
-  function renderHistory(){
-    document.getElementById('history-body').innerHTML = HISTORY.slice(0,8).map(function(h){
-      var color = RATES[h.codigo].grupo==='permanencia' ? 'var(--accent-strong)' : 'var(--danger)';
-      return '<tr><td><span class="badge" style="background:var(--surface-alt); color:var(--text);">'+h.codigo+'</span></td>'+
-        '<td>'+h.programa+'</td><td class="mono">'+h.periodo+'</td>'+
-        '<td class="mono">'+fmtNum.format(h.base)+'</td><td class="mono">'+fmtNum.format(h.conteo)+'</td>'+
-        '<td class="mono" style="color:'+color+'; font-weight:600;">'+h.valor.toFixed(2)+'%</td></tr>';
+  function renderSeriesTable(serie, codigo){
+    var color = RATES[codigo].grupo==='permanencia' ? 'var(--accent-strong)' : 'var(--danger)';
+    document.getElementById('series-body').innerHTML = serie.slice().reverse().map(function(s){
+      return '<tr><td class="mono">'+s.periodo+'</td>'+
+        '<td class="mono">'+fmtNum.format(s.base)+'</td><td class="mono">'+fmtNum.format(s.conteo)+'</td>'+
+        '<td class="mono" style="color:'+color+'; font-weight:600;">'+s.valor.toFixed(2)+'%</td></tr>';
     }).join('');
   }
 
-  function renderCompareChart(){
-    var svg = document.getElementById('compare-chart');
+  function renderQuantityChart(serie){
+    var svg = document.getElementById('quantity-chart');
+    var W=760,H=220, padL=48, padR=10, padT=14, padB=30;
+    var innerW=W-padL-padR, innerH=H-padT-padB;
+    var maxVal = Math.max(10, Math.max.apply(null, serie.map(function(s){return s.base;})));
+    var niceMax = Math.ceil(maxVal/50)*50;
+    var groupW = innerW/serie.length;
+    var barW = Math.min(16, groupW*0.3);
+    var parts = [];
+    for(var t=0;t<=4;t++){
+      var val = Math.round(niceMax/4*t);
+      var y = padT + innerH - (val/niceMax)*innerH;
+      parts.push('<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="var(--border)" stroke-width="1"/>');
+      parts.push('<text x="'+(padL-8)+'" y="'+(y+4)+'" text-anchor="end" class="bar-tooltip" fill="var(--text-muted)">'+fmtNum.format(val)+'</text>');
+    }
+    serie.forEach(function(s,i){
+      var cx = padL + i*groupW + groupW/2;
+      var hBase = (s.base/niceMax)*innerH;
+      var hConteo = (s.conteo/niceMax)*innerH;
+      var xBase = cx - barW - 2;
+      var xConteo = cx + 2;
+      parts.push('<rect x="'+xBase+'" y="'+(padT+innerH-hBase)+'" width="'+barW+'" height="'+hBase+'" rx="3" fill="var(--accent)"><title>'+s.periodo+' · base: '+fmtNum.format(s.base)+'</title></rect>');
+      parts.push('<rect x="'+xConteo+'" y="'+(padT+innerH-hConteo)+'" width="'+barW+'" height="'+hConteo+'" rx="3" fill="var(--gold)"><title>'+s.periodo+' · conteo: '+fmtNum.format(s.conteo)+'</title></rect>');
+      parts.push('<text x="'+cx+'" y="'+(H-10)+'" text-anchor="middle" class="bar-tooltip" fill="var(--text-muted)">'+s.periodo+'</text>');
+    });
+    svg.setAttribute('viewBox','0 0 '+W+' '+H);
+    svg.innerHTML = parts.join('');
+  }
+
+  function renderPercentChart(serie, codigo){
+    var svg = document.getElementById('percent-chart');
     var W=760,H=180, padL=42, padR=10, padT=14, padB=30;
     var innerW=W-padL-padR, innerH=H-padT-padB;
-    var items = HISTORY.slice(0,6).reverse();
-    var maxVal = Math.max(10, Math.max.apply(null, items.map(function(h){return h.valor;})));
+    var color = RATES[codigo].grupo==='permanencia' ? 'var(--accent)' : 'var(--danger)';
+    var maxVal = Math.max(10, Math.max.apply(null, serie.map(function(s){return s.valor;})));
     var niceMax = Math.ceil(maxVal/10)*10;
-    var groupW = innerW/items.length;
+    var groupW = innerW/serie.length;
     var barW = Math.min(36, groupW*0.42);
     var parts = [];
     for(var t=0;t<=4;t++){
@@ -1780,13 +1863,12 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
       parts.push('<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="var(--border)" stroke-width="1"/>');
       parts.push('<text x="'+(padL-8)+'" y="'+(y+4)+'" text-anchor="end" class="bar-tooltip" fill="var(--text-muted)">'+val+'%</text>');
     }
-    items.forEach(function(h,i){
+    serie.forEach(function(s,i){
       var x = padL + i*groupW + groupW/2 - barW/2;
-      var hgt = (h.valor/niceMax)*innerH;
-      var color = RATES[h.codigo].grupo==='permanencia' ? 'var(--accent)' : 'var(--danger)';
-      parts.push('<rect x="'+x+'" y="'+(padT+innerH-hgt)+'" width="'+barW+'" height="'+hgt+'" rx="4" fill="'+color+'"><title>'+h.codigo+' · '+h.programa+': '+h.valor.toFixed(2)+'%</title></rect>');
-      parts.push('<text x="'+(x+barW/2)+'" y="'+(padT+innerH-hgt-8)+'" text-anchor="middle" class="bar-tooltip" fill="var(--text)">'+h.valor.toFixed(1)+'%</text>');
-      parts.push('<text x="'+(x+barW/2)+'" y="'+(H-10)+'" text-anchor="middle" class="bar-tooltip" fill="var(--text-muted)">'+h.codigo+'</text>');
+      var hgt = (s.valor/niceMax)*innerH;
+      parts.push('<rect x="'+x+'" y="'+(padT+innerH-hgt)+'" width="'+barW+'" height="'+hgt+'" rx="4" fill="'+color+'"><title>'+s.periodo+': '+s.valor.toFixed(2)+'%</title></rect>');
+      parts.push('<text x="'+(x+barW/2)+'" y="'+(padT+innerH-hgt-8)+'" text-anchor="middle" class="bar-tooltip" fill="var(--text)">'+s.valor.toFixed(1)+'%</text>');
+      parts.push('<text x="'+(x+barW/2)+'" y="'+(H-10)+'" text-anchor="middle" class="bar-tooltip" fill="var(--text-muted)">'+s.periodo+'</text>');
     });
     svg.setAttribute('viewBox','0 0 '+W+' '+H);
     svg.innerHTML = parts.join('');
@@ -1926,13 +2008,12 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   renderUsers();
   renderMatrix();
   renderTemplates();
-  renderHistory();
+  consultarTasa(true);
   renderMainChart('mensual');
-  renderCompareChart();
 
   window.addEventListener('resize', function(){
     renderMainChart(document.querySelector('#chart-period button.active').dataset.period);
-    renderCompareChart();
+    consultarTasa(true);
   });
 })();
 </script>
