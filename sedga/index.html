@@ -171,6 +171,7 @@ a{ color:var(--accent-strong); }
 
 .row-split{ display:grid; grid-template-columns: 1.55fr 1fr; gap:18px; align-items:start; }
 #view-plantillas .row-split{ grid-template-columns: 1.15fr 1fr; }
+.estados-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; }
 
 .seg{ display:inline-flex; background:var(--surface-alt); border-radius:9px; padding:3px; gap:2px; }
 .seg button{ border:none; background:none; padding:6px 13px; font-size:0.8rem; font-weight:600; color:var(--text-muted); border-radius:7px; cursor:pointer; font-family:inherit; }
@@ -200,7 +201,6 @@ tbody tr:last-child td{ border-bottom:none; }
 .badge.role-extra-c{ background:var(--danger-soft); color:var(--danger); }
 .badge.role-extra-d{ background:var(--accent-soft); color:var(--accent); }
 .badge.ok{ background:var(--success-soft); color:var(--success); }
-.badge.info{ background:var(--accent-soft); color:var(--accent); }
 .badge.warn{ background:var(--warning-soft); color:var(--warning); }
 .badge.err{ background:var(--danger-soft); color:var(--danger); }
 .dot-status{ width:7px; height:7px; border-radius:50%; display:inline-block; background:currentColor; }
@@ -410,7 +410,9 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   .brand{ padding:0 8px 0 0; }
   .kpi-grid{ grid-template-columns:1fr 1fr; }
   .row-split{ grid-template-columns:1fr; }
+  #view-plantillas .row-split{ grid-template-columns:1fr; }
   .form-grid{ grid-template-columns:1fr; }
+  .estados-grid{ grid-template-columns:1fr; }
 }
 
 /* Teléfonos: el menú lateral se convierte en una barra de navegación inferior,
@@ -825,22 +827,24 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
                 <div>Elige el tipo, sube el archivo y Sedga lo revisa solo. Si todo está bien, queda listo para Consultar tasas.</div>
               </div>
 
-              <div style="display:flex; flex-direction:column; gap:8px; font-size:0.8rem; color:var(--text-muted); line-height:1.4;">
-                <div style="font-weight:600; color:var(--text); font-size:0.85rem;">Estados de una plantilla</div>
-                <div style="display:flex; flex-direction:column; gap:3px;">
-                  <span class="badge info" style="align-self:flex-start; white-space:nowrap;"><span class="dot-status"></span>En proceso</span>
-                  <span>Sedga la está validando; en segundos pasa sola a otro estado.</span>
-                </div>
-                <div style="display:flex; flex-direction:column; gap:3px;">
-                  <span class="badge ok" style="align-self:flex-start;"><span class="dot-status"></span>Procesada</span>
-                  <span>Lista para usarse en el cálculo de tasas.</span>
-                </div>
-                <div style="display:flex; flex-direction:column; gap:3px;">
-                  <span class="badge warn" style="align-self:flex-start; white-space:nowrap;"><span class="dot-status"></span>Con novedades</span>
-                  <span>Hay inconsistencias: revisa el ícono de "Detalle", corrígelas y vuelve a cargar.</span>
-                </div>
-              </div>
+            </div>
+          </div>
+        </div>
 
+        <div class="panel">
+          <div class="panel-head"><h2>Estados de una plantilla</h2></div>
+          <div class="panel-body estados-grid">
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <span class="badge warn" style="align-self:flex-start; white-space:nowrap;"><span class="dot-status"></span>En proceso</span>
+              <span style="font-size:0.8rem; color:var(--text-muted); line-height:1.4;">Sedga la está validando; en segundos pasa sola a otro estado.</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <span class="badge ok" style="align-self:flex-start;"><span class="dot-status"></span>Procesada</span>
+              <span style="font-size:0.8rem; color:var(--text-muted); line-height:1.4;">Lista para usarse en el cálculo de tasas.</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <span class="badge err" style="align-self:flex-start; white-space:nowrap;"><span class="dot-status"></span>Con novedades</span>
+              <span style="font-size:0.8rem; color:var(--text-muted); line-height:1.4;">Hay inconsistencias: revisa el ícono de "Detalle", corrígelas y vuelve a cargar.</span>
             </div>
           </div>
         </div>
@@ -1691,7 +1695,7 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     {name:'Programas_snies.xlsx', type:'Programas', rows:'184', by:'Camila Herrera', date:'30 ago 2026', status:'ok'},
     {name:'Unoauno_matriculados_nov.xlsx', type:'Matriculados', rows:'—', by:'David Cárdenas', date:'3 nov 2026', status:'proceso'}
   ];
-  var STATUS_T = {ok:['ok','Procesada'], issue:['warn','Con novedades'], proceso:['info','En proceso']};
+  var STATUS_T = {ok:['ok','Procesada'], issue:['err','Con novedades'], proceso:['warn','En proceso']};
   var ICON_WARNING = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
 
   function renderTemplates(){
