@@ -807,11 +807,34 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 
           <div class="panel">
             <div class="panel-head"><h2>Guía de validación</h2></div>
-            <div class="panel-body" style="display:flex; flex-direction:column; gap:12px; font-size:0.85rem; color:var(--text-muted); line-height:1.6;">
-              <div><strong style="color:var(--text)">1. Formato</strong><br>Cada tipo de plantilla tiene su propia estructura: primer curso y matriculados registran estudiante, programa y periodo; graduados agrega fecha de grado; programas trae el catálogo SNIES.</div>
-              <div><strong style="color:var(--text)">2. Validación</strong><br>Sedga revisa códigos de programa, periodos y duplicados antes de aceptar la plantilla.</div>
-              <div><strong style="color:var(--text)">3. Mapeo</strong><br>Las columnas se asocian a los campos que usa el motor de cálculo de tasas.</div>
-              <div><strong style="color:var(--text)">4. Confirmación</strong><br>La plantilla queda disponible para el módulo de cálculo de tasas.</div>
+            <div class="panel-body" style="display:flex; flex-direction:column; gap:18px;">
+
+              <div style="display:flex; flex-direction:column; gap:10px; padding:14px; border:1px solid var(--border); border-radius:12px; background:var(--surface-alt);">
+                <div style="font-size:0.85rem; font-weight:600; color:var(--text);">¿No tienes el archivo listo?</div>
+                <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.5;">Descarga la plantilla vacía para <strong id="guide-template-type">Primer curso</strong> con las columnas exactas que Sedga espera, complétala en Excel y cárgala desde aquí.</div>
+                <button type="button" class="btn btn-ghost btn-sm" id="btn-download-template" style="align-self:flex-start;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16.5V18a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1.5"/></svg>
+                  Descargar plantilla vacía (.csv)
+                </button>
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:6px; font-size:0.85rem; color:var(--text-muted); line-height:1.6;">
+                <div style="font-weight:600; color:var(--text);">¿Cómo funciona este módulo?</div>
+                <div>Elige el tipo de plantilla, sube el archivo con esa misma estructura y Sedga revisa automáticamente los códigos de programa, los periodos y los duplicados. Si todo está en orden, la plantilla queda disponible de inmediato para el módulo de Consultar tasas.</div>
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:10px; font-size:0.85rem; color:var(--text-muted); line-height:1.6;">
+                <div style="font-weight:600; color:var(--text);">Estados de una plantilla</div>
+                <div style="display:flex; align-items:flex-start; gap:9px;">
+                  <span class="badge ok" style="margin-top:1px; flex:none;"><span class="dot-status"></span>Procesada</span>
+                  <span>Pasó todas las validaciones y ya se puede usar para calcular tasas. No necesitas hacer nada más.</span>
+                </div>
+                <div style="display:flex; align-items:flex-start; gap:9px;">
+                  <span class="badge warn" style="margin-top:1px; flex:none; white-space:nowrap;"><span class="dot-status"></span>Con novedades</span>
+                  <span>Sedga encontró inconsistencias (datos vacíos, duplicados o códigos que no existen). Haz clic en el ícono de la columna "Detalle" para verlas, corrígelas en tu archivo de origen y vuelve a cargarlo.</span>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
@@ -1595,6 +1618,62 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   document.getElementById('btn-new-role').addEventListener('click', function(){ openRoleModal(); });
 
   /* ---------------- Plantillas ---------------- */
+  var TEMPLATE_COLUMNS = {
+    'Primer curso': ['Documento de identidad','Nombre completo','Código del programa','Programa','Periodo académico'],
+    'Matriculados': ['Documento de identidad','Nombre completo','Código del programa','Programa','Periodo académico'],
+    'Graduados': ['Documento de identidad','Nombre completo','Código del programa','Programa','Periodo académico','Fecha de grado'],
+    'Programas': ['Código SNIES','Nombre del programa','Nivel de formación','Modalidad','Metodología']
+  };
+
+  function buildTemplateCsv(tipo){
+    var cols = TEMPLATE_COLUMNS[tipo] || ['Columna 1'];
+    var lines = [cols.join(';')];
+    for(var i=0;i<6;i++){ lines.push(cols.map(function(){ return ''; }).join(';')); }
+    return lines.join('\r\n');
+  }
+
+  function descargarPlantillaVacia(tipo){
+    var filename = 'Plantilla_'+tipo.replace(/\s+/g,'_')+'.csv';
+    var blob = new Blob(['﻿'+buildTemplateCsv(tipo)], {type:'text/csv;charset=utf-8;'});
+
+    function classicDownload(){
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+      toast('Plantilla vacía de "'+tipo+'" descargada');
+    }
+
+    if(window.claude && typeof window.claude.use === 'function'){
+      window.claude.use('downloads').then(function(downloads){
+        if(!downloads){ classicDownload(); return; }
+        return downloads.save({filename:filename, data:blob}).then(function(){
+          toast('Plantilla vacía de "'+tipo+'" descargada');
+        });
+      }).catch(function(err){
+        if(err && err.code === 'declined') return;
+        classicDownload();
+      });
+    } else {
+      classicDownload();
+    }
+  }
+
+  function syncGuideTemplateType(){
+    var tipo = document.getElementById('template-type').value;
+    document.getElementById('guide-template-type').textContent = tipo;
+  }
+  document.getElementById('template-type').addEventListener('change', syncGuideTemplateType);
+  syncGuideTemplateType();
+
+  document.getElementById('btn-download-template').addEventListener('click', function(){
+    descargarPlantillaVacia(document.getElementById('template-type').value);
+  });
+
   var TEMPLATES = [
     {name:'UnoAUno_Estudiantes_Primer_Curso.xlsx', type:'Primer curso', rows:'9,119', by:'Camila Herrera', date:'27 oct 2026', status:'ok'},
     {name:'Unoauno_matriculados.xlsx', type:'Matriculados', rows:'58,402', by:'Julián Rendón', date:'22 sep 2026', status:'ok'},
