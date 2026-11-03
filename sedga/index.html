@@ -199,6 +199,7 @@ tbody tr:last-child td{ border-bottom:none; }
 .badge.role-extra-c{ background:var(--danger-soft); color:var(--danger); }
 .badge.role-extra-d{ background:var(--accent-soft); color:var(--accent); }
 .badge.ok{ background:var(--success-soft); color:var(--success); }
+.badge.info{ background:var(--accent-soft); color:var(--accent); }
 .badge.warn{ background:var(--warning-soft); color:var(--warning); }
 .badge.err{ background:var(--danger-soft); color:var(--danger); }
 .dot-status{ width:7px; height:7px; border-radius:50%; display:inline-block; background:currentColor; }
@@ -825,6 +826,10 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 
               <div style="display:flex; flex-direction:column; gap:10px; font-size:0.85rem; color:var(--text-muted); line-height:1.6;">
                 <div style="font-weight:600; color:var(--text);">Estados de una plantilla</div>
+                <div style="display:flex; align-items:flex-start; gap:9px;">
+                  <span class="badge info" style="margin-top:1px; flex:none; white-space:nowrap;"><span class="dot-status"></span>En proceso</span>
+                  <span>Sedga está validando el archivo (códigos de programa, periodos y duplicados). Es momentáneo: la plantilla cambiará sola a "Procesada" o "Con novedades" en cuanto termine, sin que tengas que recargar nada.</span>
+                </div>
                 <div style="display:flex; align-items:flex-start; gap:9px;">
                   <span class="badge ok" style="margin-top:1px; flex:none;"><span class="dot-status"></span>Procesada</span>
                   <span>Pasó todas las validaciones y ya se puede usar para calcular tasas. No necesitas hacer nada más.</span>
@@ -1682,9 +1687,10 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
       '12 códigos de programa no coinciden con el catálogo SNIES.',
       'Se encontraron 3 filas duplicadas para el mismo estudiante y periodo.'
     ]},
-    {name:'Programas_snies.xlsx', type:'Programas', rows:'184', by:'Camila Herrera', date:'30 ago 2026', status:'ok'}
+    {name:'Programas_snies.xlsx', type:'Programas', rows:'184', by:'Camila Herrera', date:'30 ago 2026', status:'ok'},
+    {name:'Unoauno_matriculados_nov.xlsx', type:'Matriculados', rows:'—', by:'David Cárdenas', date:'3 nov 2026', status:'proceso'}
   ];
-  var STATUS_T = {ok:['ok','Procesada'], issue:['warn','Con novedades']};
+  var STATUS_T = {ok:['ok','Procesada'], issue:['warn','Con novedades'], proceso:['info','En proceso']};
   var ICON_WARNING = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
 
   function renderTemplates(){
@@ -1770,11 +1776,21 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
       if(p>55) renderUploadSteps(2);
       if(p>=100){
         renderUploadSteps(3);
-        TEMPLATES.unshift({name:name, type:tipo, rows: fmtNum.format(Math.floor(Math.random()*4000)+500), by:'Tú', date:'28 oct 2026', status:'ok'});
+        var rowCount = fmtNum.format(Math.floor(Math.random()*4000)+500);
+        TEMPLATES.unshift({name:name, type:tipo, rows:'—', by:'Tú', date:'28 oct 2026', status:'proceso'});
         renderTemplates();
-        toast('Plantilla "'+name+'" ('+tipo+') cargada y validada correctamente');
+        toast('Plantilla "'+name+'" ('+tipo+') cargada, Sedga la está validando');
         uploading = false;
         setTimeout(function(){ wrap.hidden = true; renderUploadSteps(-1); }, 1600);
+        setTimeout(function(){
+          var t = TEMPLATES[0];
+          if(t && t.name===name && t.status==='proceso'){
+            t.status = 'ok';
+            t.rows = rowCount;
+            renderTemplates();
+            toast('Plantilla "'+name+'" ('+tipo+') validada correctamente');
+          }
+        }, 3200);
       }
     }, 260);
   }
