@@ -170,6 +170,7 @@ a{ color:var(--accent-strong); }
 .panel-body{ padding:18px 20px; }
 
 .row-split{ display:grid; grid-template-columns: 1.55fr 1fr; gap:18px; align-items:start; }
+#view-plantillas .row-split{ grid-template-columns: 1.15fr 1fr; }
 
 .seg{ display:inline-flex; background:var(--surface-alt); border-radius:9px; padding:3px; gap:2px; }
 .seg button{ border:none; background:none; padding:6px 13px; font-size:0.8rem; font-weight:600; color:var(--text-muted); border-radius:7px; cursor:pointer; font-family:inherit; }
@@ -808,35 +809,35 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 
           <div class="panel">
             <div class="panel-head"><h2>Guía de validación</h2></div>
-            <div class="panel-body" style="display:flex; flex-direction:column; gap:18px;">
+            <div class="panel-body" style="display:flex; flex-direction:column; gap:14px;">
 
-              <div style="display:flex; flex-direction:column; gap:10px; padding:14px; border:1px solid var(--border); border-radius:12px; background:var(--surface-alt);">
+              <div style="display:flex; flex-direction:column; gap:8px; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:var(--surface-alt);">
                 <div style="font-size:0.85rem; font-weight:600; color:var(--text);">¿No tienes el archivo listo?</div>
-                <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.5;">Descarga la plantilla vacía para <strong id="guide-template-type">Primer curso</strong> con las columnas exactas que Sedga espera, complétala en Excel y cárgala desde aquí.</div>
+                <div style="font-size:0.8rem; color:var(--text-muted); line-height:1.45;">Descarga la plantilla vacía para <strong id="guide-template-type">Primer curso</strong>, complétala y cárgala aquí.</div>
                 <button type="button" class="btn btn-ghost btn-sm" id="btn-download-template" style="align-self:flex-start;">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16.5V18a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1.5"/></svg>
                   Descargar plantilla vacía (.csv)
                 </button>
               </div>
 
-              <div style="display:flex; flex-direction:column; gap:6px; font-size:0.85rem; color:var(--text-muted); line-height:1.6;">
-                <div style="font-weight:600; color:var(--text);">¿Cómo funciona este módulo?</div>
-                <div>Elige el tipo de plantilla, sube el archivo con esa misma estructura y Sedga revisa automáticamente los códigos de programa, los periodos y los duplicados. Si todo está en orden, la plantilla queda disponible de inmediato para el módulo de Consultar tasas.</div>
+              <div style="display:flex; flex-direction:column; gap:4px; font-size:0.8rem; color:var(--text-muted); line-height:1.45;">
+                <div style="font-weight:600; color:var(--text); font-size:0.85rem;">¿Cómo funciona este módulo?</div>
+                <div>Elige el tipo, sube el archivo y Sedga lo revisa solo. Si todo está bien, queda listo para Consultar tasas.</div>
               </div>
 
-              <div style="display:flex; flex-direction:column; gap:10px; font-size:0.85rem; color:var(--text-muted); line-height:1.6;">
-                <div style="font-weight:600; color:var(--text);">Estados de una plantilla</div>
-                <div style="display:flex; align-items:flex-start; gap:9px;">
-                  <span class="badge info" style="margin-top:1px; flex:none; white-space:nowrap;"><span class="dot-status"></span>En proceso</span>
-                  <span>Sedga está validando el archivo (códigos de programa, periodos y duplicados). Es momentáneo: la plantilla cambiará sola a "Procesada" o "Con novedades" en cuanto termine, sin que tengas que recargar nada.</span>
+              <div style="display:flex; flex-direction:column; gap:8px; font-size:0.8rem; color:var(--text-muted); line-height:1.4;">
+                <div style="font-weight:600; color:var(--text); font-size:0.85rem;">Estados de una plantilla</div>
+                <div style="display:flex; flex-direction:column; gap:3px;">
+                  <span class="badge info" style="align-self:flex-start; white-space:nowrap;"><span class="dot-status"></span>En proceso</span>
+                  <span>Sedga la está validando; en segundos pasa sola a otro estado.</span>
                 </div>
-                <div style="display:flex; align-items:flex-start; gap:9px;">
-                  <span class="badge ok" style="margin-top:1px; flex:none;"><span class="dot-status"></span>Procesada</span>
-                  <span>Pasó todas las validaciones y ya se puede usar para calcular tasas. No necesitas hacer nada más.</span>
+                <div style="display:flex; flex-direction:column; gap:3px;">
+                  <span class="badge ok" style="align-self:flex-start;"><span class="dot-status"></span>Procesada</span>
+                  <span>Lista para usarse en el cálculo de tasas.</span>
                 </div>
-                <div style="display:flex; align-items:flex-start; gap:9px;">
-                  <span class="badge warn" style="margin-top:1px; flex:none; white-space:nowrap;"><span class="dot-status"></span>Con novedades</span>
-                  <span>Sedga encontró inconsistencias (datos vacíos, duplicados o códigos que no existen). Haz clic en el ícono de la columna "Detalle" para verlas, corrígelas en tu archivo de origen y vuelve a cargarlo.</span>
+                <div style="display:flex; flex-direction:column; gap:3px;">
+                  <span class="badge warn" style="align-self:flex-start; white-space:nowrap;"><span class="dot-status"></span>Con novedades</span>
+                  <span>Hay inconsistencias: revisa el ícono de "Detalle", corrígelas y vuelve a cargar.</span>
                 </div>
               </div>
 
