@@ -309,6 +309,7 @@ input:focus, select:focus, button:focus-visible{ outline:2px solid var(--accent)
 label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex; flex-direction:column; gap:6px; }
 
 .btn{ border:none; border-radius:9px; padding:10px 18px; font-weight:600; font-size:0.88rem; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:7px; }
+.btn:disabled{ opacity:0.45; cursor:not-allowed; }
 .btn-sm{ padding:8px 14px; font-size:0.82rem; }
 .btn-primary{ background:var(--accent); color:#fff; }
 .btn-primary:hover{ background:var(--accent-strong); }
@@ -955,9 +956,16 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
           </div>
           <div class="panel-body table-scroll">
             <table>
-              <thead><tr><th>Documento</th><th>Nombre completo</th><th>Programa</th><th>Periodo</th><th id="th-estado">Estado</th></tr></thead>
+              <thead><tr><th>Documento</th><th>Programa</th><th>Periodo</th><th>Correo</th><th>Teléfono</th><th id="th-estado">Estado</th></tr></thead>
               <tbody id="students-body"></tbody>
             </table>
+          </div>
+          <div class="panel-body" style="display:flex; align-items:center; justify-content:space-between; gap:12px; border-top:1px solid var(--border); padding-top:14px;">
+            <div class="hint" id="students-page-label">—</div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="btn btn-ghost btn-sm" id="students-prev">Anterior</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="students-next">Siguiente</button>
+            </div>
           </div>
         </div>
       </section>
@@ -1913,12 +1921,15 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 
   function generateStudentList(codigo, institucion, facultad, programa, periodo, count){
     var rnd = seededRandom('alumnos|'+codigo+'|'+institucion+'|'+facultad+'|'+programa+'|'+periodo);
-    var n = Math.min(count, 60);
+    var n = Math.min(count, 200);
     var list = [];
     for(var i=0;i<n;i++){
       var nombre = FIRST_NAMES[Math.floor(rnd()*FIRST_NAMES.length)]+' '+LAST_NAMES[Math.floor(rnd()*LAST_NAMES.length)];
       var documento = String(Math.floor(100000000 + rnd()*900000000));
-      list.push({documento:documento, nombre:nombre, programa:programa, periodo:periodo});
+      var correo = nombre.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'.')+Math.floor(rnd()*90+10)+'@estudiantes.sedga.co';
+      var telefono = '3'+String(Math.floor(rnd()*9*10000000+1*10000000)).padStart(9,'0');
+      telefono = telefono.slice(0,3)+' '+telefono.slice(3,6)+' '+telefono.slice(6);
+      list.push({documento:documento, programa:programa, periodo:periodo, correo:correo, telefono:telefono});
     }
     return list;
   }
@@ -1962,18 +1973,45 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     document.getElementById('chart-porcentual').classList.toggle('active', btn.dataset.chart==='porcentual');
   });
 
+  var STUDENTS_PAGE_SIZE = 10;
+  var studentsList = [];
+  var studentsEtiqueta = '';
+  var studentsBadgeClass = 'ok';
+  var studentsPage = 1;
+
   function renderStudentsTable(codigo, institucion, facultad, programa, ultimo){
-    var etiqueta = RATES[codigo].etiqueta;
-    var badgeClass = RATES[codigo].grupo==='permanencia' ? 'ok' : 'err';
-    var list = generateStudentList(codigo, institucion, facultad, programa, ultimo.periodo, ultimo.conteo);
-    document.getElementById('students-title').textContent = 'Estudiantes · '+etiqueta+'s en '+ultimo.periodo;
-    document.getElementById('students-hint').textContent = fmtNum.format(ultimo.conteo)+' estudiantes en total'+(ultimo.conteo>list.length ? ' · mostrando los primeros '+list.length : '');
-    document.getElementById('th-estado').textContent = 'Estado';
-    document.getElementById('students-body').innerHTML = list.map(function(s){
-      return '<tr><td class="mono">'+s.documento+'</td><td>'+s.nombre+'</td><td>'+s.programa+'</td>'+
-        '<td class="mono">'+s.periodo+'</td><td><span class="badge '+badgeClass+'"><span class="dot-status"></span>'+etiqueta+'</span></td></tr>';
-    }).join('');
+    studentsEtiqueta = RATES[codigo].etiqueta;
+    studentsBadgeClass = RATES[codigo].grupo==='permanencia' ? 'ok' : 'err';
+    studentsList = generateStudentList(codigo, institucion, facultad, programa, ultimo.periodo, ultimo.conteo);
+    studentsPage = 1;
+    document.getElementById('students-title').textContent = 'Estudiantes · '+studentsEtiqueta+'s en '+ultimo.periodo;
+    document.getElementById('students-hint').textContent = fmtNum.format(ultimo.conteo)+' estudiantes en total'+(ultimo.conteo>studentsList.length ? ' · mostrando los primeros '+studentsList.length : '');
+    renderStudentsPage();
   }
+
+  function renderStudentsPage(){
+    var totalPages = Math.max(1, Math.ceil(studentsList.length / STUDENTS_PAGE_SIZE));
+    studentsPage = Math.min(Math.max(1, studentsPage), totalPages);
+    var start = (studentsPage-1) * STUDENTS_PAGE_SIZE;
+    var pageItems = studentsList.slice(start, start + STUDENTS_PAGE_SIZE);
+    document.getElementById('students-body').innerHTML = pageItems.map(function(s){
+      return '<tr><td class="mono">'+s.documento+'</td><td>'+s.programa+'</td>'+
+        '<td class="mono">'+s.periodo+'</td><td>'+s.correo+'</td><td class="mono">'+s.telefono+'</td>'+
+        '<td><span class="badge '+studentsBadgeClass+'"><span class="dot-status"></span>'+studentsEtiqueta+'</span></td></tr>';
+    }).join('');
+    document.getElementById('students-page-label').textContent = studentsList.length
+      ? 'Página '+studentsPage+' de '+totalPages
+      : 'Sin estudiantes para mostrar';
+    document.getElementById('students-prev').disabled = studentsPage <= 1;
+    document.getElementById('students-next').disabled = studentsPage >= totalPages;
+  }
+
+  document.getElementById('students-prev').addEventListener('click', function(){
+    studentsPage--; renderStudentsPage();
+  });
+  document.getElementById('students-next').addEventListener('click', function(){
+    studentsPage++; renderStudentsPage();
+  });
 
   function renderQuantityChart(serie){
     var svg = document.getElementById('quantity-chart');
