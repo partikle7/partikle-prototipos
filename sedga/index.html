@@ -927,12 +927,12 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
           <div class="panel-head">
             <h2>Evolución por semestre</h2>
             <div class="seg" id="chart-toggle">
-              <button type="button" class="active" data-chart="cantidades">Cantidades</button>
-              <button type="button" data-chart="porcentual">Porcentual</button>
+              <button type="button" data-chart="cantidades">Cantidades</button>
+              <button type="button" class="active" data-chart="porcentual">Porcentual</button>
             </div>
           </div>
           <div class="panel-body">
-            <div class="subview active" id="chart-cantidades">
+            <div class="subview" id="chart-cantidades">
               <div class="chart-wrap">
                 <svg id="quantity-chart" viewBox="0 0 760 220" style="width:100%; height:auto; overflow:visible;"></svg>
                 <div class="legend">
@@ -941,7 +941,7 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
                 </div>
               </div>
             </div>
-            <div class="subview" id="chart-porcentual">
+            <div class="subview active" id="chart-porcentual">
               <div class="chart-wrap">
                 <svg id="percent-chart" viewBox="0 0 760 180" style="width:100%; height:auto; overflow:visible;"></svg>
               </div>
