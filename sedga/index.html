@@ -186,6 +186,19 @@ button.detail-row:hover{ border-color:var(--accent); background:var(--accent-sof
 .detail-row .drl{ font-size:0.85rem; font-weight:600; }
 .detail-row .drs{ font-size:0.78rem; color:var(--text-muted); }
 
+.metrics-list{ display:flex; flex-direction:column; gap:10px; }
+.metric-row{
+  display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  padding:12px 14px; border:1px solid var(--border); border-radius:10px; cursor:pointer;
+  transition:border-color .15s, box-shadow .15s;
+}
+.metric-row:hover{ border-color:var(--accent); }
+.metric-row.active{ border-color:var(--accent-strong); box-shadow:0 0 0 2px var(--accent-soft); }
+.metric-row-left{ display:flex; align-items:center; gap:10px; }
+.metric-row-left .kpi-label{ text-transform:none; letter-spacing:0; font-size:0.85rem; }
+.metric-row-right{ display:flex; align-items:center; gap:10px; }
+.metric-row-right .kpi-value{ font-size:1.1rem; }
+
 /* ---------- Panels ---------- */
 .panel{ background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); min-width:0; }
 .panel-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 20px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
@@ -693,6 +706,13 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 
         <div class="kpi-grid" id="kpi-grid"></div>
 
+        <div class="panel">
+          <div class="panel-head"><h2>Otras métricas</h2></div>
+          <div class="panel-body">
+            <div class="metrics-list" id="metrics-list"></div>
+          </div>
+        </div>
+
         <div class="panel" id="resumen-detail" hidden>
           <div class="panel-head">
             <div>
@@ -705,46 +725,13 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
         </div>
 
         <div class="panel">
-          <div class="panel-head">
-            <div>
-              <h2>Deserción vs. graduación</h2>
-              <div class="hint">TDA y TGA agregadas por programa, según periodo</div>
-            </div>
-            <div class="seg" id="chart-period">
-              <button class="active" data-period="mensual">Semestral</button>
-              <button data-period="trimestral">Anual</button>
-            </div>
-          </div>
-          <div class="panel-body">
-            <div class="chart-wrap">
-              <svg id="bar-chart" viewBox="0 0 760 260" style="width:100%; height:auto; overflow:visible;"></svg>
-              <div class="legend">
-                <span><i style="background:var(--danger)"></i>TDA · Deserción anual</span>
-                <span><i style="background:var(--accent)"></i>TGA · Graduación acumulada</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="row-split">
-          <div class="panel">
-            <div class="panel-head"><h2>Actividad reciente</h2></div>
-            <div class="panel-body table-scroll">
-              <table>
-                <thead><tr><th>Evento</th><th>Módulo</th><th>Usuario</th><th>Fecha</th></tr></thead>
-                <tbody id="activity-body"></tbody>
-              </table>
-            </div>
-          </div>
-          <div class="panel">
-            <div class="panel-head"><h2>Estado del flujo</h2></div>
-            <div class="panel-body" style="display:flex; flex-direction:column; gap:16px;">
-              <div class="steps-mini" id="flow-mini"></div>
-              <p style="margin:0; font-size:0.84rem; color:var(--text-muted); line-height:1.6;">
-                El flujo completo inicia asignando roles y permisos, continúa con el cargue y validación de la plantilla de datos,
-                y finaliza con el cálculo de tasas y la consulta de resultados consolidados.
-              </p>
-            </div>
+          <div class="panel-head"><h2>Estado del flujo</h2></div>
+          <div class="panel-body" style="display:flex; flex-direction:column; gap:16px;">
+            <div class="steps-mini" id="flow-mini"></div>
+            <p style="margin:0; font-size:0.84rem; color:var(--text-muted); line-height:1.6;">
+              El flujo completo inicia asignando roles y permisos, continúa con el cargue y validación de la plantilla de datos,
+              y finaliza con el cálculo de tasas y la consulta de resultados consolidados.
+            </p>
           </div>
         </div>
       </section>
@@ -1194,19 +1181,32 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     {id:'bienvenida', type:'hero'},
     {id:'plantillas', type:'metric', icon:'file'},
     {id:'tasas', type:'metric', icon:'bolt'},
-    {id:'periodo', type:'metric', icon:'calendar'},
-    {id:'usuarios-activos', type:'metric', icon:'users', label:'Usuarios activos', value:'27', delta:'+3 este mes', up:true},
-    {id:'tiempo-calculo', type:'metric', icon:'clock', label:'Tiempo prom. de cálculo', value:'1.8 s', delta:'-0.3 s', up:true},
-    {id:'plantillas-novedades', type:'metric', icon:'alert'},
-    {id:'proximo-periodo', type:'metric', icon:'calendarNext'}
+    {id:'periodo', type:'metric', icon:'calendar'}
   ];
+
+  var METRIC_LIST = [
+    {id:'usuarios-activos', icon:'users', label:'Usuarios activos', value:'27', delta:'+3 este mes', up:true},
+    {id:'tiempo-calculo', icon:'clock', label:'Tiempo prom. de cálculo', value:'1.8 s', delta:'-0.3 s', up:true},
+    {id:'plantillas-novedades', icon:'alert'},
+    {id:'proximo-periodo', icon:'calendarNext'}
+  ];
+
+  function metricValues(c, period, nextPeriod, rateInfo, issuesCount){
+    if(c.id==='plantillas-novedades'){
+      return {label:'Plantillas con novedades', value:String(issuesCount),
+        delta: issuesCount ? 'Requieren revisión' : 'Sin novedades', up: issuesCount===0};
+    }
+    if(c.id==='proximo-periodo'){
+      return {label:'Próximo periodo', value: nextPeriod ? periodLabel(nextPeriod) : '—',
+        delta: nextPeriod ? 'Abre '+fmtDate(nextPeriod.open_date) : 'No definido', up:true};
+    }
+    return {label:c.label, value:c.value, delta:c.delta, up:c.up};
+  }
 
   function renderKpis(){
     var el = document.getElementById('kpi-grid');
     var period = getRelevantPeriod();
-    var nextPeriod = getNextPeriod(period);
     var rateInfo = getRateUpdateInfo();
-    var issuesCount = TEMPLATES.filter(function(t){ return t.status==='issue'; }).length;
 
     el.innerHTML = KPI_CARDS.map(function(c){
       if(c.type==='hero'){
@@ -1227,19 +1227,28 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
       } else if(c.id==='periodo'){
         label = 'Periodo activo'; value = period ? periodLabel(period) : '—';
         delta = period ? fmtDate(period.open_date)+' – '+fmtDate(period.close_date) : '—'; up = true;
-      } else if(c.id==='plantillas-novedades'){
-        label = 'Plantillas con novedades'; value = String(issuesCount);
-        delta = issuesCount ? 'Requieren revisión' : 'Sin novedades'; up = issuesCount===0;
-      } else if(c.id==='proximo-periodo'){
-        label = 'Próximo periodo'; value = nextPeriod ? periodLabel(nextPeriod) : '—';
-        delta = nextPeriod ? 'Abre '+fmtDate(nextPeriod.open_date) : 'No definido'; up = true;
-      } else {
-        label = c.label; value = c.value; delta = c.delta; up = c.up;
       }
       return '<div class="kpi" data-card="'+c.id+'">'+
         '<div class="kpi-top"><span class="kpi-label">'+label+'</span><span class="kpi-icon">'+ICONS[c.icon]+'</span></div>'+
         '<span class="kpi-value">'+value+'</span>'+
         '<span class="kpi-delta '+(up?'up':'down')+'">'+(up?'▲':'▼')+' '+delta+'</span>'+
+      '</div>';
+    }).join('');
+  }
+
+  function renderMetricsList(){
+    var el = document.getElementById('metrics-list');
+    var period = getRelevantPeriod();
+    var nextPeriod = getNextPeriod(period);
+    var rateInfo = getRateUpdateInfo();
+    var issuesCount = TEMPLATES.filter(function(t){ return t.status==='issue'; }).length;
+
+    el.innerHTML = METRIC_LIST.map(function(c){
+      var m = metricValues(c, period, nextPeriod, rateInfo, issuesCount);
+      return '<div class="metric-row" data-card="'+c.id+'">'+
+        '<div class="metric-row-left"><span class="kpi-icon">'+ICONS[c.icon]+'</span><span class="kpi-label">'+m.label+'</span></div>'+
+        '<div class="metric-row-right"><span class="kpi-value">'+m.value+'</span>'+
+          '<span class="kpi-delta '+(m.up?'up':'down')+'">'+(m.up?'▲':'▼')+' '+m.delta+'</span></div>'+
       '</div>';
     }).join('');
   }
@@ -1358,25 +1367,29 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     }
   };
 
+  function resumenClickableEls(){
+    return document.querySelectorAll('#kpi-grid [data-card], #metrics-list [data-card]');
+  }
+
   function closeResumenDetail(){
     activeCardId = null;
     document.getElementById('resumen-detail').hidden = true;
-    document.querySelectorAll('#kpi-grid .kpi').forEach(function(k){ k.classList.remove('active'); });
+    resumenClickableEls().forEach(function(k){ k.classList.remove('active'); });
   }
 
   function openResumenDetail(id){
     var detail = RESUMEN_DETAILS[id];
     if(!detail) return;
     activeCardId = id;
-    document.querySelectorAll('#kpi-grid .kpi').forEach(function(k){ k.classList.toggle('active', k.dataset.card===id); });
+    resumenClickableEls().forEach(function(k){ k.classList.toggle('active', k.dataset.card===id); });
     document.getElementById('resumen-detail-title').textContent = detail.title;
     document.getElementById('resumen-detail-sub').textContent = detail.sub;
     document.getElementById('resumen-detail-body').innerHTML = detail.body();
     document.getElementById('resumen-detail').hidden = false;
   }
 
-  document.getElementById('kpi-grid').addEventListener('click', function(e){
-    var card = e.target.closest('.kpi');
+  document.getElementById('view-resumen').addEventListener('click', function(e){
+    var card = e.target.closest('[data-card]');
     if(!card) return;
     var id = card.dataset.card;
     if(activeCardId === id){ closeResumenDetail(); return; }
@@ -1387,83 +1400,6 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     var btn = e.target.closest('[data-goto-view]');
     if(btn) setView(btn.dataset.gotoView);
   });
-
-  /* ---------------- Bar chart (resumen) ---------------- */
-  var CHART_DATA = {
-    mensual: {
-      labels:['2021-2','2022-1','2022-2','2023-1','2023-2','2024-1'],
-      desercion:[11.8,10.9,10.2,9.6,8.9,8.3],
-      graduacion:[31,36,40,44,48,52]
-    },
-    trimestral: {
-      labels:['2020','2021','2022','2023'],
-      desercion:[12.4,11.2,10.0,8.8],
-      graduacion:[34,41,47,53]
-    }
-  };
-
-  function drawGroupedBars(svgId, dataset, colorA, colorB){
-    var svg = document.getElementById(svgId);
-    var W=760,H=260, padL=42, padR=10, padT=14, padB=30;
-    var innerW = W-padL-padR, innerH = H-padT-padB;
-    var n = dataset.labels.length;
-    var groupW = innerW/n;
-    var barW = Math.min(26, groupW*0.3);
-    var maxVal = Math.max.apply(null, dataset.desercion.concat(dataset.graduacion));
-    var niceMax = Math.ceil(maxVal/10)*10;
-    var ticks = 4;
-    var parts = [];
-
-    // gridlines + y labels
-    for(var t=0;t<=ticks;t++){
-      var val = niceMax/ticks*t;
-      var y = padT + innerH - (val/niceMax)*innerH;
-      parts.push('<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="var(--border)" stroke-width="1"/>');
-      parts.push('<text x="'+(padL-8)+'" y="'+(y+4)+'" text-anchor="end" class="bar-tooltip" fill="var(--text-muted)">'+val+'%</text>');
-    }
-
-    dataset.labels.forEach(function(lab, i){
-      var gx = padL + i*groupW;
-      var vA = dataset.desercion[i], vB = dataset.graduacion[i];
-      var hA = (vA/niceMax)*innerH, hB = (vB/niceMax)*innerH;
-      var xA = gx + groupW/2 - barW - 3;
-      var xB = gx + groupW/2 + 3;
-      parts.push('<rect x="'+xA+'" y="'+(padT+innerH-hA)+'" width="'+barW+'" height="'+hA+'" rx="3" fill="'+colorA+'"><title>'+lab+' · TDA: '+vA+'%</title></rect>');
-      parts.push('<rect x="'+xB+'" y="'+(padT+innerH-hB)+'" width="'+barW+'" height="'+hB+'" rx="3" fill="'+colorB+'"><title>'+lab+' · TGA: '+vB+'%</title></rect>');
-      parts.push('<text x="'+(gx+groupW/2)+'" y="'+(H-10)+'" text-anchor="middle" class="bar-tooltip" fill="var(--text-muted)">'+lab+'</text>');
-    });
-    svg.setAttribute('viewBox','0 0 '+W+' '+H);
-    svg.innerHTML = parts.join('');
-  }
-
-  function renderMainChart(period){
-    drawGroupedBars('bar-chart', CHART_DATA[period], getVar('--danger'), getVar('--accent'));
-  }
-  function getVar(name){
-    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#2F5D58';
-  }
-
-  document.getElementById('chart-period').addEventListener('click', function(e){
-    var btn = e.target.closest('button');
-    if(!btn) return;
-    this.querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
-    btn.classList.add('active');
-    renderMainChart(btn.dataset.period);
-  });
-
-  /* ---------------- Activity ---------------- */
-  var ACTIVITY = [
-    {ev:'Plantilla validada', mod:'Plantillas', user:'C. Herrera', date:'27 oct · 4:12 p.m.'},
-    {ev:'Rol "Analista" asignado', mod:'Usuarios', user:'M. Ospina', date:'27 oct · 2:05 p.m.'},
-    {ev:'TGA calculada — Contaduría Pública', mod:'Tasas', user:'J. Rendón', date:'27 oct · 11:40 a.m.'},
-    {ev:'Permiso de exportación revocado', mod:'Usuarios', user:'M. Ospina', date:'26 oct · 5:30 p.m.'},
-    {ev:'Plantilla "Unoauno_matriculados.xlsx" cargada', mod:'Plantillas', user:'C. Herrera', date:'26 oct · 9:02 a.m.'}
-  ];
-  function renderActivity(){
-    document.getElementById('activity-body').innerHTML = ACTIVITY.map(function(a){
-      return '<tr><td>'+a.ev+'</td><td>'+a.mod+'</td><td>'+a.user+'</td><td class="mono" style="color:var(--text-muted)">'+a.date+'</td></tr>';
-    }).join('');
-  }
 
   /* ---------------- Usuarios y roles ---------------- */
   var ICON_PENCIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
@@ -2609,7 +2545,7 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 
   /* ---------------- init ---------------- */
   renderKpis();
-  renderActivity();
+  renderMetricsList();
   renderFlowMini();
   renderRoleSelect();
   renderUsers();
@@ -2617,10 +2553,8 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   renderTemplates();
   renderPeriods();
   consultarTasa(true);
-  renderMainChart('mensual');
 
   window.addEventListener('resize', function(){
-    renderMainChart(document.querySelector('#chart-period button.active').dataset.period);
     consultarTasa(true);
   });
 })();
