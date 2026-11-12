@@ -186,6 +186,11 @@ a{ color:var(--accent-strong); }
 .kpi-hero .kpi-hero-name{ font-size:1.3rem; font-weight:700; position:relative; z-index:1; }
 .kpi-hero .kpi-hero-sub{ font-size:0.78rem; opacity:0.85; position:relative; z-index:1; }
 
+@keyframes resumenDetailIn{
+  from{ opacity:0; transform:translateY(-10px) scale(0.98); }
+  to{ opacity:1; transform:translateY(0) scale(1); }
+}
+#resumen-detail.resumen-detail-enter{ animation:resumenDetailIn .32s cubic-bezier(0.22, 1, 0.36, 1); }
 .resumen-detail-close{ background:none; border:none; cursor:pointer; color:var(--text-muted); width:30px; height:30px; flex:none; display:flex; align-items:center; justify-content:center; border-radius:8px; font-size:1rem; }
 .resumen-detail-close:hover{ background:var(--surface-alt); color:var(--text); }
 .detail-list{ display:flex; flex-direction:column; gap:8px; }
@@ -729,6 +734,17 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 
         <div class="kpi-grid" id="kpi-grid"></div>
 
+        <div class="panel" id="resumen-detail" hidden>
+          <div class="panel-head">
+            <div>
+              <h2 id="resumen-detail-title">—</h2>
+              <div class="hint" id="resumen-detail-sub">—</div>
+            </div>
+            <button class="resumen-detail-close" id="resumen-detail-close" type="button" aria-label="Cerrar detalle">✕</button>
+          </div>
+          <div class="panel-body" id="resumen-detail-body"></div>
+        </div>
+
         <div class="panel">
           <div class="panel-head"><h2>Otras métricas</h2></div>
           <div class="panel-body">
@@ -751,17 +767,6 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
               </div>
             </div>
           </div>
-        </div>
-
-        <div class="panel" id="resumen-detail" hidden>
-          <div class="panel-head">
-            <div>
-              <h2 id="resumen-detail-title">—</h2>
-              <div class="hint" id="resumen-detail-sub">—</div>
-            </div>
-            <button class="resumen-detail-close" id="resumen-detail-close" type="button" aria-label="Cerrar detalle">✕</button>
-          </div>
-          <div class="panel-body" id="resumen-detail-body"></div>
         </div>
       </section>
 
@@ -1316,7 +1321,11 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     document.getElementById('resumen-detail-title').textContent = detail.title;
     document.getElementById('resumen-detail-sub').textContent = detail.sub;
     document.getElementById('resumen-detail-body').innerHTML = detail.body();
-    document.getElementById('resumen-detail').hidden = false;
+    var panel = document.getElementById('resumen-detail');
+    panel.hidden = false;
+    panel.classList.remove('resumen-detail-enter');
+    void panel.offsetWidth;
+    panel.classList.add('resumen-detail-enter');
   }
 
   document.getElementById('view-resumen').addEventListener('click', function(e){
