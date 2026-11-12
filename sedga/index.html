@@ -186,18 +186,31 @@ button.detail-row:hover{ border-color:var(--accent); background:var(--accent-sof
 .detail-row .drl{ font-size:0.85rem; font-weight:600; }
 .detail-row .drs{ font-size:0.78rem; color:var(--text-muted); }
 
-.metrics-list{ display:flex; flex-direction:column; gap:10px; }
-.metric-row{
-  display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
-  padding:12px 14px; border:1px solid var(--border); border-radius:10px; cursor:pointer;
+.metrics-charts{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.metric-chart-card{
+  display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center;
+  padding:20px 16px; border:1px solid var(--border); border-radius:12px; cursor:pointer;
   transition:border-color .15s, box-shadow .15s;
 }
-.metric-row:hover{ border-color:var(--accent); }
-.metric-row.active{ border-color:var(--accent-strong); box-shadow:0 0 0 2px var(--accent-soft); }
-.metric-row-left{ display:flex; align-items:center; gap:10px; }
-.metric-row-left .kpi-label{ text-transform:none; letter-spacing:0; font-size:0.85rem; }
-.metric-row-right{ display:flex; align-items:center; gap:10px; }
-.metric-row-right .kpi-value{ font-size:1.1rem; }
+.metric-chart-card:hover{ border-color:var(--accent); }
+.metric-chart-card.active{ border-color:var(--accent-strong); box-shadow:0 0 0 2px var(--accent-soft); }
+.donut-wrap{ position:relative; width:140px; height:140px; }
+.donut-wrap svg{ width:100%; height:100%; }
+.donut-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+.donut-value{ font-size:1.5rem; font-weight:700; font-family:'IBM Plex Mono',monospace; }
+.donut-sub{ font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; }
+
+.coming-soon-card{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center;
+  padding:20px 16px; border:1.5px dashed var(--border); border-radius:12px; background:var(--surface-alt);
+  color:var(--text-muted);
+}
+.coming-soon-icon{
+  width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  background:var(--accent-soft); font-size:1.2rem; flex:none;
+}
+.coming-soon-title{ font-size:0.9rem; font-weight:700; color:var(--text); }
+.coming-soon-sub{ font-size:0.8rem; line-height:1.5; max-width:220px; }
 
 /* ---------- Panels ---------- */
 .panel{ background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); min-width:0; }
@@ -454,6 +467,7 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   #view-plantillas .row-split{ grid-template-columns:1fr; }
   .form-grid{ grid-template-columns:1fr; }
   .estados-grid{ grid-template-columns:1fr; }
+  .metrics-charts{ grid-template-columns:1fr; }
 }
 
 /* Teléfonos: el menú lateral se convierte en una barra de navegación inferior,
@@ -709,7 +723,24 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
         <div class="panel">
           <div class="panel-head"><h2>Otras métricas</h2></div>
           <div class="panel-body">
-            <div class="metrics-list" id="metrics-list"></div>
+            <div class="metrics-charts" id="metrics-charts">
+              <div class="metric-chart-card" data-card="usuarios-activos">
+                <span class="kpi-label">Promedio de usuarios activos</span>
+                <div class="donut-wrap">
+                  <svg id="usuarios-donut"></svg>
+                  <div class="donut-center">
+                    <span class="donut-value" id="usuarios-donut-value">—</span>
+                    <span class="donut-sub">activos</span>
+                  </div>
+                </div>
+                <span class="hint" id="usuarios-donut-caption">—</span>
+              </div>
+              <div class="coming-soon-card">
+                <span class="coming-soon-icon">&#10024;</span>
+                <span class="coming-soon-title">Próximamente</span>
+                <span class="coming-soon-sub">Nuevas métricas y paneles estarán disponibles pronto.</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -722,17 +753,6 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
             <button class="resumen-detail-close" id="resumen-detail-close" type="button" aria-label="Cerrar detalle">✕</button>
           </div>
           <div class="panel-body" id="resumen-detail-body"></div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head"><h2>Estado del flujo</h2></div>
-          <div class="panel-body" style="display:flex; flex-direction:column; gap:16px;">
-            <div class="steps-mini" id="flow-mini"></div>
-            <p style="margin:0; font-size:0.84rem; color:var(--text-muted); line-height:1.6;">
-              El flujo completo inicia asignando roles y permisos, continúa con el cargue y validación de la plantilla de datos,
-              y finaliza con el cálculo de tasas y la consulta de resultados consolidados.
-            </p>
-          </div>
         </div>
       </section>
 
@@ -1098,37 +1118,14 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     logOut();
   });
 
-  /* ---------------- Navigation + flow strip ---------------- */
-  var VIEWS = [
-    {id:'usuarios',  label:'Usuarios y permisos'},
-    {id:'plantillas',label:'Cargue de plantillas'},
-    {id:'tasas',     label:'Cálculo de tasas'},
-    {id:'resumen',   label:'Resultados'}
-  ];
-  var visited = {resumen:true};
-  var current = 'resumen';
-
-  function renderFlowMini(){
-    var el = document.getElementById('flow-mini');
-    el.innerHTML = '';
-    VIEWS.forEach(function(v){
-      var s = document.createElement('div');
-      s.className = 's' + (visited[v.id] ? ' on' : '');
-      s.innerHTML = '<div class="bar"></div><div class="lab">'+v.label+'</div>';
-      el.appendChild(s);
-    });
-  }
-
+  /* ---------------- Navigation ---------------- */
   var VIEW_TITLES = {resumen:'Página principal', tasas:'Consultar tasas', usuarios:'Gestión de usuarios', plantillas:'Gestión de plantillas', periodos:'Gestión de periodos'};
 
   function setView(id){
-    current = id;
-    visited[id] = true;
     document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
     document.getElementById('view-'+id).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.toggle('active', n.dataset.view===id); });
     document.getElementById('topbar-title').textContent = VIEW_TITLES[id] || '';
-    renderFlowMini();
   }
 
   document.getElementById('nav').addEventListener('click', function(e){
@@ -1141,10 +1138,7 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>',
     file:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/></svg>',
     bolt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>',
-    clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>',
-    calendar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/><path d="M8 2v4M16 2v4"/></svg>',
-    calendarNext:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/><path d="M8 2v4M16 2v4"/><path d="M9.5 15.5 12 13l-2.5-2.5"/></svg>',
-    alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+    calendar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/><path d="M8 2v4M16 2v4"/></svg>'
   };
 
   function getRelevantPeriod(){
@@ -1152,12 +1146,6 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     var open = PERIODS.filter(function(p){ return today>=p.open_date && today<=p.close_date; });
     if(open.length) return open.sort(function(a,b){ return a.open_date<b.open_date?1:-1; })[0];
     return PERIODS.slice().sort(function(a,b){ return a.close_date<b.close_date?1:-1; })[0] || null;
-  }
-  function getNextPeriod(ref){
-    if(!ref) return null;
-    var upcoming = PERIODS.filter(function(p){ return p.open_date > ref.close_date; });
-    upcoming.sort(function(a,b){ return a.open_date>b.open_date?1:-1; });
-    return upcoming[0] || null;
   }
   function getRateUpdateInfo(){
     var pendingTypes = TEMPLATES.filter(function(t){ return t.status==='proceso'; }).map(function(t){ return t.type.toLowerCase(); });
@@ -1183,25 +1171,6 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     {id:'tasas', type:'metric', icon:'bolt'},
     {id:'periodo', type:'metric', icon:'calendar'}
   ];
-
-  var METRIC_LIST = [
-    {id:'usuarios-activos', icon:'users', label:'Usuarios activos', value:'27', delta:'+3 este mes', up:true},
-    {id:'tiempo-calculo', icon:'clock', label:'Tiempo prom. de cálculo', value:'1.8 s', delta:'-0.3 s', up:true},
-    {id:'plantillas-novedades', icon:'alert'},
-    {id:'proximo-periodo', icon:'calendarNext'}
-  ];
-
-  function metricValues(c, period, nextPeriod, rateInfo, issuesCount){
-    if(c.id==='plantillas-novedades'){
-      return {label:'Plantillas con novedades', value:String(issuesCount),
-        delta: issuesCount ? 'Requieren revisión' : 'Sin novedades', up: issuesCount===0};
-    }
-    if(c.id==='proximo-periodo'){
-      return {label:'Próximo periodo', value: nextPeriod ? periodLabel(nextPeriod) : '—',
-        delta: nextPeriod ? 'Abre '+fmtDate(nextPeriod.open_date) : 'No definido', up:true};
-    }
-    return {label:c.label, value:c.value, delta:c.delta, up:c.up};
-  }
 
   function renderKpis(){
     var el = document.getElementById('kpi-grid');
@@ -1236,21 +1205,33 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     }).join('');
   }
 
-  function renderMetricsList(){
-    var el = document.getElementById('metrics-list');
-    var period = getRelevantPeriod();
-    var nextPeriod = getNextPeriod(period);
-    var rateInfo = getRateUpdateInfo();
-    var issuesCount = TEMPLATES.filter(function(t){ return t.status==='issue'; }).length;
+  function getActiveUsersInfo(){
+    var active = USERS.filter(function(u){ return u.status==='ok'; }).length;
+    var total = USERS.length;
+    return {active:active, total:total, pct: total ? Math.round(active/total*100) : 0};
+  }
 
-    el.innerHTML = METRIC_LIST.map(function(c){
-      var m = metricValues(c, period, nextPeriod, rateInfo, issuesCount);
-      return '<div class="metric-row" data-card="'+c.id+'">'+
-        '<div class="metric-row-left"><span class="kpi-icon">'+ICONS[c.icon]+'</span><span class="kpi-label">'+m.label+'</span></div>'+
-        '<div class="metric-row-right"><span class="kpi-value">'+m.value+'</span>'+
-          '<span class="kpi-delta '+(m.up?'up':'down')+'">'+(m.up?'▲':'▼')+' '+m.delta+'</span></div>'+
-      '</div>';
-    }).join('');
+  function renderDonut(svgId, pct, color){
+    var r = 60, cx = 80, cy = 80, strokeW = 18;
+    var c = 2*Math.PI*r;
+    var offset = c * (1 - pct/100);
+    var svg = document.getElementById(svgId);
+    svg.setAttribute('viewBox','0 0 160 160');
+    svg.innerHTML =
+      '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="var(--border)" stroke-width="'+strokeW+'"/>'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+color+'" stroke-width="'+strokeW+'" '+
+        'stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+offset+'" '+
+        'transform="rotate(-90 '+cx+' '+cy+')"/>';
+  }
+
+  function renderMetricsCharts(){
+    var info = getActiveUsersInfo();
+    renderDonut('usuarios-donut', info.pct, getVar('--accent'));
+    document.getElementById('usuarios-donut-value').textContent = info.pct+'%';
+    document.getElementById('usuarios-donut-caption').textContent = info.active+' de '+info.total+' usuarios con acceso activo';
+  }
+  function getVar(name){
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#2F5D58';
   }
 
   /* ---------------- Detalle de cards (resumen) ---------------- */
@@ -1323,52 +1304,11 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
           return '<div class="detail-row"><span><span class="drl">'+u.name+'</span><br><span class="drs">'+u.area+' · último acceso '+u.last+'</span></span></div>';
         }).join('')+'</div>';
       }
-    },
-    'tiempo-calculo': {
-      title:'Tiempo promedio de cálculo',
-      sub:'Duración promedio por grupo de tasas, últimos 30 días',
-      body:function(){
-        var rows = [
-          {label:'Tasas de deserción (TDA, TDC, TDPA, TDP_2_8)', value:'2.1 s'},
-          {label:'Tasa de graduación (TGA)', value:'1.6 s'},
-          {label:'Tasa de supervivencia (TS)', value:'1.4 s'},
-          {label:'Tasa de ausencia intersemestral (TAI)', value:'1.1 s'}
-        ];
-        return '<div class="detail-list">'+rows.map(function(r){
-          return '<div class="detail-row"><span class="drl">'+r.label+'</span><span class="drs mono">'+r.value+'</span></div>';
-        }).join('')+'</div>';
-      }
-    },
-    'plantillas-novedades': {
-      title:'Plantillas con novedades',
-      sub:'Revisa y corrige antes de recalcular las tasas',
-      body:function(){
-        var withIssues = TEMPLATES.filter(function(t){ return t.status==='issue'; });
-        if(!withIssues.length) return '<p style="color:var(--text-muted);">No hay plantillas con novedades pendientes.</p>';
-        return '<div class="detail-list">'+withIssues.map(function(t){
-          return '<div class="detail-row"><span><span class="drl">'+t.name+'</span><br><span class="drs">'+(t.issues?t.issues.length:0)+' novedades encontradas</span></span>'+
-            '<span class="badge err"><span class="dot-status"></span>Con novedades</span></div>';
-        }).join('')+'</div>';
-      }
-    },
-    'proximo-periodo': {
-      title:'Próximo periodo',
-      sub:'Siguiente periodo académico programado',
-      body:function(){
-        var period = getRelevantPeriod();
-        var next = getNextPeriod(period);
-        if(!next) return '<p style="color:var(--text-muted);">No hay un próximo periodo definido todavía.</p>';
-        return '<div class="detail-list">'+
-          '<div class="detail-row"><span class="drl">Periodo · institución</span><span class="drs">'+periodLabel(next)+' · '+next.institucion+'</span></div>'+
-          '<div class="detail-row"><span class="drl">Fecha de apertura</span><span class="drs mono">'+fmtDate(next.open_date)+'</span></div>'+
-          '<div class="detail-row"><span class="drl">Fecha de cierre</span><span class="drs mono">'+fmtDate(next.close_date)+'</span></div>'+
-        '</div>';
-      }
     }
   };
 
   function resumenClickableEls(){
-    return document.querySelectorAll('#kpi-grid [data-card], #metrics-list [data-card]');
+    return document.querySelectorAll('#kpi-grid [data-card], #metrics-charts [data-card]');
   }
 
   function closeResumenDetail(){
@@ -2545,8 +2485,7 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 
   /* ---------------- init ---------------- */
   renderKpis();
-  renderMetricsList();
-  renderFlowMini();
+  renderMetricsCharts();
   renderRoleSelect();
   renderUsers();
   renderMatrix();
