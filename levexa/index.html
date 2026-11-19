@@ -209,6 +209,7 @@ td .row{flex-wrap:nowrap;}
 </div>
 <div id="modal-root"></div>
 <div id="toasts" role="status" aria-live="polite"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 'use strict';
 /* =====================================================================
@@ -988,7 +989,7 @@ function candPanel(oid) {
   });
   const heads = ['Documento', ...(oid ? ['Código est.'] : []), 'Nombre', 'Correo', ...(oid ? ['Programa'] : []), 'Estado', 'Licencias', 'Acciones'];
   return `<div class="toolbar">${bindIn('cdQ', 'Buscar', 'Nombre, documento o correo')}${bindSel('cdSt', 'Estado', [['', 'Todos'], ['activo', 'Activo'], ['inactivo', 'Inactivo']])}
-    <button class="btn btn-primary" data-act="cdNew" data-org="${oid || ''}">Nuevo candidato</button>${oid ? `<button class="btn" data-act="cdImport" data-org="${oid}">Importar CSV</button>` : ''}</div>` + tbl(heads, rows, 'No hay candidatos con esos filtros.');
+    <button class="btn btn-primary" data-act="cdNew" data-org="${oid || ''}">Nuevo candidato</button>${oid ? `<button class="btn" data-act="cdImport" data-org="${oid}">Importar desde Excel</button>` : ''}</div>` + tbl(heads, rows, 'No hay candidatos con esos filtros.');
 }
 function openCand(oid, id) {
   const c = id ? candOf(id) : { docType: 'CC', docNum: String(1090000000 + S.seq), name: 'Julián Prado Reyes', email: `julian.prado${S.seq}@ejemplo.edu.co`, studentCode: 'E' + (2026000 + S.seq), program: 'Ingeniería Industrial', status: 'activo' };
@@ -1012,11 +1013,28 @@ function sampleCsv() { const n = S.seq; return `tipo_doc,num_doc,codigo,nombres,
 CC,${1099000000 + n},E${2026000 + n},Rafael Montoya Díaz,rafael.montoya${n}@ejemplo.edu.co,Derecho
 CC,${1099000500 + n},E${2026500 + n},Elena Cortés Mora,elena.cortes${n}@ejemplo.edu.co,Psicología
 XX,1,E0,Fila con tipo inválido,x@ejemplo.edu.co,N/A`; }
+// Lee un Excel/CSV y lo vuelca como texto CSV en el cuadro de revisión
+function readSheet(file, root) {
+  if (!file) return;
+  const ta = $('[name=csv]', root), put = rows => { ta.value = rows.map(r => r.map(c => String(c ?? '').replace(/,/g, ' ').trim()).join(',')).join('\n'); toast('Archivo leído: ' + (rows.length - 1) + ' filas. Revisa y pulsa Importar.'); };
+  const rd = new FileReader();
+  if (/\.csv$/i.test(file.name)) { rd.onload = () => { ta.value = String(rd.result).replace(/^﻿/, ''); toast('CSV leído. Revisa y pulsa Importar.'); }; rd.readAsText(file); return; }
+  if (typeof XLSX === 'undefined') { toast('No se pudo cargar el lector de Excel (¿sin conexión?). Usa un archivo CSV.', 'bad'); return; }
+  rd.onload = () => { try { const wb = XLSX.read(rd.result, { type: 'array' }); put(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, defval: '' }).filter(r => r.some(c => String(c).trim()))); } catch (e) { toast('No se pudo leer el archivo Excel.', 'bad'); } };
+  rd.readAsArrayBuffer(file);
+}
+function downloadTemplate() {
+  const rows = [['tipo_doc', 'num_doc', 'codigo', 'nombres', 'correo', 'programa'], ['CC', '1099000001', 'E2026001', 'Rafael Montoya Díaz', 'rafael.montoya@ejemplo.edu.co', 'Derecho'], ['CC', '1099000002', 'E2026002', 'Elena Cortés Mora', 'elena.cortes@ejemplo.edu.co', 'Psicología']];
+  if (typeof XLSX === 'undefined') { downloadCSV('plantilla-candidatos.csv', rows); return; }
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Candidatos'); XLSX.writeFile(wb, 'plantilla-candidatos.xlsx');
+}
 function openImport(oid) {
   openModal({
-    title: 'Importar candidatos (CSV simulado)', wide: true, submit: 'Importar',
-    body: `<p class="muted">Pega el contenido CSV con columnas: <span class="mono">tipo_doc,num_doc,codigo,nombres,correo,programa</span>. La primera línea puede ser el encabezado.</p>
-      ${fld('Contenido CSV', 'csv', sampleCsv(), { type: 'textarea', rows: 8, req: 1, attrs: '' })}<button type="button" class="btn btn-sm" data-act="csvSample">Insertar ejemplo</button>`,
+    title: 'Importar candidatos desde Excel', wide: true, submit: 'Importar',
+    afterOpen(h) { $('#xls-file', h.el).addEventListener('change', e => readSheet(e.target.files[0], h.el)); },
+    body: `<p class="muted">Sube un archivo Excel (.xlsx, .xls) o CSV con las columnas: <span class="mono">tipo_doc, num_doc, codigo, nombres, correo, programa</span>. El contenido se muestra abajo para que lo revises antes de importar.</p>
+      <div class="row" style="margin-bottom:12px"><div style="flex:1;min-width:220px"><label for="xls-file">Archivo Excel o CSV</label><input type="file" id="xls-file" accept=".xlsx,.xls,.csv"></div><button type="button" class="btn" data-act="xlsTemplate" style="align-self:flex-end">Descargar plantilla Excel</button></div>
+      ${fld('Contenido a importar (se rellena al subir el archivo; también puedes editarlo)', 'csv', sampleCsv(), { type: 'textarea', rows: 8, req: 1, attrs: '' })}<button type="button" class="btn btn-sm" data-act="csvSample">Insertar ejemplo</button>`,
     onSubmit(v) {
       const lines = v.csv.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
       if (!lines.length) return { csv: 'Pega al menos una línea de datos.' };
@@ -1401,6 +1419,7 @@ const A = {
     if (S.licenses.some(l => l.candId === d.id && ['asignada', 'consumida'].includes(l.status))) { toast('Tiene licencias asignadas o consumidas: márcalo como inactivo en lugar de eliminarlo.', 'warn'); return; }
     if (await confirmDlg({ title: 'Eliminar candidato', msg: 'Esta acción no se puede deshacer.', ok: 'Eliminar', danger: true })) { S.candidates = S.candidates.filter(c => c.id !== d.id); commit(); toast('Candidato eliminado.'); }
   },
+  xlsTemplate() { downloadTemplate(); },
   csvSample(d, t) { const ta = $('[name=csv]', t.closest('.modal-bg')); ta.value = 'tipo_doc,num_doc,codigo,nombres,correo,programa\nCC,1099000111,E2026001,Rafael Montoya Díaz,rafael.montoya@ejemplo.edu.co,Derecho\nCC,1099000112,E2026002,Elena Cortés Mora,elena.cortes@ejemplo.edu.co,Psicología\nXX,1,E0,Fila con tipo inválido,x@ejemplo.edu.co,N/A'; ta.focus(); },
   attOpen(d) { openAttempt(d.id); }, csv() { exportCSV(); }, print() { window.print(); },
   certView(d) { openCert(d.id); },
