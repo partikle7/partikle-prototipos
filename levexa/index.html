@@ -19,26 +19,6 @@
   --shadow:0 1px 2px rgba(20,30,60,.06),0 8px 24px -14px rgba(20,30,60,.2);
   color-scheme:light;
 }
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --bg:#0f1420; --surface:#171e2e; --surface-2:#1f2840; --border:#2c3753;
-    --text:#e6eaf3; --muted:#9ba6bd;
-    --primary:#7fa3f7; --primary-strong:#a6c0fb; --primary-soft:#1e2c52; --on-primary:#0c1530;
-    --ok:#52cf96; --ok-soft:#143527; --warn:#e8b455; --warn-soft:#3a2e12;
-    --bad:#ff9090; --bad-soft:#401e1e; --info:#7fa3f7; --info-soft:#1e2c52;
-    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -14px rgba(0,0,0,.6);
-    color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#0f1420; --surface:#171e2e; --surface-2:#1f2840; --border:#2c3753;
-  --text:#e6eaf3; --muted:#9ba6bd;
-  --primary:#7fa3f7; --primary-strong:#a6c0fb; --primary-soft:#1e2c52; --on-primary:#0c1530;
-  --ok:#52cf96; --ok-soft:#143527; --warn:#e8b455; --warn-soft:#3a2e12;
-  --bad:#ff9090; --bad-soft:#401e1e; --info:#7fa3f7; --info-soft:#1e2c52;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -14px rgba(0,0,0,.6);
-  color-scheme:dark;
-}
 
 *{box-sizing:border-box;}
 [hidden]{display:none !important;}
@@ -100,9 +80,7 @@ main:focus{outline:none;}
 .btn:disabled{opacity:.5;cursor:not-allowed;}
 .btn-primary{background:var(--primary);border-color:var(--primary);color:var(--on-primary);}
 .btn-primary:hover:not(:disabled){background:var(--primary-strong);border-color:var(--primary-strong);}
-:root[data-theme="dark"] .btn-primary:hover:not(:disabled){color:#0c1530;}
 .btn-danger{background:var(--bad);border-color:var(--bad);color:#fff;}
-:root[data-theme="dark"] .btn-danger,:root:not([data-theme="light"]) .btn-danger{color:#2a0c0c;}
 .btn-danger:hover:not(:disabled){filter:brightness(1.08);background:var(--bad);}
 .btn-ghost{background:transparent;}
 .btn-sm{padding:4px 10px;font-size:.8rem;min-height:30px;}
@@ -222,7 +200,6 @@ td .row{flex-wrap:nowrap;}
   <div class="top-ctrl">
     <label class="inline" for="role-sel"><span>Rol</span><select id="role-sel"></select></label>
     <label class="inline" id="org-wrap" for="org-sel"><span>Organización</span><select id="org-sel"></select></label>
-    <button class="btn btn-ghost btn-sm" id="theme-btn" data-act="theme" type="button">Tema</button>
     <button class="btn btn-ghost btn-sm" data-act="reset" type="button">Reiniciar datos de demo</button>
   </div>
 </header>
@@ -621,7 +598,7 @@ const CERT_BADGE = { vigente: 'ok', revocado: 'bad', vencido: 'warn' };
 /* =====================================================================
    7. INFRAESTRUCTURA DE INTERFAZ: modales, avisos, formularios, tablas
    ===================================================================== */
-const U = { orgDetail: null, orgTab: 'datos', lotSel: null, f: {}, buy: { name: '', docType: 'CC', docNum: '', email: '', exam: 'x1', qty: 1, fail: false }, lastPurchase: null, ex: { stage: 'entry' }, entry: { code: '', doc: '' }, ver: '', verRes: null };
+const U = { orgDetail: null, orgTab: 'datos', lotSel: null, f: {}, buy: { name: 'Mariana Londoño Gil', docType: 'CC', docNum: '1098765432', email: 'mariana.londono@ejemplo.com', exam: 'x1', qty: 1, fail: false }, lastPurchase: null, ex: { stage: 'entry' }, entry: { code: '', doc: '' }, ver: '', verRes: null };
 
 function toast(msg, type = '') {
   const t = document.createElement('div');
@@ -797,7 +774,7 @@ function vOrgDetail() {
     `<div class="tabs" role="tablist">${tabs.map(([k, t]) => `<button role="tab" aria-selected="${U.orgTab === k}" data-act="orgTab" data-tab="${k}">${t}</button>`).join('')}</div>` + body;
 }
 function openOrg(id) {
-  const o = id ? orgOf(id) : { type: 'universidad', country: 'Colombia', status: 'activa' };
+  const o = id ? orgOf(id) : { name: 'Universidad Demo del Sur', nit: '900.' + (500 + S.seq % 400) + '.' + (100 + S.seq % 800) + '-' + (S.seq % 10), type: 'universidad', country: 'Colombia', city: 'Pereira', status: 'activa' };
   openModal({
     title: id ? 'Editar organización' : 'Nueva organización',
     body: `<div class="fgrid">${fld('Nombre', 'name', o.name, { req: 1 })}${fld('NIT / ID fiscal', 'nit', o.nit, { req: 1 })}
@@ -828,7 +805,7 @@ function contactsPanel(oid) {
   return `<div class="toolbar"><div class="spacer"></div><button class="btn btn-primary" data-act="ctNew" data-org="${oid}">Nuevo contacto</button></div>` + tbl(['Nombre', 'Cargo', 'Correo', 'Teléfono', 'Tipo', 'Acciones'], rows, 'Esta organización aún no tiene contactos.', ' Agrega el primero.');
 }
 function openContact(oid, id) {
-  const c = id ? byId(S.contacts, id) : { type: 'comercial', main: false };
+  const c = id ? byId(S.contacts, id) : { name: 'Carolina Mendoza', role: 'Coordinadora de idiomas', email: 'c.mendoza@ejemplo.edu.co', phone: '+57 300 000 0999', type: 'comercial', main: false };
   openModal({
     title: id ? 'Editar contacto' : 'Nuevo contacto',
     body: `<div class="fgrid">${fld('Nombre', 'name', c.name, { req: 1 })}${fld('Cargo', 'role', c.role, { req: 1 })}${fld('Correo', 'email', c.email, { req: 1, type: 'email' })}${fld('Teléfono', 'phone', c.phone, { req: 1 })}
@@ -899,7 +876,7 @@ function openAssign(code, mode) {
   if (!opts.length) { toast('No hay candidatos activos disponibles en esta organización.', 'warn'); return; }
   openModal({
     title: (mode === 'reassign' ? 'Reasignar' : 'Asignar') + ' licencia ' + code, submit: mode === 'reassign' ? 'Reasignar' : 'Asignar',
-    body: `${mode === 'reassign' && l.candId ? `<div class="notice warn">La asignación actual de <b>${esc(candOf(l.candId).name)}</b> se cerrará.</div>` : ''}${fld('Candidato', 'cand', '', { req: 1, type: 'select', opts: [['', 'Selecciona un candidato…'], ...opts] })}
+    body: `${mode === 'reassign' && l.candId ? `<div class="notice warn">La asignación actual de <b>${esc(candOf(l.candId).name)}</b> se cerrará.</div>` : ''}${fld('Candidato', 'cand', opts[0][0], { req: 1, type: 'select', opts: [['', 'Selecciona un candidato…'], ...opts] })}
       <p class="muted">Fecha límite de uso del estudiante: <b>${fmtD(dl)}</b>${ts(dl) === ts(b.expiry) ? ' (ajustada al vencimiento de la licencia)' : ` (${b.studentDays} días desde hoy)`}.</p>`,
     onSubmit(v) {
       if (!v.cand) return { cand: 'Selecciona un candidato.' };
@@ -916,7 +893,7 @@ function openBulk(bid) {
   openModal({
     title: 'Asignación masiva', submit: 'Asignar seleccionados',
     body: `<p>Licencias disponibles en el lote: <b>${free}</b>. Se asignan en orden a los candidatos marcados (los que ya tienen licencia en este lote no aparecen).</p>
-      ${cs.length ? `<div style="max-height:300px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:8px 12px">${cs.map(c => `<label style="font-weight:400;display:flex;gap:8px;padding:3px 0"><input type="checkbox" name="c_${c.id}" value="1"> ${esc(c.name)} <span class="muted">· ${esc(c.docType)} ${esc(c.docNum)}</span></label>`).join('')}</div>` : '<div class="notice info">No hay candidatos activos sin licencia en este lote.</div>'}<small class="err" id="e-sel" role="alert"></small>`,
+      ${cs.length ? `<div style="max-height:300px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:8px 12px">${cs.map((c, i) => `<label style="font-weight:400;display:flex;gap:8px;padding:3px 0"><input type="checkbox" name="c_${c.id}" value="1"${i < Math.min(free, 3) ? ' checked' : ''}> ${esc(c.name)} <span class="muted">· ${esc(c.docType)} ${esc(c.docNum)}</span></label>`).join('')}</div>` : '<div class="notice info">No hay candidatos activos sin licencia en este lote.</div>'}<small class="err" id="e-sel" role="alert"></small>`,
     onSubmit(v) {
       const ids = Object.keys(v).filter(k => k.startsWith('c_')).map(k => k.slice(2));
       if (!ids.length) return { form: 'Marca al menos un candidato.' };
@@ -935,7 +912,7 @@ function openHistory(code) {
 async function licAction(kind, code) {
   const l = licOf(code);
   if (kind === 'revoke') {
-    openModal({ title: 'Revocar ' + code, submit: 'Revocar', danger: true, body: `<p>La licencia quedará bloqueada y se cerrará la asignación a <b>${esc(candOf(l.candId)?.name)}</b>.</p>${fld('Motivo', 'reason', '', { type: 'textarea', rows: 2, req: 1 })}`, onSubmit(v) { if (!v.reason.trim()) return { reason: 'Indica el motivo de la revocación.' }; doRevoke(l, v.reason.trim()); commit(); toast('Licencia revocada.', 'warn'); } });
+    openModal({ title: 'Revocar ' + code, submit: 'Revocar', danger: true, body: `<p>La licencia quedará bloqueada y se cerrará la asignación a <b>${esc(candOf(l.candId)?.name)}</b>.</p>${fld('Motivo', 'reason', 'Sin uso en el plazo previsto', { type: 'textarea', rows: 2, req: 1 })}`, onSubmit(v) { if (!v.reason.trim()) return { reason: 'Indica el motivo de la revocación.' }; doRevoke(l, v.reason.trim()); commit(); toast('Licencia revocada.', 'warn'); } });
   } else if (kind === 'recover') {
     if (await confirmDlg({ title: 'Recuperar licencia', msg: `¿Recuperar <b class="mono">${code}</b>? Volverá al inventario como disponible y se cerrará su asignación.`, ok: 'Recuperar' })) { doRecover(l); commit(); toast('Licencia recuperada y disponible.'); }
   }
@@ -945,7 +922,7 @@ function openBatch() {
   const exp = new Date(Date.now() + 365 * DAY).toISOString().slice(0, 10);
   openModal({
     title: 'Nuevo lote de licencias',
-    body: `<div class="fgrid">${fld('Organización', 'org', '', { req: 1, type: 'select', opts: [['', 'Selecciona…'], ...S.orgs.filter(o => o.status === 'activa').map(o => [o.id, o.name])] })}${fld('Examen', 'exam', 'x1', { type: 'select', opts: exs })}
+    body: `<div class="fgrid">${fld('Organización', 'org', S.orgs.find(o => o.status === 'activa')?.id || '', { req: 1, type: 'select', opts: [['', 'Selecciona…'], ...S.orgs.filter(o => o.status === 'activa').map(o => [o.id, o.name])] })}${fld('Examen', 'exam', 'x1', { type: 'select', opts: exs })}
       ${fld('Cantidad de licencias', 'qty', 20, { req: 1, type: 'number', attrs: 'min="1" max="500"' })}${fld('Precio unitario', 'price', 60000, { req: 1, type: 'number', attrs: 'min="0"' })}
       ${fld('Moneda', 'cur', 'COP', { type: 'select', opts: [['COP', 'COP'], ['USD', 'USD']] })}${fld('Fecha de vencimiento', 'expiry', exp, { req: 1, type: 'date', hint: 'Después de esta fecha la organización no puede usar ni reasignar.' })}
       ${fld('Plazo del estudiante (días)', 'sd', 30, { req: 1, type: 'number', attrs: 'min="1"', hint: 'Días desde la asignación para usar la licencia.' })}${fld('Inactividad para recuperación (días)', 'inact', 30, { req: 1, type: 'number', attrs: 'min="0"', hint: '0 = no se permite recuperar.' })}</div>`,
@@ -979,7 +956,7 @@ function vUsuarios() {
     `<div class="toolbar">${bindIn('usrQ', 'Buscar', 'Nombre o correo')}</div>` + tbl(['Nombre', 'Correo', 'Rol', 'Estado', 'Acciones'], rows, 'No hay usuarios para mostrar.');
 }
 function openUser(id) {
-  const oid = scopeOrg(), u = id ? byId(S.users, id) : { role: oid ? 'admin_org' : 'admin_plataforma', orgId: oid, status: 'activo' };
+  const oid = scopeOrg(), u = id ? byId(S.users, id) : { name: 'Paula Restrepo', email: `p.restrepo${S.seq}@ejemplo.edu.co`, role: oid ? 'admin_org' : 'admin_plataforma', orgId: oid || 'o1', status: 'activo' };
   openModal({
     title: id ? 'Editar usuario' : 'Nuevo usuario',
     body: `<div class="fgrid">${fld('Nombre', 'name', u.name, { req: 1 })}${fld('Correo', 'email', u.email, { req: 1, type: 'email' })}
@@ -1014,7 +991,7 @@ function candPanel(oid) {
     <button class="btn btn-primary" data-act="cdNew" data-org="${oid || ''}">Nuevo candidato</button>${oid ? `<button class="btn" data-act="cdImport" data-org="${oid}">Importar CSV</button>` : ''}</div>` + tbl(heads, rows, 'No hay candidatos con esos filtros.');
 }
 function openCand(oid, id) {
-  const c = id ? candOf(id) : { docType: 'CC', status: 'activo' };
+  const c = id ? candOf(id) : { docType: 'CC', docNum: String(1090000000 + S.seq), name: 'Julián Prado Reyes', email: `julian.prado${S.seq}@ejemplo.edu.co`, studentCode: 'E' + (2026000 + S.seq), program: 'Ingeniería Industrial', status: 'activo' };
   openModal({
     title: id ? 'Editar candidato' : 'Nuevo candidato',
     body: `<div class="fgrid">${fld('Tipo de documento', 'docType', c.docType, { type: 'select', opts: DOC_TYPES.map(d => [d, d]) })}${fld('Número de documento', 'docNum', c.docNum, { req: 1 })}
@@ -1031,11 +1008,15 @@ function openCand(oid, id) {
     }
   });
 }
+function sampleCsv() { const n = S.seq; return `tipo_doc,num_doc,codigo,nombres,correo,programa
+CC,${1099000000 + n},E${2026000 + n},Rafael Montoya Díaz,rafael.montoya${n}@ejemplo.edu.co,Derecho
+CC,${1099000500 + n},E${2026500 + n},Elena Cortés Mora,elena.cortes${n}@ejemplo.edu.co,Psicología
+XX,1,E0,Fila con tipo inválido,x@ejemplo.edu.co,N/A`; }
 function openImport(oid) {
   openModal({
     title: 'Importar candidatos (CSV simulado)', wide: true, submit: 'Importar',
     body: `<p class="muted">Pega el contenido CSV con columnas: <span class="mono">tipo_doc,num_doc,codigo,nombres,correo,programa</span>. La primera línea puede ser el encabezado.</p>
-      ${fld('Contenido CSV', 'csv', '', { type: 'textarea', rows: 8, req: 1, attrs: '' })}<button type="button" class="btn btn-sm" data-act="csvSample">Insertar ejemplo</button>`,
+      ${fld('Contenido CSV', 'csv', sampleCsv(), { type: 'textarea', rows: 8, req: 1, attrs: '' })}<button type="button" class="btn btn-sm" data-act="csvSample">Insertar ejemplo</button>`,
     onSubmit(v) {
       const lines = v.csv.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
       if (!lines.length) return { csv: 'Pega al menos una línea de datos.' };
@@ -1077,10 +1058,10 @@ function vBanco() {
 function questionHTML(q, interactive) {
   const res = q.resource ? `<div class="resource"><small>${q.skill === 'listening' ? 'Transcripción del audio (simulada)' : 'Texto de lectura'}</small>${esc(q.resource)}</div>` : '';
   return `${res}<fieldset style="border:0;padding:0;margin:0"><legend style="font:600 1.15rem 'Outfit';margin-bottom:12px;padding:0">${esc(q.stem)}</legend>
-    ${q.opts.map((o, i) => `<label class="opt"><input type="radio" name="ans" value="${i}"${interactive ? '' : ' disabled'}> <span>${esc(o)}</span></label>`).join('')}</fieldset>`;
+    ${q.opts.map((o, i) => `<label class="opt"><input type="radio" name="ans" value="${i}"${interactive ? (i === 0 ? ' checked' : '') : ' disabled'}> <span>${esc(o)}</span></label>`).join('')}</fieldset>`;
 }
 function openQuestion(id) {
-  const q = id ? byId(S.questions, id) : { skill: 'grammar', level: 2, type: 'mc', stem: '', opts: ['', '', '', ''], correct: 0, difficulty: 2.5, timeLimit: '', resource: '', status: 'borrador' };
+  const q = id ? byId(S.questions, id) : { skill: 'grammar', level: 2, type: 'mc', stem: 'My brother ___ football every Saturday.', opts: ['plays', 'play', 'playing', 'played'], correct: 0, difficulty: 2.5, timeLimit: '', resource: '', status: 'activa' };
   const o4 = [...q.opts, '', '', '', ''].slice(0, 4);
   openModal({
     title: id ? 'Editar pregunta ' + id : 'Nueva pregunta', wide: true,
@@ -1245,8 +1226,8 @@ function sampleCodes() {
 function vEntry() {
   return head('Realizar examen', 'Ingresa el código de tu licencia y tu número de documento para comenzar.') +
     `<section class="panel" style="max-width:640px"><form data-form="entry" novalidate><div class="notice bad" id="e-form" role="alert" hidden></div>
-      ${fld('Código de licencia', 'code', U.entry.code, { req: 1, attrs: 'placeholder="ENG-XXXX-XXXX" autocomplete="off" style="text-transform:uppercase"' })}
-      ${fld('Número de documento', 'doc', U.entry.doc, { attrs: 'autocomplete="off"', hint: 'Debe coincidir con el documento al que está asignada la licencia.' })}
+      ${fld('Código de licencia', 'code', U.entry.code || (sampleCodes()[0] || [])[1] || '', { req: 1, attrs: 'placeholder="ENG-XXXX-XXXX" autocomplete="off" style="text-transform:uppercase"' })}
+      ${fld('Número de documento', 'doc', U.entry.doc || (U.entry.code ? '' : (sampleCodes()[0] || [])[2] || ''), { attrs: 'autocomplete="off"', hint: 'Debe coincidir con el documento al que está asignada la licencia.' })}
       <button class="btn btn-primary" type="submit">Continuar</button></form></section>
     <section class="panel" style="max-width:640px"><h2>Códigos de ejemplo</h2><p class="muted">Haz clic en uno para rellenar el formulario y probar cada validación.</p>
       <div class="chips">${sampleCodes().map(([t, c, d]) => `<button class="chip" type="button" data-act="fill" data-code="${c}" data-doc="${d}">${esc(t)}</button>`).join('')}</div></section>`;
@@ -1257,7 +1238,7 @@ function vInstr() {
     `<section class="panel" style="max-width:700px"><ul><li>Es un examen <b>adaptativo</b>: la dificultad de cada pregunta depende de tus respuestas y de tu rapidez.</li>
       <li>Responderás entre <b>${c.minQ}</b> y <b>${c.maxQ}</b> preguntas, una por pantalla.</li><li>Cada pregunta tiene un <b>temporizador</b>. Al agotarse se marca como expirada y se avanza.</li><li>No puedes volver a una pregunta anterior ni pausar el examen.</li></ul>
       <div class="notice warn"><b>Atención:</b> al iniciar se consume tu licencia <span class="mono">${lic.code}</span>. Solo permite un examen y <b>no hay vuelta atrás</b>, aunque cierres la ventana.</div>
-      <form data-form="start" novalidate><div class="field"><label><input type="checkbox" name="ok" value="1"> Entiendo que iniciar consume mi licencia y no se puede deshacer.</label><small class="err" id="e-ok" role="alert"></small></div>
+      <form data-form="start" novalidate><div class="field"><label><input type="checkbox" name="ok" value="1" checked> Entiendo que iniciar consume mi licencia y no se puede deshacer.</label><small class="err" id="e-ok" role="alert"></small></div>
       <div class="row"><button type="button" class="btn" data-act="exCancel">Volver</button><button class="btn btn-primary" type="submit">Iniciar examen</button></div></form></section>`;
 }
 function vRun() {
@@ -1364,7 +1345,7 @@ function vVerificar() {
         <dl class="dl"><dt>A nombre de</dt><dd><b>${esc(p?.name)}</b></dd><dt>Nivel MCER</dt><dd>${lvlTag(LEVELS.indexOf(a.level))} · puntaje ${a.score}/100</dd><dt>Número</dt><dd class="mono">${r.c.number}</dd><dt>Emitido</dt><dd>${fmtD(r.c.issuedAt)}</dd><dt>Vigente hasta</dt><dd>${fmtD(r.c.validUntil)}</dd>${st === 'revocado' ? `<dt>Revocado</dt><dd>${fmtD(r.c.revokedAt)}</dd>` : ''}</dl></section>`; }
   }
   return head('Verificar certificado', 'Consulta pública: ingresa el código de verificación impreso en el certificado.') +
-    `<section class="panel" style="max-width:640px"><form data-form="verify" novalidate>${fld('Código de verificación', 'code', U.ver, { req: 1, attrs: 'placeholder="VER-XXXX-XXXX" autocomplete="off" style="text-transform:uppercase"' })}<button class="btn btn-primary" type="submit">Verificar</button></form>
+    `<section class="panel" style="max-width:640px"><form data-form="verify" novalidate>${fld('Código de verificación', 'code', U.ver || S.certs[0]?.code || '', { req: 1, attrs: 'placeholder="VER-XXXX-XXXX" autocomplete="off" style="text-transform:uppercase"' })}<button class="btn btn-primary" type="submit">Verificar</button></form>
     <p class="muted" style="margin-top:14px">Códigos de ejemplo:</p><div class="chips">${samples.map(c => `<button class="chip" type="button" data-act="fillVer" data-code="${c.code}">${certState(c)[0].toUpperCase() + certState(c).slice(1)}</button>`).join('')}<button class="chip" type="button" data-act="fillVer" data-code="VER-0000-0000">No existe</button></div></section>${res}`;
 }
 
@@ -1398,7 +1379,7 @@ function setRole(r) { S.ui.role = r; S.ui.view = ROLES[r].nav[0][0]; U.orgDetail
 
 const A = {
   menu() { $('#side').classList.toggle('open'); render(); },
-  theme() { const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light'), nx = cur === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = nx; try { localStorage.setItem('levexa_theme', nx); } catch (e) { /* sin almacenamiento */ } },
+
   async reset() { if (guardExam()) return; if (await confirmDlg({ title: 'Reiniciar datos de demo', msg: 'Se borrarán todos los cambios y se restaurarán los datos de ejemplo originales.', ok: 'Reiniciar', danger: true })) { try { localStorage.removeItem(KEY); } catch (e) { /* nada */ } S = seed(); U.orgDetail = null; U.lotSel = null; U.f = {}; U.ex = { stage: 'entry' }; U.lastPurchase = null; commit(); toast('Datos de demo restaurados.'); } },
   nav(d) { if (guardExam()) return; S.ui.view = d.view; U.orgDetail = null; U.lotSel = null; U.f = {}; U.ex = U.ex.stage === 'final' ? { stage: 'entry' } : U.ex.stage === 'instr' ? { stage: 'entry' } : U.ex; if (S.ui.view !== 'comprar') U.lastPurchase = null; $('#side').classList.remove('open'); commit(); $('#main').focus(); },
   orgNew() { openOrg(); }, orgEdit(d) { openOrg(d.id); }, orgStatus(d) { openOrgStatus(d.id); },
@@ -1423,7 +1404,7 @@ const A = {
   csvSample(d, t) { const ta = $('[name=csv]', t.closest('.modal-bg')); ta.value = 'tipo_doc,num_doc,codigo,nombres,correo,programa\nCC,1099000111,E2026001,Rafael Montoya Díaz,rafael.montoya@ejemplo.edu.co,Derecho\nCC,1099000112,E2026002,Elena Cortés Mora,elena.cortes@ejemplo.edu.co,Psicología\nXX,1,E0,Fila con tipo inválido,x@ejemplo.edu.co,N/A'; ta.focus(); },
   attOpen(d) { openAttempt(d.id); }, csv() { exportCSV(); }, print() { window.print(); },
   certView(d) { openCert(d.id); },
-  certRevoke(d) { const c = byId(S.certs, d.id); openModal({ title: 'Revocar certificado ' + c.number, submit: 'Revocar', danger: true, body: `<p>Un certificado revocado deja de ser válido en el verificador público.</p>${fld('Motivo', 'reason', '', { type: 'textarea', rows: 2, req: 1 })}`, onSubmit(v) { if (!v.reason.trim()) return { reason: 'Indica el motivo de la revocación.' }; c.status = 'revocado'; c.revokedAt = new Date().toISOString(); c.revokedReason = v.reason.trim(); save(); render(); closeTop(); closeTop(); openAttempt(d.att); toast('Certificado revocado.', 'warn'); return false; } }); },
+  certRevoke(d) { const c = byId(S.certs, d.id); openModal({ title: 'Revocar certificado ' + c.number, submit: 'Revocar', danger: true, body: `<p>Un certificado revocado deja de ser válido en el verificador público.</p>${fld('Motivo', 'reason', 'Suplantación de identidad detectada', { type: 'textarea', rows: 2, req: 1 })}`, onSubmit(v) { if (!v.reason.trim()) return { reason: 'Indica el motivo de la revocación.' }; c.status = 'revocado'; c.revokedAt = new Date().toISOString(); c.revokedReason = v.reason.trim(); save(); render(); closeTop(); closeTop(); openAttempt(d.att); toast('Certificado revocado.', 'warn'); return false; } }); },
   async certIssue(d) { const a = byId(S.attempts, d.att); if (await confirmDlg({ title: 'Emitir certificado', msg: 'Se emitirá un nuevo certificado con número y código propios.', ok: 'Emitir' })) { const n = issueCert(S, { ...a, finishedAt: new Date().toISOString() }, S.cfg); save(); render(); closeTop(); openAttempt(d.att); toast('Certificado ' + n.number + ' emitido.'); } },
   fill(d) { U.entry = { code: d.code, doc: d.doc }; render(); },
   exCancel() { U.ex = { stage: 'entry' }; render(); }, exDone() { U.ex = { stage: 'entry' }; U.entry = { code: '', doc: '' }; render(); },
@@ -1459,7 +1440,7 @@ $('#role-sel').addEventListener('change', e => { if (guardExam()) { e.target.val
 $('#org-sel').addEventListener('change', e => { if (guardExam()) return; S.ui.orgId = e.target.value; U.lotSel = null; U.f = {}; commit(); });
 
 (function boot() {
-  try { const th = localStorage.getItem('levexa_theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) { /* sin almacenamiento */ }
+
   load();
   $('#role-sel').innerHTML = Object.entries(ROLES).map(([k, r]) => `<option value="${k}">${r.label}</option>`).join('');
   $('#org-sel').innerHTML = S.orgs.map(o => `<option value="${o.id}">${esc(o.name)}</option>`).join('');
