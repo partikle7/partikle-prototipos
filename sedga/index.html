@@ -424,10 +424,33 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
   display:flex; flex-direction:column; align-items:center; gap:10px; background:var(--surface-alt);
   cursor:pointer;
 }
+.dropzone[hidden]{ display:none; }
 .dropzone.drag{ border-color:var(--accent); background:var(--accent-soft); }
 .dropzone svg{ width:34px; height:34px; color:var(--accent-strong); }
 .dropzone .dz-title{ font-weight:600; font-size:0.92rem; }
 .dropzone .dz-sub{ font-size:0.78rem; color:var(--text-muted); }
+
+/* upload status card: replaces the dropzone while a file is loading/validating */
+.upload-status-card{
+  border:1.5px solid var(--border); border-radius:12px; padding:26px 20px; text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap:8px; background:var(--surface-alt);
+}
+.upload-status-card[hidden]{ display:none; }
+.upload-status-card.valid{ border-color:var(--success); background:var(--success-soft); }
+.upload-status-card.invalid{ border-color:var(--danger); background:var(--danger-soft); }
+.upload-status-icon{
+  width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  background:var(--accent-soft); color:var(--accent-strong); flex:none;
+}
+.upload-status-icon svg{ width:20px; height:20px; }
+.upload-status-card.valid .upload-status-icon{ background:var(--success-soft); color:var(--success); }
+.upload-status-card.invalid .upload-status-icon{ background:var(--danger-soft); color:var(--danger); }
+@keyframes uploadSpin{ to{ transform:rotate(360deg); } }
+.upload-status-icon.spin svg{ animation:uploadSpin 1s linear infinite; }
+.upload-status-title{ font-weight:700; font-size:0.92rem; }
+.upload-status-sub{ font-size:0.8rem; color:var(--text-muted); max-width:320px; }
+.upload-status-progress{ width:100%; margin-top:4px; }
+.upload-status-actions{ display:flex; gap:8px; margin-top:6px; flex-wrap:wrap; justify-content:center; }
 
 .steps-mini{ display:flex; gap:0; }
 .steps-mini .s{ flex:1; display:flex; flex-direction:column; gap:7px; position:relative; }
@@ -863,15 +886,22 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
                 <div class="dz-sub" id="dz-sub-text">o haz clic para simular la selección de un archivo</div>
               </div>
               <input type="file" id="file-input" hidden>
+
+              <div class="upload-status-card" id="upload-status-card" hidden>
+                <div class="upload-status-icon" id="upload-status-icon"></div>
+                <div class="upload-status-title" id="upload-status-title">—</div>
+                <div class="upload-status-sub" id="upload-status-sub">—</div>
+                <div class="upload-status-progress" id="upload-status-progress">
+                  <div class="progress"><div id="upload-bar" style="width:0%"></div></div>
+                  <div style="display:flex; justify-content:space-between; font-size:0.74rem; color:var(--text-muted); margin-top:6px;">
+                    <span id="upload-file-name">—</span><span id="upload-pct" class="mono">0%</span>
+                  </div>
+                </div>
+                <div class="upload-status-actions" id="upload-status-actions"></div>
+              </div>
+
               <div>
                 <div class="steps-mini" id="upload-steps"></div>
-              </div>
-              <div id="upload-progress-wrap" hidden>
-                <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted); margin-bottom:6px;">
-                  <span id="upload-file-name">—</span><span id="upload-pct" class="mono">0%</span>
-                </div>
-                <div class="progress"><div id="upload-bar" style="width:0%"></div></div>
-                <div class="hint" id="upload-status-text" style="margin-top:8px;">—</div>
               </div>
             </div>
           </div>
@@ -1921,6 +1951,18 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 
   var dz = document.getElementById('dropzone');
   var fileInput = document.getElementById('file-input');
+  var statusCard = document.getElementById('upload-status-card');
+  var statusIcon = document.getElementById('upload-status-icon');
+  var statusTitle = document.getElementById('upload-status-title');
+  var statusSub = document.getElementById('upload-status-sub');
+  var statusProgress = document.getElementById('upload-status-progress');
+  var statusActions = document.getElementById('upload-status-actions');
+  var bar = document.getElementById('upload-bar');
+  var pct = document.getElementById('upload-pct');
+
+  var ICON_SPINNER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" opacity="0.25"/><path d="M21 12a9 9 0 0 0-9-9"/></svg>';
+  var ICON_CHECK_CIRCLE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>';
+
   ['dragover'].forEach(function(evt){
     dz.addEventListener(evt, function(e){ e.preventDefault(); dz.classList.add('drag'); });
   });
@@ -1939,20 +1981,53 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     'Programas':'Programas_snies'
   };
 
+  function openAdHocIssuesModal(name, issues){
+    document.getElementById('modal-title').textContent = 'Novedades de la plantilla';
+    document.getElementById('modal-subtitle').textContent = name;
+    document.getElementById('modal-body').innerHTML =
+      '<div style="display:flex; flex-direction:column; gap:10px;">'+
+        '<p style="margin:0 0 2px; font-size:0.85rem; color:var(--text-muted);">Sedga encontró '+issues.length+' novedades al validar esta plantilla. No se guardará ningún registro hasta que se corrijan y vuelva a cargarse.</p>'+
+        issues.map(function(msg){
+          return '<div class="issue-row"><span class="issue-icon">'+ICON_WARNING+'</span><span>'+msg+'</span></div>';
+        }).join('')+
+      '</div>';
+    modalOverlay.hidden = false;
+  }
+
+  function resetUploadUI(){
+    uploading = false;
+    dz.hidden = false;
+    statusCard.hidden = true;
+    statusCard.classList.remove('valid', 'invalid');
+    statusProgress.hidden = false;
+    statusActions.innerHTML = '';
+    bar.style.background = '';
+    bar.style.width = '0%';
+    pct.textContent = '0%';
+    fileInput.value = '';
+    renderUploadSteps(-1);
+  }
+
   var uploading = false;
   function simulateUpload(name){
     if(uploading) return;
     uploading = true;
     var tipo = document.getElementById('template-type').value;
     name = name || (TEMPLATE_FILE_HINT[tipo]+'_'+(Math.floor(Math.random()*900)+100)+'.xlsx');
-    var wrap = document.getElementById('upload-progress-wrap');
-    var bar = document.getElementById('upload-bar');
-    var pct = document.getElementById('upload-pct');
-    var statusText = document.getElementById('upload-status-text');
-    document.getElementById('upload-file-name').textContent = name;
+
+    dz.hidden = true;
+    statusCard.hidden = false;
+    statusCard.classList.remove('valid', 'invalid');
+    statusProgress.hidden = false;
+    statusActions.innerHTML = '';
     bar.style.background = '';
-    wrap.hidden = false;
-    statusText.textContent = 'Cargando archivo…';
+    document.getElementById('upload-file-name').textContent = name;
+
+    statusIcon.className = 'upload-status-icon spin';
+    statusIcon.innerHTML = ICON_SPINNER;
+    statusTitle.textContent = 'Cargando archivo…';
+    statusSub.textContent = name;
+
     var p = 0;
     renderUploadSteps(0);
 
@@ -1972,11 +2047,11 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 
     function runValidation(){
       renderUploadSteps(1);
-      statusText.textContent = 'Validando información y estructura…';
+      statusTitle.textContent = 'Validando información y estructura…';
       var validateIv = setInterval(function(){
         p += Math.random()*8 + 4;
-        if(p >= 90){
-          p = 90;
+        if(p >= 100){
+          p = 100;
           bar.style.width = p+'%';
           pct.textContent = Math.round(p)+'%';
           clearInterval(validateIv);
@@ -1989,39 +2064,48 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     }
 
     function finishValidation(){
-      var issues = Math.random() < 0.3 ? generateMockIssues(tipo) : null;
+      var issues = Math.random() < 0.35 ? generateMockIssues(tipo) : null;
+      var rowCount = fmtNum.format(Math.floor(Math.random()*4000)+500);
 
       if(issues){
-        bar.style.width = '100%';
-        pct.textContent = '100%';
-        bar.style.background = 'var(--danger)';
         renderUploadSteps(1, true);
-        statusText.textContent = 'Se encontraron novedades: los registros no se guardaron.';
-        TEMPLATES.unshift({name:name, type:tipo, rows:'—', by:'Tú', date:todayLabel(), status:'issue', issues:issues});
-        renderTemplates();
-        toast('Plantilla "'+name+'" ('+tipo+') tiene novedades: revísala antes de volver a cargarla');
-        uploading = false;
-        setTimeout(function(){
-          wrap.hidden = true;
-          renderUploadSteps(-1);
-          openTemplateIssuesModal(0);
-        }, 1400);
+        statusProgress.hidden = true;
+        statusCard.classList.add('invalid');
+        bar.style.background = 'var(--danger)';
+        statusIcon.className = 'upload-status-icon';
+        statusIcon.innerHTML = ICON_WARNING;
+        statusTitle.textContent = 'Se encontraron novedades';
+        statusSub.textContent = issues.length+' novedades detectadas: no se puede guardar esta plantilla.';
+        statusActions.innerHTML =
+          '<button type="button" class="btn btn-ghost btn-sm" id="btn-upload-view-issues">Ver novedades</button>'+
+          '<button type="button" class="btn btn-ghost btn-sm" id="btn-upload-retry">Volver a cargar</button>';
+        document.getElementById('btn-upload-view-issues').addEventListener('click', function(){ openAdHocIssuesModal(name, issues); });
+        document.getElementById('btn-upload-retry').addEventListener('click', resetUploadUI);
+        toast('Plantilla "'+name+'" ('+tipo+') tiene novedades: no se guardó ningún registro');
         return;
       }
 
-      renderUploadSteps(2);
-      statusText.textContent = 'Información válida. Guardando registros…';
-      setTimeout(function(){
-        bar.style.width = '100%';
-        pct.textContent = '100%';
-        var rowCount = fmtNum.format(Math.floor(Math.random()*4000)+500);
+      renderUploadSteps(1);
+      statusProgress.hidden = true;
+      statusCard.classList.add('valid');
+      statusIcon.className = 'upload-status-icon';
+      statusIcon.innerHTML = ICON_CHECK_CIRCLE;
+      statusTitle.textContent = 'Información válida';
+      statusSub.textContent = rowCount+' registros listos para guardar. Confirma para montar la plantilla.';
+      statusActions.innerHTML =
+        '<button type="button" class="btn btn-primary btn-sm" id="btn-upload-confirm">Guardar registros</button>'+
+        '<button type="button" class="btn btn-ghost btn-sm" id="btn-upload-cancel">Cancelar</button>';
+      document.getElementById('btn-upload-cancel').addEventListener('click', function(){
+        resetUploadUI();
+        toast('Carga cancelada: no se guardó la plantilla "'+name+'"');
+      });
+      document.getElementById('btn-upload-confirm').addEventListener('click', function(){
+        renderUploadSteps(2);
         TEMPLATES.unshift({name:name, type:tipo, rows:rowCount, by:'Tú', date:todayLabel(), status:'ok'});
         renderTemplates();
-        statusText.textContent = 'Plantilla validada y guardada correctamente.';
-        toast('Plantilla "'+name+'" ('+tipo+') validada y guardada correctamente');
-        uploading = false;
-        setTimeout(function(){ wrap.hidden = true; renderUploadSteps(-1); }, 1400);
-      }, 900);
+        toast('Plantilla "'+name+'" ('+tipo+') guardada correctamente');
+        resetUploadUI();
+      });
     }
   }
 
