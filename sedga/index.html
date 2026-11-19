@@ -452,6 +452,10 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 .upload-status-progress{ width:100%; margin-top:4px; }
 .upload-status-actions{ display:flex; gap:8px; margin-top:6px; flex-wrap:wrap; justify-content:center; }
 
+.sim-buttons{ display:flex; flex-direction:column; gap:8px; padding-top:4px; border-top:1px dashed var(--border); }
+.sim-buttons-label{ font-size:0.74rem; color:var(--text-muted); font-weight:600; }
+.sim-buttons-row{ display:flex; gap:8px; flex-wrap:wrap; }
+
 .steps-mini{ display:flex; gap:0; }
 .steps-mini .s{ flex:1; display:flex; flex-direction:column; gap:7px; position:relative; }
 .steps-mini .bar{ height:4px; border-radius:99px; background:var(--border); }
@@ -902,6 +906,20 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 
               <div>
                 <div class="steps-mini" id="upload-steps"></div>
+              </div>
+
+              <div class="sim-buttons">
+                <span class="sim-buttons-label">Prototipo: simular resultado de la validación</span>
+                <div class="sim-buttons-row">
+                  <button type="button" class="btn btn-ghost btn-sm" id="btn-sim-ok">
+                    <span class="dot-status" style="background:var(--success);"></span>
+                    Simular cargue correcto
+                  </button>
+                  <button type="button" class="btn btn-ghost btn-sm" id="btn-sim-issues">
+                    <span class="dot-status" style="background:var(--danger);"></span>
+                    Simular cargue con novedades
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1974,6 +1992,13 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     simulateUpload(fileInput.files[0] ? fileInput.files[0].name : null);
   });
 
+  document.getElementById('btn-sim-ok').addEventListener('click', function(){
+    simulateUpload(null, 'ok');
+  });
+  document.getElementById('btn-sim-issues').addEventListener('click', function(){
+    simulateUpload(null, 'issues');
+  });
+
   var TEMPLATE_FILE_HINT = {
     'Primer curso':'UnoAUno_Primer_Curso',
     'Matriculados':'Unoauno_matriculados',
@@ -2006,10 +2031,12 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     pct.textContent = '0%';
     fileInput.value = '';
     renderUploadSteps(-1);
+    document.getElementById('btn-sim-ok').disabled = false;
+    document.getElementById('btn-sim-issues').disabled = false;
   }
 
   var uploading = false;
-  function simulateUpload(name){
+  function simulateUpload(name, forceOutcome){
     if(uploading) return;
     uploading = true;
     var tipo = document.getElementById('template-type').value;
@@ -2022,6 +2049,8 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     statusActions.innerHTML = '';
     bar.style.background = '';
     document.getElementById('upload-file-name').textContent = name;
+    document.getElementById('btn-sim-ok').disabled = true;
+    document.getElementById('btn-sim-issues').disabled = true;
 
     statusIcon.className = 'upload-status-icon spin';
     statusIcon.innerHTML = ICON_SPINNER;
@@ -2064,7 +2093,8 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     }
 
     function finishValidation(){
-      var issues = Math.random() < 0.35 ? generateMockIssues(tipo) : null;
+      var hasIssues = forceOutcome === 'issues' ? true : (forceOutcome === 'ok' ? false : Math.random() < 0.35);
+      var issues = hasIssues ? generateMockIssues(tipo) : null;
       var rowCount = fmtNum.format(Math.floor(Math.random()*4000)+500);
 
       if(issues){
