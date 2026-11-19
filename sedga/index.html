@@ -435,6 +435,8 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 .steps-mini .s.on .bar{ background:var(--accent); }
 .steps-mini .lab{ font-size:0.72rem; color:var(--text-muted); font-weight:600; }
 .steps-mini .s.on .lab{ color:var(--accent-strong); }
+.steps-mini .s.err .bar{ background:var(--danger); }
+.steps-mini .s.err .lab{ color:var(--danger); }
 
 .progress{ height:6px; border-radius:99px; background:var(--surface-alt); overflow:hidden; }
 .progress > div{ height:100%; background:var(--accent); border-radius:99px; transition:width .6s ease; }
@@ -869,6 +871,7 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
                   <span id="upload-file-name">—</span><span id="upload-pct" class="mono">0%</span>
                 </div>
                 <div class="progress"><div id="upload-bar" style="width:0%"></div></div>
+                <div class="hint" id="upload-status-text" style="margin-top:8px;">—</div>
               </div>
             </div>
           </div>
@@ -1888,13 +1891,33 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     modalOverlay.hidden = false;
   }
 
-  var UPLOAD_STAGES = ['Cargar','Validar','Mapear campos','Confirmar'];
-  function renderUploadSteps(activeIdx){
+  var UPLOAD_STAGES = ['Cargar archivo','Validar información','Guardar registros'];
+  function renderUploadSteps(activeIdx, errorAtActive){
     document.getElementById('upload-steps').innerHTML = UPLOAD_STAGES.map(function(s,i){
-      return '<div class="s'+(i<=activeIdx?' on':'')+'"><div class="bar"></div><div class="lab">'+s+'</div></div>';
+      var cls = '';
+      if(i < activeIdx) cls = ' on';
+      else if(i === activeIdx) cls = errorAtActive ? ' err' : ' on';
+      return '<div class="s'+cls+'"><div class="bar"></div><div class="lab">'+s+'</div></div>';
     }).join('');
   }
   renderUploadSteps(-1);
+
+  function todayLabel(){
+    var months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    var d = new Date();
+    return d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();
+  }
+
+  function generateMockIssues(tipo){
+    var pool = [
+      'Se encontraron '+(Math.floor(Math.random()*40)+5)+' registros con columnas obligatorias vacías.',
+      (Math.floor(Math.random()*15)+2)+' códigos de programa no coinciden con el catálogo SNIES.',
+      'Se detectaron '+(Math.floor(Math.random()*5)+1)+' filas duplicadas para el mismo estudiante y periodo.',
+      (Math.floor(Math.random()*10)+1)+' documentos de identidad con formato inválido en la plantilla de '+tipo.toLowerCase()+'.'
+    ];
+    var count = Math.random() < 0.5 ? 1 : 2;
+    return pool.sort(function(){ return Math.random()-0.5; }).slice(0, count);
+  }
 
   var dz = document.getElementById('dropzone');
   var fileInput = document.getElementById('file-input');
@@ -1925,36 +1948,81 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     var wrap = document.getElementById('upload-progress-wrap');
     var bar = document.getElementById('upload-bar');
     var pct = document.getElementById('upload-pct');
+    var statusText = document.getElementById('upload-status-text');
     document.getElementById('upload-file-name').textContent = name;
+    bar.style.background = '';
     wrap.hidden = false;
+    statusText.textContent = 'Cargando archivo…';
     var p = 0;
     renderUploadSteps(0);
+
     var iv = setInterval(function(){
-      p += Math.random()*18 + 7;
-      if(p >= 100){ p = 100; clearInterval(iv); }
+      p += Math.random()*14 + 6;
+      if(p >= 55){
+        p = 55;
+        bar.style.width = p+'%';
+        pct.textContent = Math.round(p)+'%';
+        clearInterval(iv);
+        runValidation();
+        return;
+      }
       bar.style.width = p+'%';
       pct.textContent = Math.round(p)+'%';
-      if(p>20) renderUploadSteps(1);
-      if(p>55) renderUploadSteps(2);
-      if(p>=100){
-        renderUploadSteps(3);
-        var rowCount = fmtNum.format(Math.floor(Math.random()*4000)+500);
-        TEMPLATES.unshift({name:name, type:tipo, rows:'—', by:'Tú', date:'28 oct 2026', status:'proceso'});
+    }, 220);
+
+    function runValidation(){
+      renderUploadSteps(1);
+      statusText.textContent = 'Validando información y estructura…';
+      var validateIv = setInterval(function(){
+        p += Math.random()*8 + 4;
+        if(p >= 90){
+          p = 90;
+          bar.style.width = p+'%';
+          pct.textContent = Math.round(p)+'%';
+          clearInterval(validateIv);
+          finishValidation();
+          return;
+        }
+        bar.style.width = p+'%';
+        pct.textContent = Math.round(p)+'%';
+      }, 220);
+    }
+
+    function finishValidation(){
+      var issues = Math.random() < 0.3 ? generateMockIssues(tipo) : null;
+
+      if(issues){
+        bar.style.width = '100%';
+        pct.textContent = '100%';
+        bar.style.background = 'var(--danger)';
+        renderUploadSteps(1, true);
+        statusText.textContent = 'Se encontraron novedades: los registros no se guardaron.';
+        TEMPLATES.unshift({name:name, type:tipo, rows:'—', by:'Tú', date:todayLabel(), status:'issue', issues:issues});
         renderTemplates();
-        toast('Plantilla "'+name+'" ('+tipo+') cargada, Sedga la está validando');
+        toast('Plantilla "'+name+'" ('+tipo+') tiene novedades: revísala antes de volver a cargarla');
         uploading = false;
-        setTimeout(function(){ wrap.hidden = true; renderUploadSteps(-1); }, 1600);
         setTimeout(function(){
-          var t = TEMPLATES[0];
-          if(t && t.name===name && t.status==='proceso'){
-            t.status = 'ok';
-            t.rows = rowCount;
-            renderTemplates();
-            toast('Plantilla "'+name+'" ('+tipo+') validada correctamente');
-          }
-        }, 3200);
+          wrap.hidden = true;
+          renderUploadSteps(-1);
+          openTemplateIssuesModal(0);
+        }, 1400);
+        return;
       }
-    }, 260);
+
+      renderUploadSteps(2);
+      statusText.textContent = 'Información válida. Guardando registros…';
+      setTimeout(function(){
+        bar.style.width = '100%';
+        pct.textContent = '100%';
+        var rowCount = fmtNum.format(Math.floor(Math.random()*4000)+500);
+        TEMPLATES.unshift({name:name, type:tipo, rows:rowCount, by:'Tú', date:todayLabel(), status:'ok'});
+        renderTemplates();
+        statusText.textContent = 'Plantilla validada y guardada correctamente.';
+        toast('Plantilla "'+name+'" ('+tipo+') validada y guardada correctamente');
+        uploading = false;
+        setTimeout(function(){ wrap.hidden = true; renderUploadSteps(-1); }, 1400);
+      }, 900);
+    }
   }
 
   /* ---------------- Cálculo de tasas (metodología SPADIES) ---------------- */
