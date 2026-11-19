@@ -1,0 +1,1470 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Prototipo interactivo de Levexa: plataforma de exámenes adaptativos de clasificación de inglés con niveles MCER, licencias, certificados y verificación pública.">
+<title>Levexa · Prototipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ===== Tokens de diseño: claro por defecto, oscuro por preferencia del sistema o por selector ===== */
+:root{
+  --bg:#f5f7fb; --surface:#ffffff; --surface-2:#eef2f9; --border:#dbe2ee;
+  --text:#1d2433; --muted:#5a6578;
+  --primary:#2f5fd0; --primary-strong:#2449a8; --primary-soft:#e6edfc; --on-primary:#ffffff;
+  --ok:#1b7f55; --ok-soft:#e1f4ea; --warn:#8f5a00; --warn-soft:#fdf0d5;
+  --bad:#b83232; --bad-soft:#fbe5e5; --info:#2f5fd0; --info-soft:#e6edfc;
+  --shadow:0 1px 2px rgba(20,30,60,.06),0 8px 24px -14px rgba(20,30,60,.2);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1420; --surface:#171e2e; --surface-2:#1f2840; --border:#2c3753;
+    --text:#e6eaf3; --muted:#9ba6bd;
+    --primary:#7fa3f7; --primary-strong:#a6c0fb; --primary-soft:#1e2c52; --on-primary:#0c1530;
+    --ok:#52cf96; --ok-soft:#143527; --warn:#e8b455; --warn-soft:#3a2e12;
+    --bad:#ff9090; --bad-soft:#401e1e; --info:#7fa3f7; --info-soft:#1e2c52;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -14px rgba(0,0,0,.6);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1420; --surface:#171e2e; --surface-2:#1f2840; --border:#2c3753;
+  --text:#e6eaf3; --muted:#9ba6bd;
+  --primary:#7fa3f7; --primary-strong:#a6c0fb; --primary-soft:#1e2c52; --on-primary:#0c1530;
+  --ok:#52cf96; --ok-soft:#143527; --warn:#e8b455; --warn-soft:#3a2e12;
+  --bad:#ff9090; --bad-soft:#401e1e; --info:#7fa3f7; --info-soft:#1e2c52;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -14px rgba(0,0,0,.6);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box;}
+[hidden]{display:none !important;}
+html,body{margin:0;}
+body{background:var(--bg);color:var(--text);font:15px/1.5 'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;min-height:100vh;}
+h1,h2,h3,.brand span{font-family:'Outfit',system-ui,sans-serif;text-wrap:balance;}
+h1{font-size:1.55rem;margin:0 0 4px;font-weight:600;}
+h2{font-size:1.15rem;margin:0 0 10px;font-weight:600;}
+h3{font-size:1rem;margin:0 0 8px;font-weight:600;}
+p{margin:0 0 10px;}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.86em;}
+.muted{color:var(--muted);}
+:focus-visible{outline:3px solid var(--primary);outline-offset:2px;border-radius:4px;}
+.skip{position:absolute;left:-999px;top:0;background:var(--primary);color:var(--on-primary);padding:8px 12px;z-index:100;}
+.skip:focus{left:8px;top:8px;}
+
+/* ===== Estructura ===== */
+.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--border);}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:1.15rem;}
+.brand small{font:500 .7rem 'Inter';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:2px 8px;border-radius:99px;}
+.top-ctrl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-left:auto;}
+.inline{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);}
+.inline select{max-width:230px;}
+.top .menu-btn{display:none;}
+.layout{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 58px);}
+#side{background:var(--surface);border-right:1px solid var(--border);padding:14px 10px;position:sticky;top:58px;align-self:start;height:calc(100vh - 58px);overflow-y:auto;}
+#side .role-tag{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:4px 10px 8px;}
+#side button{display:block;width:100%;text-align:left;background:none;border:0;border-left:3px solid transparent;padding:9px 12px;border-radius:0 8px 8px 0;color:var(--text);font:500 .92rem 'Inter';cursor:pointer;}
+#side button:hover{background:var(--surface-2);}
+#side button[aria-current="page"]{background:var(--primary-soft);border-left-color:var(--primary);color:var(--primary-strong);font-weight:600;}
+main{padding:22px 26px 60px;min-width:0;max-width:1280px;width:100%;}
+main:focus{outline:none;}
+.page-head{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px;}
+.page-head p{color:var(--muted);margin:0;max-width:70ch;}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;}
+  #side{position:static;height:auto;display:none;border-right:0;border-bottom:1px solid var(--border);}
+  #side.open{display:block;}
+  .top .menu-btn{display:inline-flex;}
+  main{padding:16px 16px 50px;}
+  .top{padding:8px 16px;}
+  .top-ctrl{margin-left:0;width:100%;}
+  .inline select{max-width:160px;}
+}
+
+/* ===== Componentes ===== */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px;}
+.grid{display:grid;gap:14px;}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr));}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr));}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr));}
+@media (max-width:760px){.g2,.g3,.g4{grid-template-columns:1fr;}}
+@media (min-width:761px) and (max-width:1100px){.g4{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;}
+.kpi b{display:block;font:600 1.7rem 'Outfit';}
+.kpi span{color:var(--muted);font-size:.85rem;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:8px 14px;border-radius:9px;font:500 .9rem 'Inter';cursor:pointer;min-height:38px;}
+.btn:hover:not(:disabled){background:var(--surface-2);}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.btn-primary{background:var(--primary);border-color:var(--primary);color:var(--on-primary);}
+.btn-primary:hover:not(:disabled){background:var(--primary-strong);border-color:var(--primary-strong);}
+:root[data-theme="dark"] .btn-primary:hover:not(:disabled){color:#0c1530;}
+.btn-danger{background:var(--bad);border-color:var(--bad);color:#fff;}
+:root[data-theme="dark"] .btn-danger,:root:not([data-theme="light"]) .btn-danger{color:#2a0c0c;}
+.btn-danger:hover:not(:disabled){filter:brightness(1.08);background:var(--bad);}
+.btn-ghost{background:transparent;}
+.btn-sm{padding:4px 10px;font-size:.8rem;min-height:30px;}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px;}
+.toolbar .grow{flex:1;min-width:180px;}
+.spacer{flex:1;}
+label{font-size:.82rem;font-weight:600;display:block;margin-bottom:3px;}
+input,select,textarea{width:100%;font:400 .92rem 'Inter';color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;min-height:38px;}
+input[type=checkbox],input[type=radio]{width:auto;min-height:0;accent-color:var(--primary);}
+.field{margin-bottom:12px;}
+.field.invalid input,.field.invalid select,.field.invalid textarea{border-color:var(--bad);}
+.err{display:block;color:var(--bad);font-size:.8rem;min-height:0;}
+.err:empty{display:none;}
+.hint{display:block;color:var(--muted);font-size:.78rem;margin-top:2px;}
+.req{color:var(--bad);}
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px;}
+@media (max-width:640px){.fgrid{grid-template-columns:1fr;}}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);}
+table{border-collapse:collapse;width:100%;font-size:.88rem;}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:middle;}
+th{background:var(--surface-2);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);white-space:nowrap;}
+tr:last-child td{border-bottom:0;}
+td.act{white-space:nowrap;}
+td.mono,td .mono{white-space:nowrap;}
+td .row{flex-wrap:nowrap;}
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:.74rem;font-weight:600;white-space:nowrap;}
+.b-gray{background:var(--surface-2);color:var(--muted);border:1px solid var(--border);}
+.b-ok{background:var(--ok-soft);color:var(--ok);}
+.b-warn{background:var(--warn-soft);color:var(--warn);}
+.b-bad{background:var(--bad-soft);color:var(--bad);}
+.b-info{background:var(--info-soft);color:var(--info);}
+.lvl{font:600 .8rem 'Outfit';background:var(--primary-soft);color:var(--primary-strong);padding:2px 9px;border-radius:6px;}
+.empty{text-align:center;padding:34px 16px;color:var(--muted);}
+.empty b{display:block;color:var(--text);margin-bottom:4px;}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto;}
+.tabs button{background:none;border:0;border-bottom:3px solid transparent;padding:9px 14px;font:500 .9rem 'Inter';color:var(--muted);cursor:pointer;white-space:nowrap;}
+.tabs button[aria-selected="true"]{color:var(--primary-strong);border-bottom-color:var(--primary);font-weight:600;}
+.notice{border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:.88rem;}
+.notice.warn{background:var(--warn-soft);color:var(--warn);}
+.notice.bad{background:var(--bad-soft);color:var(--bad);}
+.notice.ok{background:var(--ok-soft);color:var(--ok);}
+.notice.info{background:var(--info-soft);color:var(--info);}
+.dl{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;margin:0;}
+.dl dt{color:var(--muted);font-size:.85rem;}
+.dl dd{margin:0;}
+@media (max-width:560px){.dl{grid-template-columns:1fr;}.dl dt{margin-top:6px;}}
+.chips{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{background:var(--surface-2);border:1px solid var(--border);border-radius:99px;padding:4px 12px;font:500 .78rem 'Inter';cursor:pointer;color:var(--text);}
+.chip:hover{border-color:var(--primary);}
+
+/* Barra de progreso segmentada de lotes */
+.seg{display:flex;height:12px;border-radius:99px;overflow:hidden;background:var(--surface-2);border:1px solid var(--border);}
+.seg i{display:block;height:100%;}
+.s-consumida{background:#1b9a64;} .s-asignada{background:#3d6fe0;} .s-disponible{background:#9fb4d8;}
+.s-revocada{background:#d9a21b;} .s-vencida{background:#c94b4b;}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-top:6px;}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px;}
+.batch-card{display:block;}
+.bars .bar{display:grid;grid-template-columns:34px 1fr 34px;gap:8px;align-items:center;font-size:.82rem;margin-bottom:6px;}
+.bars .bar div{height:12px;background:var(--surface-2);border-radius:6px;overflow:hidden;}
+.bars .bar div i{display:block;height:100%;background:var(--primary);}
+
+/* ===== Modal y avisos ===== */
+.modal-bg{position:fixed;inset:0;background:rgba(10,15,30,.55);display:flex;align-items:flex-start;justify-content:center;padding:4vh 14px;overflow-y:auto;z-index:60;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;box-shadow:0 30px 70px -20px rgba(0,0,0,.5);}
+.modal.wide{max-width:900px;}
+.modal header{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border);}
+.modal header h2{margin:0;}
+.modal .mbody{padding:18px;}
+.modal footer{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--border);flex-wrap:wrap;}
+#toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:90;max-width:min(380px,calc(100vw - 32px));}
+.toast{background:var(--surface);border:1px solid var(--border);border-left:5px solid var(--ok);padding:10px 14px;border-radius:10px;box-shadow:var(--shadow);font-size:.88rem;}
+.toast.bad{border-left-color:var(--bad);} .toast.warn{border-left-color:var(--warn);}
+
+/* ===== Examen ===== */
+.exam{max-width:760px;margin:0 auto;}
+.tbar{height:10px;background:var(--surface-2);border-radius:99px;overflow:hidden;border:1px solid var(--border);}
+.tbar i{display:block;height:100%;background:var(--primary);transition:width .2s linear;}
+.tbar.low i{background:var(--bad);}
+.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:8px;cursor:pointer;background:var(--surface);font-weight:400;font-size:.95rem;}
+.opt:hover{border-color:var(--primary);}
+.opt:has(input:checked){border-color:var(--primary);background:var(--primary-soft);}
+.opt:has(input:focus-visible){outline:3px solid var(--primary);outline-offset:2px;}
+.resource{background:var(--surface-2);border-left:4px solid var(--primary);padding:12px 14px;border-radius:8px;margin-bottom:14px;font-size:.95rem;}
+.resource small{display:block;color:var(--muted);font-weight:600;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;font-size:.7rem;}
+.bignum{font:700 3.4rem/1 'Outfit';color:var(--primary-strong);}
+.chart svg{width:100%;height:auto;display:block;}
+
+/* ===== Certificado (siempre como hoja clara) ===== */
+.cert{background:#fffdf7;color:#1d2433;border:3px double #b99346;padding:34px 30px;text-align:center;border-radius:6px;font-family:'Outfit',sans-serif;}
+.cert h2{font-size:1.5rem;letter-spacing:.04em;color:#7a5a16;margin:0 0 4px;}
+.cert .nm{font-size:1.9rem;font-weight:600;margin:14px 0 4px;}
+.cert .lv{font-size:3.4rem;font-weight:700;color:#2449a8;line-height:1.1;}
+.cert p{font-family:'Inter',sans-serif;color:#3a4256;margin:4px 0;font-size:.92rem;}
+.cert .meta{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 16px;text-align:left;margin-top:18px;font-family:'Inter',sans-serif;font-size:.84rem;color:#3a4256;}
+.cert .meta b{display:block;color:#7a5a16;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;}
+.cert .stamp{display:inline-block;margin-top:10px;border:2px solid #b83232;color:#b83232;padding:3px 14px;font-weight:700;letter-spacing:.1em;transform:rotate(-4deg);}
+@media print{
+  body>*:not(#modal-root){display:none !important;}
+  .modal-bg{position:static;background:none;padding:0;display:block;}
+  .modal{box-shadow:none;border:0;max-width:none;}
+  .modal header,.modal footer,.no-print{display:none !important;}
+  .modal .mbody{padding:0;}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important;}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+<header class="top">
+  <button class="btn btn-ghost menu-btn" id="menu-btn" data-act="menu" aria-label="Abrir menú de módulos" aria-expanded="false" aria-controls="side">☰ Menú</button>
+  <div class="brand">
+    <svg width="28" height="28" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="38" width="14" height="20" rx="4" fill="#2f5fd0"/><rect x="25" y="24" width="14" height="34" rx="4" fill="#4f7de6"/><rect x="44" y="8" width="14" height="50" rx="4" fill="#8aabf3"/></svg>
+    <span>Levexa</span><small>Prototipo</small>
+  </div>
+  <div class="top-ctrl">
+    <label class="inline" for="role-sel"><span>Rol</span><select id="role-sel"></select></label>
+    <label class="inline" id="org-wrap" for="org-sel"><span>Organización</span><select id="org-sel"></select></label>
+    <button class="btn btn-ghost btn-sm" id="theme-btn" data-act="theme" type="button">Tema</button>
+    <button class="btn btn-ghost btn-sm" data-act="reset" type="button">Reiniciar datos de demo</button>
+  </div>
+</header>
+<div class="layout">
+  <nav id="side" aria-label="Módulos del rol"></nav>
+  <main id="main" tabindex="-1"></main>
+</div>
+<div id="modal-root"></div>
+<div id="toasts" role="status" aria-live="polite"></div>
+<script>
+'use strict';
+/* =====================================================================
+   1. UTILIDADES Y CONSTANTES
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const DAY = 864e5;
+const iso = ms => new Date(ms).toISOString();
+const ts = s => new Date(s).getTime();
+const addDays = (s, n) => iso(ts(s) + n * DAY);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const fmtD = s => s ? new Date(s).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const fmtDT = s => s ? new Date(s).toLocaleString('es-CO', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+const fmtMoney = (n, cur) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: cur || 'COP', maximumFractionDigits: 0 }).format(n);
+const fmtSec = s => { s = Math.round(s); return Math.floor(s / 60) + ' min ' + String(s % 60).padStart(2, '0') + ' s'; };
+const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+const SKILLS = { grammar: 'Gramática', vocabulary: 'Vocabulario', reading: 'Lectura', listening: 'Comprensión auditiva' };
+const TF = ['Verdadero', 'Falso'];
+const DOC_TYPES = ['CC', 'TI', 'CE', 'PAS'];
+const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+// Generador pseudoaleatorio con semilla (datos de ejemplo reproducibles)
+function rng(seed) {
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+// Código de licencia o verificación sin caracteres ambiguos
+function genCode(prefix, used, R = Math.random) {
+  const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const part = () => Array.from({ length: 4 }, () => A[Math.floor(R() * A.length)]).join('');
+  let c; do { c = `${prefix}-${part()}-${part()}`; } while (used.has(c));
+  used.add(c); return c;
+}
+
+/* =====================================================================
+   2. DATOS MOCK (semilla)
+   ===================================================================== */
+// Banco de preguntas: [habilidad, nivel, enunciado, opciones, índice correcto, recurso]
+const P = {
+  a1: 'Tom is ten. He has a dog called Max. Max is brown and likes to play in the park.',
+  a2: 'Last weekend Laura visited her grandparents. They live in a small village near the mountains. They had lunch together and walked by the river in the afternoon.',
+  b1: 'Remote work has changed how many companies operate. Employees save commuting time and often report a better balance between work and personal life. However, some managers worry that teams communicate less and that new staff feel isolated.',
+  b2: 'Urban gardens are spreading across large cities. Beyond providing fresh vegetables, they strengthen community ties and reduce local temperatures. Critics, however, argue that the land would be better used for affordable housing, a claim supporters consider a false dilemma.',
+  c1: 'The notion that technological progress inevitably yields social benefit has been increasingly contested. While automation boosts productivity, its gains tend to accrue disproportionately to capital owners, prompting scholars to call for redistributive mechanisms that temper emerging inequalities.',
+  c2: 'Notwithstanding the exhaustive empirical scrutiny it has undergone, the hypothesis remains, in the strictest sense, unfalsifiable; its proponents, ever resourceful, reinterpret each anomaly as corroboration, thereby insulating the theory from refutation.'
+};
+const QBANK = [
+  // A1
+  ['g', 0, 'She ___ a student.', ['am', 'is', 'are', 'be'], 1],
+  ['g', 0, 'They ___ from Colombia.', ['is', 'am', 'are', 'be'], 2],
+  ['v', 0, 'Which word is a fruit?', ['table', 'apple', 'window', 'chair'], 1],
+  ['v', 0, 'What day comes after Tuesday?', ['Wednesday', 'Friday', 'Sunday', 'Thursday'], 0],
+  ['r', 0, 'What colour is Max?', ['Black', 'Brown', 'White', 'Yellow'], 1, P.a1],
+  ['r', 0, 'Tom has a cat.', TF, 1, P.a1],
+  ['l', 0, 'Where does Ana live?', ['Bogotá', 'Cali', 'Lima', 'Quito'], 1, 'Hello, my name is Ana. I live in Cali.'],
+  ['l', 0, 'What time does the shop open?', ['At eight', 'At nine', 'At ten', 'At seven'], 1, 'The shop opens at nine.'],
+  // A2
+  ['g', 1, 'Yesterday I ___ to the cinema.', ['go', 'went', 'gone', 'going'], 1],
+  ['g', 1, "There isn't ___ milk in the fridge.", ['some', 'any', 'a', 'many'], 1],
+  ['v', 1, 'A person who cooks in a restaurant is a ___.', ['driver', 'chef', 'nurse', 'pilot'], 1],
+  ['v', 1, "The opposite of 'cheap' is ___.", ['expensive', 'small', 'slow', 'early'], 0],
+  ['r', 1, "Where do Laura's grandparents live?", ['In a big city', 'In a village', 'By the sea', 'In another country'], 1, P.a2],
+  ['r', 1, 'Laura walked by the river in the morning.', TF, 1, P.a2],
+  ['l', 1, 'Which platform does the train leave from?', ['Platform two', 'Platform three', 'Platform four', 'Platform six'], 2, 'Excuse me, the train to Medellín leaves from platform four at ten past six.'],
+  ['l', 1, 'What does the speaker NOT want?', ['Milk', 'Coffee', 'Sugar', 'Water'], 2, "I'd like a coffee with milk, but no sugar, please."],
+  // B1
+  ['g', 2, 'If it rains tomorrow, we ___ at home.', ['stay', 'will stay', 'stayed', 'would stay'], 1],
+  ['g', 2, 'She has lived here ___ 2015.', ['for', 'since', 'from', 'during'], 1],
+  ['v', 2, 'I need to ___ a decision before Friday.', ['do', 'make', 'have', 'get'], 1],
+  ['v', 2, 'The meeting was ___ because the manager was ill.', ['called off', 'called up', 'called in', 'called for'], 0],
+  ['r', 2, 'What concern do some managers have?', ['Salaries are too high', 'Teams may communicate less', 'Offices are too expensive', 'Employees work too many hours'], 1, P.b1],
+  ['r', 2, 'Employees usually lose time commuting when working remotely.', TF, 1, P.b1],
+  ['l', 2, 'Why is the flight delayed?', ['A strike', 'Fog', 'A technical problem', 'A late crew'], 1, 'The flight has been delayed by two hours because of fog, so passengers should wait in the departure lounge.'],
+  ['l', 2, "Why didn't the speaker call?", ['No time', 'The phone battery died', 'Forgot the number', 'Was sleeping'], 1, 'I was going to call you, but my phone battery died.'],
+  // B2
+  ['g', 3, 'I wish I ___ more time to travel.', ['have', 'had', 'would have', 'having'], 1],
+  ['g', 3, 'By next year, she ___ her degree.', ['will finish', 'will have finished', 'finishes', 'is finishing'], 1],
+  ['v', 3, 'The company decided to ___ its operations to Asia.', ['expand', 'expend', 'expose', 'expect'], 0],
+  ['v', 3, 'His argument was so ___ that nobody could disagree.', ['compelling', 'compulsory', 'complex', 'compact'], 0],
+  ['r', 3, 'What do supporters think of the housing argument?', ['It is entirely correct', 'It presents a false choice', 'It is irrelevant to cities', 'It was proven by research'], 1, P.b2],
+  ['r', 3, 'Urban gardens may help lower temperatures locally.', TF, 0, P.b2],
+  ['l', 3, 'What did the researchers insist on?', ['The results were final', 'More trials were needed', 'The study had failed', 'Funding had ended'], 1, 'Although the results were promising, the researchers insisted that more trials were needed before drawing conclusions.'],
+  ['l', 3, 'Did the speaker go to the party?', ['Yes', 'No', 'Maybe', 'He organised it'], 1, "I'd have joined you had I known about the party."],
+  // C1
+  ['g', 4, 'Not only ___ late, but he also forgot the documents.', ['he arrived', 'did he arrive', 'he did arrive', 'arrived he'], 1],
+  ['g', 4, 'Were it not for your help, I ___ the deadline.', ['would miss', 'would have missed', 'will miss', 'missed'], 1],
+  ['v', 4, "The politician's remarks were deliberately ___, leaving room for interpretation.", ['ambiguous', 'ambitious', 'amiable', 'abundant'], 0],
+  ['v', 4, 'She has a ___ for languages; she learns them effortlessly.', ['knack', 'knock', 'knot', 'nick'], 0],
+  ['r', 4, 'What do scholars suggest?', ['Halting automation', 'Redistributive mechanisms', 'Lowering productivity', 'Increasing capital ownership'], 1, P.c1],
+  ['r', 4, 'The text claims that technological progress always benefits society equally.', TF, 1, P.c1],
+  ['l', 4, 'Why did the board reject the proposal?', ['Its merits were poor', 'The timing was untenable', 'It cost too much', 'It was illegal'], 1, 'Having weighed the proposal at length, the board concluded that, notwithstanding its merits, the timing was untenable.'],
+  ['l', 4, 'What happened?', ['The lecture ended', 'The projector failed just after the start', 'The lecture was cancelled', 'The projector was fixed'], 1, 'Hardly had the lecture begun when the projector failed.'],
+  // C2
+  ['g', 5, 'Rarely ___ such a compelling performance.', ['I have seen', 'have I seen', 'I seen', 'did I seen'], 1],
+  ['g', 5, 'So ___ was the evidence that the jury needed no deliberation.', ['overwhelming', 'overwhelmingly', 'overwhelm', 'an overwhelming'], 0],
+  ['v', 5, "The critic's review was ___, dismissing the entire work without nuance.", ['scathing', 'soothing', 'scanty', 'scrupulous'], 0],
+  ['v', 5, 'His ___ remarks caused laughter among the otherwise solemn audience.', ['facetious', 'fastidious', 'fallacious', 'fortuitous'], 0],
+  ['r', 5, 'What does the author imply?', ['The theory was tested and falsified', 'Proponents shield the theory from refutation', 'Anomalies refute the theory', 'Scrutiny has been lacking'], 1, P.c2],
+  ['r', 5, 'The author thinks the hypothesis can be easily disproved.', TF, 1, P.c2],
+  ['l', 5, 'What do the data do?', ['Confirm the policy', 'Undermine its core premise', 'Are inconclusive', 'Are missing'], 1, 'Far from vindicating the policy, the data, if anything, undermine its core premise.'],
+  ['l', 5, 'How did she feel?', ['Delighted', 'Quite upset', 'Indifferent', 'Relieved'], 1, 'She was, to put it mildly, less than thrilled by the outcome.']
+];
+const SK = { g: 'grammar', v: 'vocabulary', r: 'reading', l: 'listening' };
+
+function defaultCfg() {
+  const t = (a1, a2, b1, b2, c1, c2) => ({ A1: a1, A2: a2, B1: b1, B2: b2, C1: c1, C2: c2 });
+  return {
+    startLevel: 'B1', minQ: 10, maxQ: 20, defaultTime: 45,
+    timeTable: { grammar: t(25, 25, 35, 40, 45, 50), vocabulary: t(25, 25, 30, 35, 40, 45), reading: t(50, 60, 75, 90, 110, 130), listening: t(40, 45, 55, 65, 75, 85) },
+    stepUp: 0.4, stepDown: 0.5, fastPct: 40, slowPct: 85, timeWeight: 0.4, stopDelta: 0.6, stopWindow: 4, certDays: 730
+  };
+}
+
+// Construye todo el estado inicial de la demo
+function seed() {
+  const R = rng(20260);
+  const T = Date.now(), at = n => iso(T + n * DAY);
+  const s = { seq: 1000, ui: { role: 'admin', orgId: 'o1', view: 'resumen' }, orgs: [], contacts: [], users: [], exams: [], batches: [], licenses: [], candidates: [], questions: [], cfg: defaultCfg(), attempts: [], certs: [], purchases: [] };
+  const uid = p => p + (s.seq++);
+  const usedCodes = new Set();
+
+  s.exams = [
+    { id: 'x1', name: 'Clasificación MCER completa', price: 85000, currency: 'COP' },
+    { id: 'x2', name: 'Clasificación MCER express', price: 55000, currency: 'COP' }
+  ];
+  s.orgs = [
+    { id: 'o1', name: 'Universidad del Norte Andino', nit: '900.123.456-1', type: 'universidad', country: 'Colombia', city: 'Bogotá', status: 'activa' },
+    { id: 'o2', name: 'Universidad Politécnica del Pacífico', nit: '900.234.567-2', type: 'universidad', country: 'Colombia', city: 'Cali', status: 'activa' },
+    { id: 'o3', name: 'Colegio Horizonte Bilingüe', nit: '900.345.678-3', type: 'colegio', country: 'Colombia', city: 'Medellín', status: 'activa' },
+    { id: 'o4', name: 'Instituto Técnico Meridiano', nit: '900.456.789-4', type: 'instituto', country: 'Colombia', city: 'Barranquilla', status: 'activa' }
+  ];
+  const ct = (orgId, name, role, email, phone, type, main) => s.contacts.push({ id: uid('k'), orgId, name, role, email, phone, type, main });
+  ct('o1', 'Marcela Duarte', 'Directora de Idiomas', 'm.duarte@ejemplo.edu.co', '+57 300 000 0101', 'académico', true);
+  ct('o1', 'Felipe Arias', 'Jefe de TI', 'f.arias@ejemplo.edu.co', '+57 300 000 0102', 'técnico', false);
+  ct('o2', 'Natalia Bernal', 'Coordinadora académica', 'n.bernal@ejemplo.edu.co', '+57 300 000 0201', 'académico', true);
+  ct('o2', 'Héctor Quintero', 'Tesorero', 'h.quintero@ejemplo.edu.co', '+57 300 000 0202', 'facturación', false);
+  ct('o3', 'Rosa Elena Pinto', 'Rectora', 'r.pinto@ejemplo.edu.co', '+57 300 000 0301', 'comercial', true);
+  ct('o3', 'Iván Salcedo', 'Coordinador de inglés', 'i.salcedo@ejemplo.edu.co', '+57 300 000 0302', 'académico', false);
+  ct('o4', 'Diana Lozano', 'Gerente administrativa', 'd.lozano@ejemplo.edu.co', '+57 300 000 0401', 'comercial', true);
+  ct('o4', 'Camilo Prieto', 'Soporte técnico', 'c.prieto@ejemplo.edu.co', '+57 300 000 0402', 'técnico', false);
+
+  const us = (name, email, role, orgId) => s.users.push({ id: uid('u'), name, email, role, orgId, status: 'activo' });
+  us('Administrador Levexa', 'admin@levexa.demo', 'admin_plataforma', null);
+  us('Soporte Levexa', 'soporte@levexa.demo', 'admin_plataforma', null);
+  us('Marcela Duarte', 'm.duarte@ejemplo.edu.co', 'admin_org', 'o1');
+  us('Natalia Bernal', 'n.bernal@ejemplo.edu.co', 'admin_org', 'o2');
+  us('Iván Salcedo', 'i.salcedo@ejemplo.edu.co', 'admin_org', 'o3');
+  us('Diana Lozano', 'd.lozano@ejemplo.edu.co', 'admin_org', 'o4');
+
+  // Candidatos: 30 de organización (9, 8, 6, 7) y 3 independientes
+  const FN = ['Ana', 'Luis', 'María', 'Carlos', 'Sofía', 'Andrés', 'Valentina', 'Jorge', 'Camila', 'Daniel', 'Laura', 'Mateo', 'Isabela', 'Sebastián', 'Paula'];
+  const LN = ['Rojas', 'Gómez', 'Pérez', 'Martínez', 'Ortiz', 'Vargas', 'Castro', 'Mejía', 'Herrera', 'Ramírez', 'Torres', 'Suárez', 'Navarro', 'Cárdenas', 'Molina'];
+  const PR = ['Ingeniería de Sistemas', 'Administración', 'Derecho', 'Psicología', 'Medicina', 'Diseño Gráfico', 'Contaduría'];
+  let n = 0;
+  [['o1', 9], ['o2', 8], ['o3', 6], ['o4', 7]].forEach(([orgId, cnt]) => {
+    for (let k = 0; k < cnt; k++, n++) {
+      const f = FN[n % 15], l = LN[(n * 4 + 1) % 15], l2 = LN[(n * 7 + 3) % 15];
+      s.candidates.push({ id: 'c' + (n + 1), orgId, docType: orgId === 'o3' ? 'TI' : 'CC', docNum: String(1000200000 + n * 7919), studentCode: 'E' + (2024000 + n), name: `${f} ${l} ${l2}`, email: `${norm(f)}.${norm(l)}${n + 1}@ejemplo.edu.co`, program: orgId === 'o3' ? 'Grado 11' : PR[n % 7], status: (orgId === 'o1' && k === 8) ? 'inactivo' : 'activo' });
+    }
+  });
+  [['Gabriela Ibarra Rueda', 'CC', '52100200'], ['Tomás Villamizar Peña', 'CE', '860300400'], ['Lucía Fernanda Ospina', 'PAS', 'AB1234567']].forEach(([name, dt, dn], i) => {
+    s.candidates.push({ id: 'c' + (31 + i), orgId: null, docType: dt, docNum: dn, studentCode: '', name, email: `${norm(name.split(' ')[0])}.${norm(name.split(' ')[1])}@ejemplo.com`, program: '', status: 'activo' });
+  });
+
+  // Lotes y licencias. Fichas del plan: D disponible, A:edad asignada, R:edad revocada, C:edad consumida
+  const ptr = {};
+  let bn = 0;
+  const mkBatch = (o, plan, fixed) => {
+    const b = { id: uid('b'), num: 'L-' + String(++bn).padStart(4, '0'), qty: plan.length, ...o };
+    s.batches.push(b);
+    const pool = s.candidates.filter(c => c.orgId === o.orgId && c.status === 'activo');
+    plan.forEach(tok => {
+      const [k, ageS] = tok.split(':'), age = +ageS || 0;
+      const l = { code: genCode('ENG', usedCodes, R), batchId: b.id, status: 'disponible', candId: null, assignedAt: null, deadline: null, consumedAt: null, history: [] };
+      if (k !== 'D') {
+        const c = fixed ? fixed : pool[(ptr[o.orgId] = (ptr[o.orgId] ?? -1) + 1) % pool.length].id;
+        l.candId = c; l.assignedAt = at(-age);
+        l.deadline = iso(Math.min(ts(l.assignedAt) + b.studentDays * DAY, ts(b.expiry)));
+        const h = { candId: c, at: l.assignedAt, state: 'activa', closedAt: null, reason: '' };
+        if (k === 'A') l.status = 'asignada';
+        if (k === 'C') { l.status = 'consumida'; l.consumedAt = at(-age + 1); h.state = 'consumida'; h.closedAt = l.consumedAt; h.reason = 'Examen realizado'; }
+        if (k === 'R') { l.status = 'revocada'; l.candId = null; h.state = 'cerrada'; h.closedAt = at(-age + 5); h.reason = 'Revocada por la organización: sin uso'; }
+        l.history.push(h);
+      }
+      s.licenses.push(l);
+    });
+    return b;
+  };
+  const B = (orgId, expiry, sd, inact, price, created) => ({ orgId, examId: 'x1', price, currency: 'COP', expiry: at(expiry), studentDays: sd, inactivityDays: inact, createdAt: at(created) });
+  mkBatch(B('o1', 200, 60, 30, 60000, -210), ['C:150', 'C:120', 'C:90', 'C:60', 'A:40', 'A:10', 'A:3', 'R:50', 'D', 'D', 'D', 'D']);
+  mkBatch(B('o1', 120, 45, 20, 62000, -60), ['C:30', 'A:5', 'A:8', 'A:25', 'D', 'D', 'D', 'D']);
+  mkBatch(B('o2', 150, 30, 21, 58000, -180), ['C:100', 'C:70', 'C:45', 'A:35', 'A:6', 'R:30', 'D', 'D', 'D', 'D']);
+  mkBatch(B('o3', 90, 20, 15, 50000, -40), ['C:20', 'A:4', 'A:2', 'D', 'D', 'D']);
+  mkBatch(B('o4', -20, 30, 30, 55000, -200), ['C:160', 'C:140', 'A:100', 'R:90', 'D', 'D']);
+  mkBatch(B('o4', 60, 45, 25, 55000, -35), ['A:3', 'A:30', 'D', 'D', 'D']);
+  // Compras individuales (lotes de 1 licencia, sin organización ni recuperación)
+  const indep = s.candidates.filter(c => !c.orgId);
+  const ind = (c, tok, age) => {
+    const b = mkBatch({ orgId: null, examId: 'x1', price: 85000, currency: 'COP', expiry: at(365 - age), studentDays: 30, inactivityDays: 0, createdAt: at(-age) }, [tok], c.id);
+    const l = s.licenses[s.licenses.length - 1];
+    s.purchases.push({ id: uid('p'), candId: c.id, examId: 'x1', qty: 1, total: 85000, currency: 'COP', status: 'pagado', date: at(-age), codes: [l.code], batchId: b.id });
+  };
+  ind(indep[0], 'C:45', 45); ind(indep[1], 'A:5', 5); ind(indep[2], 'A:1', 1);
+  s.purchases.push({ id: uid('p'), candId: indep[2].id, examId: 'x2', qty: 1, total: 55000, currency: 'COP', status: 'rechazado', date: at(-2), codes: [], batchId: null });
+
+  // Banco de preguntas (dificultad = nivel + desplazamiento dentro del nivel)
+  const kPerLevel = {};
+  QBANK.forEach((q, i) => {
+    const [sk, lv, stem, opts, correct, res] = q;
+    const k = kPerLevel[lv] = (kPerLevel[lv] ?? -1) + 1;
+    s.questions.push({ id: 'q' + (i + 1), skill: SK[sk], level: lv, type: opts === TF ? 'tf' : 'mc', stem, opts: [...opts], correct, difficulty: +(lv + 0.12 + k * 0.1).toFixed(2), timeLimit: null, resource: res || '', status: [6, 38].includes(i) ? 'borrador' : [22, 45].includes(i) ? 'retirada' : 'activa' });
+  });
+
+  // Resultados históricos: se simulan con el mismo motor adaptativo
+  const abilities = [0.8, 1.6, 2.3, 2.9, 3.4, 4.1, 4.8, 5.3, 1.2, 2.6, 3.7, 4.5];
+  s.licenses.filter(l => l.status === 'consumida').slice(0, 12).forEach((l, i) => {
+    const b = byId(s.batches, l.batchId);
+    if (i === 11) { l.consumedAt = at(-800); }
+    const E = simulate(s.cfg, s.questions, abilities[(i * 5) % 12], R);
+    const sum = summarize(E);
+    const started = l.consumedAt, finished = iso(ts(started) + sum.totalTime * 1000 + 30000);
+    const a = { id: uid('t'), licCode: l.code, candId: l.candId, orgId: b.orgId, examId: b.examId, status: 'finalizado', startedAt: started, finishedAt: finished, theta: sum.theta, level: sum.level, score: sum.score, bySkill: sum.bySkill, totalTime: sum.totalTime, trace: E.trace };
+    s.attempts.push(a);
+    const c = issueCert(s, a, s.cfg);
+    if (i === 3) { c.status = 'revocado'; c.revokedAt = at(-20); c.revokedReason = 'Suplantación de identidad detectada por la organización.'; }
+    if (i === 8) { c.status = 'revocado'; c.revokedAt = at(-60); c.revokedReason = 'Error en la asignación de la licencia.'; }
+  });
+  return s;
+}
+
+// Emite un certificado para un intento (número secuencial y código público únicos)
+function issueCert(st, attempt, cfg) {
+  const used = new Set(st.certs.map(c => c.code));
+  const y = new Date(attempt.finishedAt).getFullYear();
+  const c = { id: 'm' + (st.seq++), attemptId: attempt.id, number: `LVX-${y}-${String(st.certs.length + 1).padStart(4, '0')}`, code: genCode('VER', used), issuedAt: attempt.finishedAt, validUntil: addDays(attempt.finishedAt, cfg.certDays), status: 'vigente', revokedAt: null, revokedReason: '' };
+  st.certs.push(c); return c;
+}
+
+/* =====================================================================
+   3. ESTADO (persistencia en localStorage dentro de try/catch)
+   ===================================================================== */
+const KEY = 'levexa_proto_v1';
+let S;
+function load() {
+  try { const r = localStorage.getItem(KEY); if (r) { S = JSON.parse(r); } } catch (e) { S = null; }
+  if (!S || !S.orgs) S = seed();
+  // Un examen que quedó en curso al recargar se considera abandonado
+  S.attempts.forEach(a => { if (a.status === 'en_curso') a.status = 'abandonado'; });
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* sin almacenamiento: la demo sigue en memoria */ } }
+const uid = p => p + (S.seq++);
+function byId(arr, id) { return arr.find(x => x.id === id); }
+const orgOf = id => byId(S.orgs, id);
+const candOf = id => byId(S.candidates, id);
+const licOf = code => S.licenses.find(l => l.code === code);
+const batchOf = l => byId(S.batches, l.batchId);
+const examOf = id => byId(S.exams, id);
+
+/* =====================================================================
+   4. LÓGICA: motor de examen adaptativo
+   ===================================================================== */
+// Tiempo límite de una pregunta: propio > tabla habilidad×nivel > por defecto
+function timeFor(q, cfg) { return q.timeLimit || cfg.timeTable?.[q.skill]?.[LEVELS[q.level]] || cfg.defaultTime; }
+
+function newEngine(cfg, bank, rand) {
+  return { cfg, rand, theta: LEVELS.indexOf(cfg.startLevel) + 0.5, used: new Set(), trace: [], pool: bank.filter(q => q.status === 'activa') };
+}
+// Siguiente pregunta no usada con dificultad más cercana al nivel estimado
+function nextQuestion(E) {
+  let best = null, bd = 1e9;
+  for (const q of E.pool) {
+    if (E.used.has(q.id)) continue;
+    const d = Math.abs(q.difficulty - E.theta) + E.rand() * 0.001;
+    if (d < bd) { bd = d; best = q; }
+  }
+  return best;
+}
+// Ajusta theta: acierto sube y error baja; la rapidez amplifica o atenúa el cambio
+function applyAnswer(E, q, opt, usedSec, limit) {
+  const c = E.cfg, expired = opt === null, correct = !expired && opt === q.correct;
+  const r = expired ? 1 : usedSec / limit, w = c.timeWeight;
+  let delta, f = 1;
+  if (correct) { delta = c.stepUp; f = r <= c.fastPct / 100 ? 1 + w : r >= c.slowPct / 100 ? 1 - w : 1; }
+  else { delta = -c.stepDown; f = (expired || r >= c.slowPct / 100) ? 1 + w : 1; }
+  E.theta = clamp(E.theta + delta * f, 0, 6);
+  E.used.add(q.id);
+  E.trace.push({ qId: q.id, stem: q.stem.slice(0, 80), skill: q.skill, level: q.level, correct, expired, used: +usedSec.toFixed(1), limit, theta: +E.theta.toFixed(2), opt });
+  return correct;
+}
+// Termina al llegar al máximo, sin preguntas, o al mínimo si la estimación se estabiliza
+function isDone(E) {
+  const n = E.trace.length, c = E.cfg;
+  if (n >= c.maxQ || !nextQuestion(E)) return true;
+  if (n >= c.minQ && n >= c.stopWindow) {
+    const w = E.trace.slice(-c.stopWindow).map(t => t.theta);
+    if (Math.max(...w) - Math.min(...w) <= c.stopDelta) return true;
+  }
+  return false;
+}
+function summarize(E) {
+  const bySkill = {}; let totalTime = 0;
+  Object.keys(SKILLS).forEach(k => bySkill[k] = { ok: 0, n: 0 });
+  E.trace.forEach(t => { bySkill[t.skill].n++; if (t.correct) bySkill[t.skill].ok++; totalTime += t.used; });
+  const theta = +E.theta.toFixed(2);
+  return { theta, level: LEVELS[Math.min(5, Math.floor(theta))], score: Math.round(theta / 6 * 100), bySkill, totalTime: Math.round(totalTime) };
+}
+// Simula un examen completo con una habilidad real conocida (datos históricos)
+function simulate(cfg, bank, ability, R) {
+  const E = newEngine(cfg, bank, R);
+  while (!isDone(E)) {
+    const q = nextQuestion(E), lim = timeFor(q, cfg);
+    const guess = q.opts.length === 2 ? 0.5 : 0.25;
+    const p = guess + (1 - guess) / (1 + Math.exp(-(ability - q.difficulty) * 1.6));
+    if (R() < 0.05) { applyAnswer(E, q, null, lim, lim); continue; }
+    const ok = R() < p;
+    applyAnswer(E, q, ok ? q.correct : (q.correct + 1) % q.opts.length, lim * (0.15 + R() * 0.75), lim);
+  }
+  return E;
+}
+
+/* =====================================================================
+   5. LÓGICA: licencias
+   ===================================================================== */
+// Estado efectivo: "vencida" se deriva de la fecha de vencimiento del lote
+function licState(l) { return l.status !== 'consumida' && ts(batchOf(l).expiry) < Date.now() ? 'vencida' : l.status; }
+function daysSince(s) { return (Date.now() - ts(s)) / DAY; }
+function isRecoverable(l) {
+  const b = batchOf(l);
+  if (!b.orgId || !b.inactivityDays || licState(l) === 'vencida') return false;
+  return l.status === 'asignada' && daysSince(l.assignedAt) > b.inactivityDays;
+}
+function planDeadline(b, from) { return iso(Math.min(ts(from) + b.studentDays * DAY, ts(b.expiry))); }
+const canOperate = l => !!batchOf(l).orgId && !['vencida', 'consumida'].includes(licState(l));
+function closeActive(l, reason, state = 'cerrada') {
+  const h = l.history.find(x => x.state === 'activa');
+  if (h) { h.state = state; h.closedAt = new Date().toISOString(); h.reason = reason; }
+}
+function doAssign(l, candId) {
+  const b = batchOf(l), c = candOf(candId);
+  if (!canOperate(l)) return 'La licencia no admite acciones (vencida, consumida o de compra individual).';
+  if (!c || c.status !== 'activo' || c.orgId !== b.orgId) return 'El candidato no es válido para esta organización.';
+  const nowS = new Date().toISOString();
+  l.status = 'asignada'; l.candId = candId; l.assignedAt = nowS; l.deadline = planDeadline(b, nowS);
+  l.history.push({ candId, at: nowS, state: 'activa', closedAt: null, reason: '' });
+  return null;
+}
+function doRevoke(l, reason) { closeActive(l, 'Revocada: ' + (reason || 'sin motivo indicado')); l.status = 'revocada'; l.candId = null; l.assignedAt = null; l.deadline = null; }
+function doRecover(l) {
+  closeActive(l, l.status === 'revocada' ? 'Devuelta al inventario' : 'Recuperada por inactividad');
+  l.status = 'disponible'; l.candId = null; l.assignedAt = null; l.deadline = null;
+}
+function doReassign(l, candId) {
+  if (l.status === 'asignada') closeActive(l, 'Reasignada a otro candidato');
+  l.status = 'disponible';
+  return doAssign(l, candId);
+}
+function batchCounts(b) {
+  const c = { disponible: 0, asignada: 0, consumida: 0, revocada: 0, vencida: 0 };
+  S.licenses.filter(l => l.batchId === b.id).forEach(l => c[licState(l)]++);
+  return c;
+}
+// Validación del código en el ingreso del candidato
+function validateEntry(code, doc) {
+  code = code.trim().toUpperCase(); doc = doc.trim();
+  const l = licOf(code);
+  if (!l) return { msg: 'El código no existe. Revisa que esté escrito como ENG-XXXX-XXXX.' };
+  if (l.status === 'consumida') return { msg: 'Esta licencia ya fue consumida: solo permite un examen.' };
+  if (l.status === 'revocada') return { msg: 'Esta licencia fue revocada por tu organización. Comunícate con ella.' };
+  const b = batchOf(l);
+  if (licState(l) === 'vencida') return { msg: `Esta licencia venció el ${fmtD(b.expiry)}. Ya no puede usarse.` };
+  if (l.status === 'disponible') return { msg: 'Esta licencia aún no ha sido asignada a un estudiante. Pide a tu organización que te la asigne.' };
+  const c = candOf(l.candId);
+  if (!doc) return { msg: 'Ingresa tu número de documento para confirmar que la licencia es tuya.' };
+  if (!c || c.docNum !== doc) return { msg: 'Esta licencia está asignada a otra persona. Verifica el número de documento.' };
+  if (ts(l.deadline) < Date.now()) return { msg: `Estás fuera del plazo del estudiante: tenías hasta el ${fmtD(l.deadline)}. Pide a tu organización que la recupere y te la reasigne.` };
+  return { ok: true, lic: l, cand: c };
+}
+
+/* =====================================================================
+   6. LÓGICA: certificados
+   ===================================================================== */
+const certOf = attemptId => S.certs.filter(c => c.attemptId === attemptId).sort((a, b) => ts(b.issuedAt) - ts(a.issuedAt))[0];
+function certState(c) { return c.status === 'revocado' ? 'revocado' : ts(c.validUntil) < Date.now() ? 'vencido' : 'vigente'; }
+const CERT_BADGE = { vigente: 'ok', revocado: 'bad', vencido: 'warn' };
+
+/* =====================================================================
+   7. INFRAESTRUCTURA DE INTERFAZ: modales, avisos, formularios, tablas
+   ===================================================================== */
+const U = { orgDetail: null, orgTab: 'datos', lotSel: null, f: {}, buy: { name: '', docType: 'CC', docNum: '', email: '', exam: 'x1', qty: 1, fail: false }, lastPurchase: null, ex: { stage: 'entry' }, entry: { code: '', doc: '' }, ver: '', verRes: null };
+
+function toast(msg, type = '') {
+  const t = document.createElement('div');
+  t.className = 'toast ' + type; t.textContent = msg;
+  $('#toasts').appendChild(t);
+  setTimeout(() => t.remove(), 4500);
+}
+
+const mstack = []; let mseq = 0;
+function openModal(o) {
+  const bg = document.createElement('div'); bg.className = 'modal-bg';
+  const tid = 'mt' + (++mseq);
+  const cancel = o.cancel === null ? '' : `<button type="button" class="btn" data-mclose>${esc(o.cancel || 'Cancelar')}</button>`;
+  bg.innerHTML = `<div class="modal${o.wide ? ' wide' : ''}" role="dialog" aria-modal="true" aria-labelledby="${tid}">
+    <header><h2 id="${tid}">${esc(o.title)}</h2><button type="button" class="btn btn-ghost btn-sm" data-mclose aria-label="Cerrar">✕</button></header>
+    <form novalidate><div class="mbody"><div class="notice bad" id="e-form" role="alert" hidden></div>${o.body}</div>
+    ${o.noFooter ? '' : `<footer>${cancel}${o.extra || ''}<button type="submit" class="btn ${o.danger ? 'btn-danger' : 'btn-primary'}">${esc(o.submit || 'Guardar')}</button></footer>`}</form></div>`;
+  const h = { el: bg, opener: document.activeElement, o, closed: false };
+  h.close = submitted => {
+    if (h.closed) return; h.closed = true;
+    bg.remove(); mstack.splice(mstack.indexOf(h), 1);
+    if (!mstack.length) document.body.style.overflow = '';
+    o.onClose && o.onClose(!!submitted);
+    if (h.opener && document.contains(h.opener)) h.opener.focus(); else $('#main').focus();
+  };
+  bg.addEventListener('click', e => { if (e.target === bg || e.target.closest('[data-mclose]')) h.close(false); });
+  const form = $('form', bg);
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    clearErrs(form);
+    const fd = new FormData(form), v = Object.fromEntries(fd);
+    const r = o.onSubmit ? o.onSubmit(v, fd, form) : undefined;
+    if (r && typeof r === 'object') { showErrs(form, r); return; }
+    if (r === false) return;
+    h.close(true);
+  });
+  $('#modal-root').appendChild(bg); mstack.push(h);
+  document.body.style.overflow = 'hidden';
+  o.afterOpen && o.afterOpen(h);
+  const first = $('input:not([type=hidden]),select,textarea', $('.mbody', bg)) || $('button[type=submit]', bg) || $('[data-mclose]', bg);
+  first && first.focus();
+  return h;
+}
+function closeTop() { mstack.length && mstack[mstack.length - 1].close(false); }
+function clearErrs(form) {
+  $$('.field.invalid', form).forEach(f => f.classList.remove('invalid'));
+  $$('.err', form).forEach(e => e.textContent = '');
+  const g = $('#e-form', form); if (g) g.hidden = true;
+}
+function showErrs(form, errs) {
+  let first = null;
+  Object.entries(errs).forEach(([k, m]) => {
+    if (k === 'form') { const g = $('#e-form', form); g.textContent = m; g.hidden = false; return; }
+    const e = $('#e-' + k, form); if (!e) return;
+    e.textContent = m; e.closest('.field').classList.add('invalid');
+    if (!first) first = $('[name="' + k + '"]', form);
+  });
+  (first || $('#e-form:not([hidden])', form))?.focus?.();
+}
+function $$(s, r = document) { return [...r.querySelectorAll(s)]; }
+// Confirmación: devuelve una promesa booleana
+function confirmDlg({ title, msg, ok = 'Confirmar', danger = false }) {
+  return new Promise(res => {
+    let done = false;
+    openModal({ title, body: `<p>${msg}</p>`, submit: ok, danger, onSubmit() { done = true; res(true); }, onClose() { if (!done) res(false); } });
+  });
+}
+// Atrapa el foco dentro del modal superior y cierra con Esc
+document.addEventListener('keydown', e => {
+  if (!mstack.length) return;
+  if (e.key === 'Escape') { e.preventDefault(); closeTop(); return; }
+  if (e.key !== 'Tab') return;
+  const m = mstack[mstack.length - 1].el;
+  const f = $$('button:not([disabled]),input:not([disabled]):not([type=hidden]),select:not([disabled]),textarea:not([disabled]),a[href]', m).filter(x => x.offsetParent !== null);
+  if (!f.length) return;
+  const a = f[0], z = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); }
+  else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); }
+});
+
+// Campo de formulario con etiqueta, ayuda y espacio para el error
+function fld(label, name, val = '', o = {}) {
+  const id = 'f-' + name, req = o.req ? ' required aria-required="true"' : '', dis = o.disabled ? ' disabled' : '';
+  const desc = ` aria-describedby="e-${name}"`;
+  let inp;
+  if (o.type === 'select') inp = `<select id="${id}" name="${name}"${req}${dis}${desc}>${o.opts.map(([v, t]) => `<option value="${esc(v)}"${String(v) === String(val) ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select>`;
+  else if (o.type === 'textarea') inp = `<textarea id="${id}" name="${name}" rows="${o.rows || 3}"${req}${dis}${desc}>${esc(val)}</textarea>`;
+  else inp = `<input id="${id}" name="${name}" type="${o.type || 'text'}" value="${esc(val)}"${req}${dis}${desc} ${o.attrs || ''}>`;
+  return `<div class="field ${o.cls || ''}"><label for="${id}">${esc(label)}${o.req ? ' <span class="req" aria-hidden="true">*</span>' : ''}</label>${inp}${o.hint ? `<small class="hint">${esc(o.hint)}</small>` : ''}<small class="err" id="e-${name}" role="alert"></small></div>`;
+}
+const badge = (t, v = 'gray') => `<span class="badge b-${v}">${esc(t)}</span>`;
+const lvlTag = i => `<span class="lvl">${LEVELS[i]}</span>`;
+const isEmail = s => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+function tbl(heads, rows, empty = 'No hay registros para mostrar.', hint = '') {
+  if (!rows.length) return `<div class="tbl-wrap"><div class="empty"><b>${esc(empty)}</b>${esc(hint)}</div></div>`;
+  return `<div class="tbl-wrap"><table><thead><tr>${heads.map(h => `<th scope="col">${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+}
+const head = (t, d = '', actions = '') => `<div class="page-head"><div><h1>${esc(t)}</h1>${d ? `<p>${esc(d)}</p>` : ''}</div><div class="row">${actions}</div></div>`;
+// Filtros enlazados a U.f (se re-renderiza al cambiar)
+const fv = k => U.f[k] ?? '';
+const bindSel = (k, label, opts) => `<div><label for="b-f.${k}">${esc(label)}</label><select id="b-f.${k}" data-bind="f.${k}">${opts.map(([v, t]) => `<option value="${esc(v)}"${String(fv(k)) === String(v) ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></div>`;
+const bindIn = (k, label, ph = '', type = 'search') => `<div class="grow"><label for="b-f.${k}">${esc(label)}</label><input id="b-f.${k}" type="${type}" data-bind="f.${k}" value="${esc(fv(k))}" placeholder="${esc(ph)}"></div>`;
+function downloadCSV(name, rows) {
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const blob = new Blob(['﻿' + rows.map(r => r.map(q).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+const scopeOrg = () => S.ui.role === 'org' ? S.ui.orgId : null;
+const orgName = id => id ? (orgOf(id)?.name || '—') : 'Independiente';
+const STATUS_ORG = { activa: 'ok', suspendida: 'warn', inactiva: 'gray' };
+const STATUS_LIC = { disponible: 'info', asignada: 'warn', consumida: 'ok', revocada: 'gray', vencida: 'bad' };
+
+/* =====================================================================
+   8. VISTAS: resumen
+   ===================================================================== */
+function attemptsScope(oid) { return S.attempts.filter(a => a.status === 'finalizado' && (!oid || a.orgId === oid)); }
+function vResumen() {
+  const oid = scopeOrg();
+  const bs = S.batches.filter(b => !oid || b.orgId === oid);
+  const ls = S.licenses.filter(l => bs.some(b => b.id === l.batchId));
+  const cnt = { disponible: 0, asignada: 0, consumida: 0, revocada: 0, vencida: 0 };
+  ls.forEach(l => cnt[licState(l)]++);
+  const at = attemptsScope(oid);
+  const vig = at.map(a => certOf(a.id)).filter(c => c && certState(c) === 'vigente').length;
+  const dist = LEVELS.map((_, i) => at.filter(a => LEVELS.indexOf(a.level) === i).length);
+  const mx = Math.max(1, ...dist);
+  const rec = ls.filter(isRecoverable).length;
+  const k = (v, t) => `<div class="kpi"><b>${v}</b><span>${t}</span></div>`;
+  return head(oid ? orgName(oid) : 'Resumen de la plataforma', 'Indicadores generales de licencias, exámenes y certificados.') +
+    `<div class="grid g4" style="margin-bottom:16px">
+      ${oid ? k(bs.length, 'Lotes') : k(S.orgs.length, 'Organizaciones')}
+      ${k(ls.length, 'Licencias en total')}${k(cnt.disponible, 'Disponibles')}${k(cnt.asignada, 'Asignadas')}
+      ${k(cnt.consumida, 'Consumidas')}${k(rec, 'Recuperables')}${k(at.length, 'Exámenes finalizados')}${k(vig, 'Certificados vigentes')}
+    </div>
+    <div class="grid g2">
+      <section class="panel"><h2>Distribución de niveles obtenidos</h2><div class="bars">${LEVELS.map((l, i) => `<div class="bar"><span>${l}</span><div><i style="width:${dist[i] / mx * 100}%"></i></div><b>${dist[i]}</b></div>`).join('')}</div></section>
+      <section class="panel"><h2>Estado de las licencias</h2>${segBar(cnt, ls.length)}
+        ${!oid ? `<p class="muted" style="margin-top:14px">Banco: ${S.questions.filter(q => q.status === 'activa').length} preguntas activas de ${S.questions.length}. Candidatos independientes: ${S.candidates.filter(c => !c.orgId).length}.</p>` : `<p class="muted" style="margin-top:14px">Candidatos registrados: ${S.candidates.filter(c => c.orgId === oid).length}.</p>`}</section>
+    </div>`;
+}
+function segBar(c, total) {
+  const order = ['consumida', 'asignada', 'disponible', 'revocada', 'vencida'];
+  return `<div class="seg" role="img" aria-label="${order.map(k => c[k] + ' ' + k + 's').join(', ')}">${order.map(k => c[k] ? `<i class="s-${k}" style="width:${c[k] / Math.max(1, total) * 100}%"></i>` : '').join('')}</div>
+  <div class="legend">${order.map(k => `<span><i class="s-${k}"></i>${k[0].toUpperCase() + k.slice(1)}s: ${c[k]}</span>`).join('')}</div>`;
+}
+
+/* =====================================================================
+   9. VISTAS: organizaciones y contactos
+   ===================================================================== */
+function vOrgs() { return U.orgDetail ? vOrgDetail() : vOrgList(); }
+function availOf(oid) { return S.licenses.filter(l => batchOf(l).orgId === oid && licState(l) === 'disponible').length; }
+function vOrgList() {
+  const q = fv('orgQ').toLowerCase(), st = fv('orgSt');
+  const rows = S.orgs.filter(o => (!st || o.status === st) && (!q || (o.name + o.nit + o.city).toLowerCase().includes(q))).map(o => `<tr>
+    <td><b>${esc(o.name)}</b></td><td class="mono">${esc(o.nit)}</td><td>${esc(o.type)}</td><td>${esc(o.country)} · ${esc(o.city)}</td>
+    <td>${badge(o.status, STATUS_ORG[o.status])}</td><td>${availOf(o.id)}</td>
+    <td class="act"><div class="row"><button class="btn btn-sm" data-act="orgOpen" data-id="${o.id}">Ver detalle</button><button class="btn btn-sm" data-act="orgEdit" data-id="${o.id}">Editar</button><button class="btn btn-sm" data-act="orgStatus" data-id="${o.id}">Estado</button></div></td></tr>`);
+  return head('Organizaciones', 'Universidades y entidades educativas que compran lotes de licencias.', '<button class="btn btn-primary" data-act="orgNew">Nueva organización</button>') +
+    `<div class="toolbar">${bindIn('orgQ', 'Buscar', 'Nombre, NIT o ciudad')}${bindSel('orgSt', 'Estado', [['', 'Todos'], ['activa', 'Activa'], ['suspendida', 'Suspendida'], ['inactiva', 'Inactiva']])}</div>` +
+    tbl(['Nombre', 'NIT / ID fiscal', 'Tipo', 'País · ciudad', 'Estado', 'Licencias disp.', 'Acciones'], rows, 'No hay organizaciones con esos filtros.', ' Prueba limpiando la búsqueda.');
+}
+function vOrgDetail() {
+  const o = orgOf(U.orgDetail); if (!o) { U.orgDetail = null; return vOrgList(); }
+  const tabs = [['datos', 'Datos'], ['contactos', 'Contactos'], ['lotes', 'Lotes'], ['candidatos', 'Candidatos']];
+  let body = '';
+  if (U.orgTab === 'datos') body = `<section class="panel"><dl class="dl"><dt>Nombre</dt><dd>${esc(o.name)}</dd><dt>NIT / ID fiscal</dt><dd class="mono">${esc(o.nit)}</dd><dt>Tipo</dt><dd>${esc(o.type)}</dd><dt>País</dt><dd>${esc(o.country)}</dd><dt>Ciudad</dt><dd>${esc(o.city)}</dd><dt>Estado</dt><dd>${badge(o.status, STATUS_ORG[o.status])}</dd><dt>Licencias disponibles</dt><dd>${availOf(o.id)}</dd></dl>
+    <div class="row" style="margin-top:14px"><button class="btn" data-act="orgEdit" data-id="${o.id}">Editar datos</button><button class="btn" data-act="orgStatus" data-id="${o.id}">Cambiar estado</button></div></section>`;
+  if (U.orgTab === 'contactos') body = contactsPanel(o.id);
+  if (U.orgTab === 'lotes') body = lotsPanel(o.id);
+  if (U.orgTab === 'candidatos') body = candPanel(o.id);
+  return `<div class="row" style="margin-bottom:10px"><button class="btn btn-sm" data-act="orgBack">← Organizaciones</button></div>` + head(o.name, `${o.type} · ${o.city}, ${o.country}`) +
+    `<div class="tabs" role="tablist">${tabs.map(([k, t]) => `<button role="tab" aria-selected="${U.orgTab === k}" data-act="orgTab" data-tab="${k}">${t}</button>`).join('')}</div>` + body;
+}
+function openOrg(id) {
+  const o = id ? orgOf(id) : { type: 'universidad', country: 'Colombia', status: 'activa' };
+  openModal({
+    title: id ? 'Editar organización' : 'Nueva organización',
+    body: `<div class="fgrid">${fld('Nombre', 'name', o.name, { req: 1 })}${fld('NIT / ID fiscal', 'nit', o.nit, { req: 1 })}
+      ${fld('Tipo', 'type', o.type, { type: 'select', opts: [['universidad', 'Universidad'], ['colegio', 'Colegio'], ['instituto', 'Instituto'], ['otro', 'Otro']] })}
+      ${fld('Estado', 'status', o.status, { type: 'select', opts: [['activa', 'Activa'], ['suspendida', 'Suspendida'], ['inactiva', 'Inactiva']] })}
+      ${fld('País', 'country', o.country, { req: 1 })}${fld('Ciudad', 'city', o.city, { req: 1 })}</div>`,
+    onSubmit(v) {
+      const e = {};
+      ['name', 'nit', 'country', 'city'].forEach(k => { v[k] = v[k].trim(); if (!v[k]) e[k] = 'Este campo es obligatorio.'; });
+      if (v.nit && S.orgs.some(x => x.nit === v.nit && x.id !== id)) e.nit = 'Ya existe una organización con ese NIT.';
+      if (Object.keys(e).length) return e;
+      if (id) Object.assign(o, v); else S.orgs.push({ id: uid('o'), ...v });
+      commit(); toast(id ? 'Organización actualizada.' : 'Organización creada.');
+    }
+  });
+}
+function openOrgStatus(id) {
+  const o = orgOf(id);
+  openModal({
+    title: 'Cambiar estado', submit: 'Aplicar',
+    body: `<p>Organización: <b>${esc(o.name)}</b></p>${fld('Nuevo estado', 'status', o.status, { type: 'select', opts: [['activa', 'Activa'], ['suspendida', 'Suspendida'], ['inactiva', 'Inactiva']] })}`,
+    onSubmit(v) { o.status = v.status; commit(); toast('Estado actualizado a «' + v.status + '».'); }
+  });
+}
+function contactsPanel(oid) {
+  const rows = S.contacts.filter(c => c.orgId === oid).map(c => `<tr><td><b>${esc(c.name)}</b> ${c.main ? badge('Principal', 'ok') : ''}</td><td>${esc(c.role)}</td><td>${esc(c.email)}</td><td>${esc(c.phone)}</td><td>${badge(c.type, 'info')}</td>
+    <td class="act"><div class="row"><button class="btn btn-sm" data-act="ctEdit" data-id="${c.id}" data-org="${oid}">Editar</button><button class="btn btn-sm" data-act="ctDel" data-id="${c.id}">Eliminar</button></div></td></tr>`);
+  return `<div class="toolbar"><div class="spacer"></div><button class="btn btn-primary" data-act="ctNew" data-org="${oid}">Nuevo contacto</button></div>` + tbl(['Nombre', 'Cargo', 'Correo', 'Teléfono', 'Tipo', 'Acciones'], rows, 'Esta organización aún no tiene contactos.', ' Agrega el primero.');
+}
+function openContact(oid, id) {
+  const c = id ? byId(S.contacts, id) : { type: 'comercial', main: false };
+  openModal({
+    title: id ? 'Editar contacto' : 'Nuevo contacto',
+    body: `<div class="fgrid">${fld('Nombre', 'name', c.name, { req: 1 })}${fld('Cargo', 'role', c.role, { req: 1 })}${fld('Correo', 'email', c.email, { req: 1, type: 'email' })}${fld('Teléfono', 'phone', c.phone, { req: 1 })}
+      ${fld('Tipo', 'type', c.type, { type: 'select', opts: [['comercial', 'Comercial'], ['técnico', 'Técnico'], ['académico', 'Académico'], ['facturación', 'Facturación']] })}</div>
+      <div class="field"><label><input type="checkbox" name="main" value="1"${c.main ? ' checked' : ''}> Contacto principal</label></div>`,
+    onSubmit(v) {
+      const e = {};
+      ['name', 'role', 'email', 'phone'].forEach(k => { v[k] = v[k].trim(); if (!v[k]) e[k] = 'Este campo es obligatorio.'; });
+      if (v.email && !isEmail(v.email)) e.email = 'Ingresa un correo válido, por ejemplo nombre@dominio.com.';
+      if (Object.keys(e).length) return e;
+      const main = !!v.main; delete v.main;
+      if (main) S.contacts.filter(x => x.orgId === oid).forEach(x => x.main = false);
+      if (id) Object.assign(c, v, { main }); else S.contacts.push({ id: uid('k'), orgId: oid, ...v, main });
+      commit(); toast('Contacto guardado.');
+    }
+  });
+}
+
+/* =====================================================================
+   10. VISTAS: lotes y licencias
+   ===================================================================== */
+function vLotes() { return head('Lotes y licencias', scopeOrg() ? 'Consulta el avance de tus lotes y gestiona la asignación de licencias.' : 'Crea lotes para las organizaciones y supervisa sus licencias.', S.ui.role === 'admin' && !U.lotSel ? '<button class="btn btn-primary" data-act="batchNew">Nuevo lote</button>' : '') + lotsPanel(scopeOrg(), true); }
+function lotsPanel(oid, showFilter) {
+  if (U.lotSel && byId(S.batches, U.lotSel)) return lotDetail(byId(S.batches, U.lotSel), oid);
+  U.lotSel = null;
+  const of = fv('lotOrg');
+  const bs = S.batches.filter(b => oid ? b.orgId === oid : (!of || (of === '_i' ? !b.orgId : b.orgId === of)));
+  const filter = !oid && showFilter ? `<div class="toolbar">${bindSel('lotOrg', 'Organización', [['', 'Todas'], ...S.orgs.map(o => [o.id, o.name]), ['_i', 'Compras individuales']])}</div>` : '';
+  const cards = bs.map(b => {
+    const c = batchCounts(b);
+    return `<article class="panel batch-card"><div class="row" style="justify-content:space-between"><div><h3 style="margin:0">${b.num} · ${esc(examOf(b.examId)?.name)}</h3><span class="muted">${esc(orgName(b.orgId))}</span></div><button class="btn btn-sm" data-act="lotOpen" data-id="${b.id}">Ver licencias</button></div>
+      <p class="muted" style="margin:8px 0">${b.qty} licencias · ${fmtMoney(b.price, b.currency)} c/u · vence ${fmtD(b.expiry)} · plazo del estudiante ${b.studentDays} días · recuperación tras ${b.inactivityDays ? b.inactivityDays + ' días' : '— (no aplica)'}</p>${segBar(c, b.qty)}</article>`;
+  }).join('');
+  return filter + (cards || `<div class="panel empty"><b>No hay lotes para mostrar.</b>${S.ui.role === 'admin' ? 'Crea el primero con «Nuevo lote».' : ''}</div>`);
+}
+function lotDetail(b, oid) {
+  const c = batchCounts(b), q = fv('licQ').toLowerCase(), st = fv('licSt');
+  const ls = S.licenses.filter(l => l.batchId === b.id).filter(l => {
+    const s = licState(l), rec = isRecoverable(l);
+    if (st === 'recuperable' ? !rec : st && s !== st) return false;
+    return !q || (l.code + ' ' + (candOf(l.candId)?.name || '')).toLowerCase().includes(q);
+  });
+  const rows = ls.map(l => {
+    const s = licState(l), cd = candOf(l.candId), rec = isRecoverable(l), op = canOperate(l);
+    const late = l.status === 'asignada' && s !== 'vencida' && ts(l.deadline) < Date.now();
+    const acts = [];
+    if (op && s === 'disponible') acts.push(['licAssign', 'Asignar']);
+    if (op && s === 'asignada') acts.push(['licReassign', 'Reasignar'], ['licRevoke', 'Revocar']);
+    if (op && (rec || s === 'revocada')) acts.push(['licRecover', 'Recuperar']);
+    if (op && s === 'revocada') acts.push(['licReassign', 'Reasignar']);
+    return `<tr${rec ? ' style="background:var(--warn-soft)"' : ''}><td class="mono"><b>${l.code}</b></td><td>${badge(s[0].toUpperCase() + s.slice(1), STATUS_LIC[s])} ${rec ? badge('Recuperable', 'warn') : ''} ${late ? badge('Plazo vencido', 'bad') : ''}</td>
+      <td>${cd ? esc(cd.name) : '—'}</td><td>${fmtD(l.assignedAt)}</td><td>${fmtD(l.deadline)}</td>
+      <td class="act"><div class="row">${acts.map(([a, t]) => `<button class="btn btn-sm" data-act="${a}" data-code="${l.code}">${t}</button>`).join('')}<button class="btn btn-sm btn-ghost" data-act="licHist" data-code="${l.code}">Historial</button></div></td></tr>`;
+  });
+  const manage = !!b.orgId && c.disponible > 0 && licState({ ...{ status: 'disponible' }, batchId: b.id }) !== 'vencida';
+  return `<div class="row" style="margin-bottom:10px"><button class="btn btn-sm" data-act="lotBack">← Lotes</button></div>
+    <section class="panel"><h2>${b.num} · ${esc(examOf(b.examId)?.name)}</h2><p class="muted">${esc(orgName(b.orgId))} · vence ${fmtD(b.expiry)} · plazo del estudiante ${b.studentDays} días · recuperación tras ${b.inactivityDays ? b.inactivityDays + ' días de inactividad' : '— (no aplica)'}</p>${segBar(c, b.qty)}
+    ${ts(b.expiry) < Date.now() ? '<div class="notice bad" style="margin-top:12px">Este lote está vencido: ninguna licencia no consumida admite acciones.</div>' : ''}
+    ${!b.orgId ? '<div class="notice info" style="margin-top:12px">Compra individual: el candidato se auto-asignó la licencia. No hay recuperación; solo vence por plazo.</div>' : ''}</section>
+    <div class="toolbar">${bindIn('licQ', 'Buscar', 'Código o candidato')}${bindSel('licSt', 'Estado', [['', 'Todos'], ['disponible', 'Disponible'], ['asignada', 'Asignada'], ['consumida', 'Consumida'], ['revocada', 'Revocada'], ['vencida', 'Vencida'], ['recuperable', 'Recuperable']])}
+    ${manage ? `<button class="btn btn-primary" data-act="bulkAssign" data-id="${b.id}">Asignación masiva</button>` : ''}</div>` +
+    tbl(['Código', 'Estado', 'Candidato', 'Asignada', 'Límite de uso', 'Acciones'], rows, 'Ninguna licencia coincide con los filtros.');
+}
+function candOptions(oid) { return S.candidates.filter(c => c.orgId === oid && c.status === 'activo').map(c => [c.id, `${c.name} — ${c.docType} ${c.docNum}`]); }
+function openAssign(code, mode) {
+  const l = licOf(code), b = batchOf(l), opts = candOptions(b.orgId).filter(([id]) => id !== l.candId);
+  const dl = planDeadline(b, new Date().toISOString());
+  if (!opts.length) { toast('No hay candidatos activos disponibles en esta organización.', 'warn'); return; }
+  openModal({
+    title: (mode === 'reassign' ? 'Reasignar' : 'Asignar') + ' licencia ' + code, submit: mode === 'reassign' ? 'Reasignar' : 'Asignar',
+    body: `${mode === 'reassign' && l.candId ? `<div class="notice warn">La asignación actual de <b>${esc(candOf(l.candId).name)}</b> se cerrará.</div>` : ''}${fld('Candidato', 'cand', '', { req: 1, type: 'select', opts: [['', 'Selecciona un candidato…'], ...opts] })}
+      <p class="muted">Fecha límite de uso del estudiante: <b>${fmtD(dl)}</b>${ts(dl) === ts(b.expiry) ? ' (ajustada al vencimiento de la licencia)' : ` (${b.studentDays} días desde hoy)`}.</p>`,
+    onSubmit(v) {
+      if (!v.cand) return { cand: 'Selecciona un candidato.' };
+      const err = mode === 'reassign' ? doReassign(l, v.cand) : doAssign(l, v.cand);
+      if (err) return { form: err };
+      commit(); toast('Licencia asignada a ' + candOf(v.cand).name + '.');
+    }
+  });
+}
+function openBulk(bid) {
+  const b = byId(S.batches, bid), free = S.licenses.filter(l => l.batchId === bid && licState(l) === 'disponible').length;
+  const taken = new Set(S.licenses.filter(l => l.batchId === bid && ['asignada', 'consumida'].includes(l.status)).map(l => l.candId));
+  const cs = S.candidates.filter(c => c.orgId === b.orgId && c.status === 'activo' && !taken.has(c.id));
+  openModal({
+    title: 'Asignación masiva', submit: 'Asignar seleccionados',
+    body: `<p>Licencias disponibles en el lote: <b>${free}</b>. Se asignan en orden a los candidatos marcados (los que ya tienen licencia en este lote no aparecen).</p>
+      ${cs.length ? `<div style="max-height:300px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:8px 12px">${cs.map(c => `<label style="font-weight:400;display:flex;gap:8px;padding:3px 0"><input type="checkbox" name="c_${c.id}" value="1"> ${esc(c.name)} <span class="muted">· ${esc(c.docType)} ${esc(c.docNum)}</span></label>`).join('')}</div>` : '<div class="notice info">No hay candidatos activos sin licencia en este lote.</div>'}<small class="err" id="e-sel" role="alert"></small>`,
+    onSubmit(v) {
+      const ids = Object.keys(v).filter(k => k.startsWith('c_')).map(k => k.slice(2));
+      if (!ids.length) return { form: 'Marca al menos un candidato.' };
+      if (ids.length > free) return { form: `Seleccionaste ${ids.length} candidatos pero solo hay ${free} licencias disponibles.` };
+      const pool = S.licenses.filter(l => l.batchId === bid && licState(l) === 'disponible');
+      ids.forEach((id, i) => doAssign(pool[i], id));
+      commit(); toast(`${ids.length} licencias asignadas.`);
+    }
+  });
+}
+function openHistory(code) {
+  const l = licOf(code);
+  const rows = [...l.history].reverse().map(h => `<tr><td>${esc(candOf(h.candId)?.name || '—')}</td><td>${fmtDT(h.at)}</td><td>${badge(h.state === 'activa' ? 'Activa' : h.state === 'consumida' ? 'Consumida' : 'Cerrada', h.state === 'activa' ? 'warn' : h.state === 'consumida' ? 'ok' : 'gray')}</td><td>${h.closedAt ? fmtDT(h.closedAt) : '—'}</td><td>${esc(h.reason || '—')}</td></tr>`);
+  openModal({ title: 'Historial de ' + code, wide: true, noFooter: true, body: tbl(['Candidato', 'Asignada', 'Estado', 'Cierre', 'Motivo de cierre'], rows, 'Esta licencia nunca ha sido asignada.') });
+}
+async function licAction(kind, code) {
+  const l = licOf(code);
+  if (kind === 'revoke') {
+    openModal({ title: 'Revocar ' + code, submit: 'Revocar', danger: true, body: `<p>La licencia quedará bloqueada y se cerrará la asignación a <b>${esc(candOf(l.candId)?.name)}</b>.</p>${fld('Motivo', 'reason', '', { type: 'textarea', rows: 2, req: 1 })}`, onSubmit(v) { if (!v.reason.trim()) return { reason: 'Indica el motivo de la revocación.' }; doRevoke(l, v.reason.trim()); commit(); toast('Licencia revocada.', 'warn'); } });
+  } else if (kind === 'recover') {
+    if (await confirmDlg({ title: 'Recuperar licencia', msg: `¿Recuperar <b class="mono">${code}</b>? Volverá al inventario como disponible y se cerrará su asignación.`, ok: 'Recuperar' })) { doRecover(l); commit(); toast('Licencia recuperada y disponible.'); }
+  }
+}
+function openBatch() {
+  const exs = S.exams.map(e => [e.id, e.name]);
+  const exp = new Date(Date.now() + 365 * DAY).toISOString().slice(0, 10);
+  openModal({
+    title: 'Nuevo lote de licencias',
+    body: `<div class="fgrid">${fld('Organización', 'org', '', { req: 1, type: 'select', opts: [['', 'Selecciona…'], ...S.orgs.filter(o => o.status === 'activa').map(o => [o.id, o.name])] })}${fld('Examen', 'exam', 'x1', { type: 'select', opts: exs })}
+      ${fld('Cantidad de licencias', 'qty', 20, { req: 1, type: 'number', attrs: 'min="1" max="500"' })}${fld('Precio unitario', 'price', 60000, { req: 1, type: 'number', attrs: 'min="0"' })}
+      ${fld('Moneda', 'cur', 'COP', { type: 'select', opts: [['COP', 'COP'], ['USD', 'USD']] })}${fld('Fecha de vencimiento', 'expiry', exp, { req: 1, type: 'date', hint: 'Después de esta fecha la organización no puede usar ni reasignar.' })}
+      ${fld('Plazo del estudiante (días)', 'sd', 30, { req: 1, type: 'number', attrs: 'min="1"', hint: 'Días desde la asignación para usar la licencia.' })}${fld('Inactividad para recuperación (días)', 'inact', 30, { req: 1, type: 'number', attrs: 'min="0"', hint: '0 = no se permite recuperar.' })}</div>`,
+    onSubmit(v) {
+      const e = {}, n = +v.qty;
+      if (!v.org) e.org = 'Selecciona la organización.';
+      if (!Number.isInteger(n) || n < 1 || n > 500) e.qty = 'Ingresa un entero entre 1 y 500.';
+      if (v.price === '' || +v.price < 0) e.price = 'Ingresa un precio válido (0 o más).';
+      if (!v.expiry || ts(v.expiry + 'T23:59:59') <= Date.now()) e.expiry = 'La fecha de vencimiento debe ser futura.';
+      if (!(+v.sd >= 1)) e.sd = 'El plazo debe ser de al menos 1 día.';
+      if (v.inact === '' || +v.inact < 0) e.inact = 'Ingresa 0 o más días.';
+      if (Object.keys(e).length) return e;
+      const b = { id: uid('b'), num: 'L-' + String(S.batches.length + 1).padStart(4, '0'), orgId: v.org, examId: v.exam, qty: n, price: +v.price, currency: v.cur, expiry: new Date(v.expiry + 'T23:59:59').toISOString(), studentDays: +v.sd, inactivityDays: +v.inact, createdAt: new Date().toISOString() };
+      S.batches.push(b);
+      const used = new Set(S.licenses.map(l => l.code));
+      for (let i = 0; i < n; i++) S.licenses.push({ code: genCode('ENG', used), batchId: b.id, status: 'disponible', candId: null, assignedAt: null, deadline: null, consumedAt: null, history: [] });
+      U.lotSel = b.id; commit(); toast(`Lote ${b.num} creado con ${n} códigos.`);
+    }
+  });
+}
+
+/* =====================================================================
+   11. VISTAS: usuarios y candidatos
+   ===================================================================== */
+const ROLE_USER = { admin_plataforma: 'Administrador de plataforma', admin_org: 'Administrador de organización' };
+function vUsuarios() {
+  const oid = scopeOrg(), q = fv('usrQ').toLowerCase();
+  const rows = S.users.filter(u => (!oid || u.orgId === oid) && (!q || (u.name + u.email).toLowerCase().includes(q))).map(u => `<tr><td><b>${esc(u.name)}</b></td><td>${esc(u.email)}</td><td>${esc(ROLE_USER[u.role])}${u.orgId ? `<br><span class="muted">${esc(orgName(u.orgId))}</span>` : ''}</td><td>${badge(u.status, u.status === 'activo' ? 'ok' : 'gray')}</td>
+    <td class="act"><div class="row"><button class="btn btn-sm" data-act="usrEdit" data-id="${u.id}">Editar</button><button class="btn btn-sm" data-act="usrDel" data-id="${u.id}">Eliminar</button></div></td></tr>`);
+  return head('Usuarios', oid ? 'Administradores de tu organización.' : 'Administradores de la plataforma y de las organizaciones.', '<button class="btn btn-primary" data-act="usrNew">Nuevo usuario</button>') +
+    `<div class="toolbar">${bindIn('usrQ', 'Buscar', 'Nombre o correo')}</div>` + tbl(['Nombre', 'Correo', 'Rol', 'Estado', 'Acciones'], rows, 'No hay usuarios para mostrar.');
+}
+function openUser(id) {
+  const oid = scopeOrg(), u = id ? byId(S.users, id) : { role: oid ? 'admin_org' : 'admin_plataforma', orgId: oid, status: 'activo' };
+  openModal({
+    title: id ? 'Editar usuario' : 'Nuevo usuario',
+    body: `<div class="fgrid">${fld('Nombre', 'name', u.name, { req: 1 })}${fld('Correo', 'email', u.email, { req: 1, type: 'email' })}
+      ${fld('Rol', 'role', u.role, { type: 'select', disabled: !!oid, opts: Object.entries(ROLE_USER) })}${fld('Estado', 'status', u.status, { type: 'select', opts: [['activo', 'Activo'], ['inactivo', 'Inactivo']] })}
+      ${fld('Organización', 'org', u.orgId || '', { type: 'select', disabled: !!oid, opts: [['', '— Ninguna —'], ...S.orgs.map(o => [o.id, o.name])] })}</div>`,
+    onSubmit(v) {
+      const e = {}; v.name = v.name.trim(); v.email = v.email.trim();
+      const role = oid ? 'admin_org' : v.role, org = oid || v.org;
+      if (!v.name) e.name = 'Este campo es obligatorio.';
+      if (!isEmail(v.email)) e.email = 'Ingresa un correo válido.';
+      else if (S.users.some(x => x.email.toLowerCase() === v.email.toLowerCase() && x.id !== id)) e.email = 'Ya existe un usuario con ese correo.';
+      if (role === 'admin_org' && !org) e.org = 'Un administrador de organización requiere una organización.';
+      if (Object.keys(e).length) return e;
+      const d = { name: v.name, email: v.email, role, status: v.status, orgId: role === 'admin_org' ? org : null };
+      if (id) Object.assign(u, d); else S.users.push({ id: uid('u'), ...d });
+      commit(); toast('Usuario guardado.');
+    }
+  });
+}
+
+function vCandidatos() { return head('Candidatos', 'Estudiantes de tu organización que pueden recibir licencias.') + candPanel(scopeOrg()); }
+function vIndep() { return head('Candidatos independientes', 'Personas que compraron una licencia por su cuenta, sin organización.') + candPanel(null); }
+function candPanel(oid) {
+  const q = fv('cdQ').toLowerCase(), st = fv('cdSt');
+  const rows = S.candidates.filter(c => (c.orgId || null) === (oid || null) && (!st || c.status === st) && (!q || (c.name + c.docNum + c.email + c.studentCode).toLowerCase().includes(q))).map(c => {
+    const nl = S.licenses.filter(l => l.candId === c.id && ['asignada', 'consumida'].includes(l.status)).length;
+    return `<tr><td class="mono">${esc(c.docType)} ${esc(c.docNum)}</td>${oid ? `<td class="mono">${esc(c.studentCode)}</td>` : ''}<td><b>${esc(c.name)}</b></td><td>${esc(c.email)}</td>${oid ? `<td>${esc(c.program)}</td>` : ''}<td>${badge(c.status, c.status === 'activo' ? 'ok' : 'gray')}</td><td>${nl}</td>
+      <td class="act"><div class="row"><button class="btn btn-sm" data-act="cdEdit" data-id="${c.id}" data-org="${oid || ''}">Editar</button><button class="btn btn-sm" data-act="cdDel" data-id="${c.id}">Eliminar</button></div></td></tr>`;
+  });
+  const heads = ['Documento', ...(oid ? ['Código est.'] : []), 'Nombre', 'Correo', ...(oid ? ['Programa'] : []), 'Estado', 'Licencias', 'Acciones'];
+  return `<div class="toolbar">${bindIn('cdQ', 'Buscar', 'Nombre, documento o correo')}${bindSel('cdSt', 'Estado', [['', 'Todos'], ['activo', 'Activo'], ['inactivo', 'Inactivo']])}
+    <button class="btn btn-primary" data-act="cdNew" data-org="${oid || ''}">Nuevo candidato</button>${oid ? `<button class="btn" data-act="cdImport" data-org="${oid}">Importar CSV</button>` : ''}</div>` + tbl(heads, rows, 'No hay candidatos con esos filtros.');
+}
+function openCand(oid, id) {
+  const c = id ? candOf(id) : { docType: 'CC', status: 'activo' };
+  openModal({
+    title: id ? 'Editar candidato' : 'Nuevo candidato',
+    body: `<div class="fgrid">${fld('Tipo de documento', 'docType', c.docType, { type: 'select', opts: DOC_TYPES.map(d => [d, d]) })}${fld('Número de documento', 'docNum', c.docNum, { req: 1 })}
+      ${fld('Nombres y apellidos', 'name', c.name, { req: 1 })}${fld('Correo', 'email', c.email, { req: 1, type: 'email' })}
+      ${oid ? fld('Código estudiantil', 'studentCode', c.studentCode) + fld('Programa', 'program', c.program) : ''}
+      ${fld('Estado', 'status', c.status, { type: 'select', opts: [['activo', 'Activo'], ['inactivo', 'Inactivo']] })}</div>`,
+    onSubmit(v) {
+      const e = {}; ['docNum', 'name', 'email'].forEach(k => { v[k] = v[k].trim(); if (!v[k]) e[k] = 'Este campo es obligatorio.'; });
+      if (v.email && !isEmail(v.email)) e.email = 'Ingresa un correo válido.';
+      if (v.docNum && S.candidates.some(x => (x.orgId || null) === (oid || null) && x.docType === v.docType && x.docNum === v.docNum && x.id !== id)) e.docNum = 'Ya existe un candidato con ese documento en esta organización.';
+      if (Object.keys(e).length) return e;
+      if (id) Object.assign(c, v); else S.candidates.push({ id: uid('c'), orgId: oid || null, studentCode: '', program: '', ...v });
+      commit(); toast('Candidato guardado.');
+    }
+  });
+}
+function openImport(oid) {
+  openModal({
+    title: 'Importar candidatos (CSV simulado)', wide: true, submit: 'Importar',
+    body: `<p class="muted">Pega el contenido CSV con columnas: <span class="mono">tipo_doc,num_doc,codigo,nombres,correo,programa</span>. La primera línea puede ser el encabezado.</p>
+      ${fld('Contenido CSV', 'csv', '', { type: 'textarea', rows: 8, req: 1, attrs: '' })}<button type="button" class="btn btn-sm" data-act="csvSample">Insertar ejemplo</button>`,
+    onSubmit(v) {
+      const lines = v.csv.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      if (!lines.length) return { csv: 'Pega al menos una línea de datos.' };
+      if (/tipo/i.test(lines[0])) lines.shift();
+      let ok = 0; const bad = [], seen = new Set();
+      lines.forEach((ln, i) => {
+        const [dt, dn, code, name, email, prog] = ln.split(',').map(x => (x || '').trim());
+        const key = dt + dn;
+        let m = '';
+        if (!DOC_TYPES.includes(dt)) m = 'tipo de documento inválido';
+        else if (!dn) m = 'falta el número de documento';
+        else if (!name) m = 'faltan los nombres';
+        else if (!isEmail(email || '')) m = 'correo inválido';
+        else if (seen.has(key) || S.candidates.some(x => x.orgId === oid && x.docType === dt && x.docNum === dn)) m = 'documento duplicado';
+        if (m) { bad.push(`Línea ${i + 1}: ${m}`); return; }
+        seen.add(key); ok++;
+        S.candidates.push({ id: uid('c'), orgId: oid, docType: dt, docNum: dn, studentCode: code, name, email, program: prog || '', status: 'activo' });
+      });
+      commit(); toast(`${ok} importados, ${bad.length} rechazados.`, bad.length ? 'warn' : '');
+      if (bad.length) setTimeout(() => openModal({ title: 'Filas rechazadas', noFooter: true, body: `<ul>${bad.map(b => `<li>${esc(b)}</li>`).join('')}</ul>` }), 0);
+    }
+  });
+}
+
+/* =====================================================================
+   12. VISTAS: banco de preguntas y configuración del examen
+   ===================================================================== */
+const STATUS_Q = { activa: 'ok', borrador: 'warn', retirada: 'gray' };
+function vBanco() {
+  const qs = fv('bQ').toLowerCase();
+  const rows = S.questions.filter(q => (!fv('bSk') || q.skill === fv('bSk')) && (fv('bLv') === '' || q.level === +fv('bLv')) && (!fv('bTy') || q.type === fv('bTy')) && (!fv('bSt') || q.status === fv('bSt')) && (!qs || q.stem.toLowerCase().includes(qs))).map(q => `<tr>
+    <td class="mono">${q.id}</td><td style="min-width:260px">${esc(q.stem)}</td><td>${esc(SKILLS[q.skill])}</td><td>${lvlTag(q.level)}</td><td>${q.type === 'tf' ? 'V/F' : 'Opción múltiple'}</td><td>${q.difficulty}</td><td>${q.timeLimit ? q.timeLimit + ' s' : 'Por defecto'}</td><td>${badge(q.status, STATUS_Q[q.status])}</td>
+    <td class="act"><div class="row"><button class="btn btn-sm" data-act="qPrev" data-id="${q.id}">Vista previa</button><button class="btn btn-sm" data-act="qEdit" data-id="${q.id}">Editar</button><button class="btn btn-sm" data-act="qStatus" data-id="${q.id}">${q.status === 'activa' ? 'Retirar' : 'Activar'}</button></div></td></tr>`);
+  return head('Banco de preguntas', `${S.questions.length} preguntas, ${S.questions.filter(q => q.status === 'activa').length} activas. Solo las activas entran al examen.`, '<button class="btn btn-primary" data-act="qNew">Nueva pregunta</button>') +
+    `<div class="toolbar">${bindIn('bQ', 'Buscar enunciado', 'Texto…')}${bindSel('bSk', 'Habilidad', [['', 'Todas'], ...Object.entries(SKILLS)])}${bindSel('bLv', 'Nivel', [['', 'Todos'], ...LEVELS.map((l, i) => [i, l])])}${bindSel('bTy', 'Tipo', [['', 'Todos'], ['mc', 'Opción múltiple'], ['tf', 'Verdadero/Falso']])}${bindSel('bSt', 'Estado', [['', 'Todos'], ['activa', 'Activa'], ['borrador', 'Borrador'], ['retirada', 'Retirada']])}</div>` +
+    tbl(['ID', 'Enunciado', 'Habilidad', 'Nivel', 'Tipo', 'Dificultad', 'Tiempo', 'Estado', 'Acciones'], rows, 'Ninguna pregunta coincide con los filtros.');
+}
+// HTML de una pregunta tal como la ve el estudiante (compartido por examen y vista previa)
+function questionHTML(q, interactive) {
+  const res = q.resource ? `<div class="resource"><small>${q.skill === 'listening' ? 'Transcripción del audio (simulada)' : 'Texto de lectura'}</small>${esc(q.resource)}</div>` : '';
+  return `${res}<fieldset style="border:0;padding:0;margin:0"><legend style="font:600 1.15rem 'Outfit';margin-bottom:12px;padding:0">${esc(q.stem)}</legend>
+    ${q.opts.map((o, i) => `<label class="opt"><input type="radio" name="ans" value="${i}"${interactive ? '' : ' disabled'}> <span>${esc(o)}</span></label>`).join('')}</fieldset>`;
+}
+function openQuestion(id) {
+  const q = id ? byId(S.questions, id) : { skill: 'grammar', level: 2, type: 'mc', stem: '', opts: ['', '', '', ''], correct: 0, difficulty: 2.5, timeLimit: '', resource: '', status: 'borrador' };
+  const o4 = [...q.opts, '', '', '', ''].slice(0, 4);
+  openModal({
+    title: id ? 'Editar pregunta ' + id : 'Nueva pregunta', wide: true,
+    body: `${fld('Enunciado', 'stem', q.stem, { type: 'textarea', rows: 2, req: 1 })}
+      <div class="fgrid">${fld('Habilidad', 'skill', q.skill, { type: 'select', opts: Object.entries(SKILLS) })}${fld('Nivel MCER', 'level', q.level, { type: 'select', opts: LEVELS.map((l, i) => [i, l]) })}
+      ${fld('Tipo', 'type', q.type, { type: 'select', opts: [['mc', 'Opción múltiple'], ['tf', 'Verdadero / Falso']] })}${fld('Estado', 'status', q.status, { type: 'select', opts: [['borrador', 'Borrador'], ['activa', 'Activa'], ['retirada', 'Retirada']] })}
+      ${fld('Dificultad numérica (0 a 6)', 'difficulty', q.difficulty, { type: 'number', req: 1, attrs: 'step="0.05" min="0" max="6"', hint: 'Se usa para elegir la pregunta más cercana al nivel estimado.' })}${fld('Tiempo límite (s), opcional', 'timeLimit', q.timeLimit || '', { type: 'number', attrs: 'min="5"', hint: 'Vacío = usa la configuración del examen.' })}</div>
+      ${fld('Recurso asociado (texto de lectura o transcripción)', 'resource', q.resource, { type: 'textarea', rows: 3 })}
+      <div id="q-mc"><label>Opciones (marca la correcta)</label>${o4.map((t, i) => `<div class="row" style="margin-bottom:6px;flex-wrap:nowrap"><input type="radio" name="correct" value="${i}" aria-label="Opción ${i + 1} correcta"${q.type === 'mc' && q.correct === i ? ' checked' : ''}><input type="text" name="opt${i}" value="${esc(t)}" aria-label="Texto de la opción ${i + 1}" placeholder="Opción ${i + 1}"></div>`).join('')}<small class="hint">Deja vacías las opciones que no uses (mínimo 2).</small><small class="err" id="e-opts" role="alert"></small></div>
+      <div id="q-tf" hidden><label>Respuesta correcta</label>${TF.map((t, i) => `<label class="opt"><input type="radio" name="correctTf" value="${i}"${q.type === 'tf' && q.correct === i ? ' checked' : !id && i === 0 ? ' checked' : ''}> ${t}</label>`).join('')}</div>`,
+    extra: '<button type="button" class="btn" data-act="qPrevForm">Vista previa</button>',
+    afterOpen(h) {
+      const sel = $('[name=type]', h.el), sync = () => { $('#q-mc', h.el).hidden = sel.value === 'tf'; $('#q-tf', h.el).hidden = sel.value !== 'tf'; };
+      sel.addEventListener('change', sync); sync();
+      h.readForm = () => readQuestion(h.el, q);
+    },
+    onSubmit(v, fd, form) {
+      const r = readQuestion(form, q, true);
+      if (r.errs) return r.errs;
+      Object.assign(q, r.q);
+      if (!id) { q.id = 'q' + (S.questions.length + 1 + Math.floor(Math.random() * 1000)); S.questions.push(q); }
+      commit(); toast('Pregunta guardada.');
+    }
+  });
+}
+// Lee y valida el formulario del editor de preguntas
+function readQuestion(form, base, validate) {
+  const g = n => (form.querySelector(`[name="${n}"]`) || {}).value || '', e = {};
+  const type = g('type'), stem = g('stem').trim(), d = parseFloat(g('difficulty'));
+  let opts, correct;
+  if (type === 'tf') { opts = [...TF]; correct = +(form.querySelector('[name=correctTf]:checked')?.value ?? 0); }
+  else {
+    const sel = form.querySelector('[name=correct]:checked'), pick = sel ? +sel.value : -1;
+    opts = []; correct = -1;
+    [0, 1, 2, 3].forEach(i => { const t = g('opt' + i).trim(); if (t) { if (i === pick) correct = opts.length; opts.push(t); } });
+    if (opts.length < 2) e.opts = 'Ingresa al menos 2 opciones.'; else if (correct < 0) e.opts = 'Marca cuál opción es la correcta (y que no esté vacía).';
+  }
+  if (!stem) e.stem = 'El enunciado es obligatorio.';
+  if (isNaN(d) || d < 0 || d > 6) e.difficulty = 'Ingresa un número entre 0 y 6.';
+  const tl = g('timeLimit'); if (tl && +tl < 5) e.timeLimit = 'Mínimo 5 segundos.';
+  const q = { ...base, stem, skill: g('skill'), level: +g('level'), type, status: g('status'), difficulty: d, timeLimit: tl ? +tl : null, resource: g('resource').trim(), opts, correct };
+  return Object.keys(e).length && validate ? { errs: e } : { q };
+}
+function openQPreview(q) {
+  openModal({ title: 'Vista previa para el estudiante', noFooter: true, body: `<p class="muted">${esc(SKILLS[q.skill])} · ${LEVELS[q.level]} · tiempo: ${q.timeLimit || timeFor(q, S.cfg)} s</p>${questionHTML(q, false)}` });
+}
+
+function vConfig() {
+  const c = S.cfg, num = (k, label, o = {}) => fld(label, k, c[k], { type: 'number', req: 1, attrs: `step="${o.step || 1}" min="${o.min ?? 0}"`, hint: o.hint });
+  return head('Configuración del examen', 'Los cambios se aplican a partir del siguiente examen que inicie un candidato.') +
+    `<form data-form="cfg" novalidate><div class="notice bad" id="e-form" role="alert" hidden></div>
+    <section class="panel"><h2>Estructura</h2><div class="grid g4">${fld('Nivel inicial', 'startLevel', c.startLevel, { type: 'select', opts: LEVELS.map(l => [l, l]) })}${num('minQ', 'Mínimo de preguntas', { min: 3 })}${num('maxQ', 'Máximo de preguntas', { min: 3 })}${num('defaultTime', 'Tiempo por defecto (s)', { min: 5 })}</div></section>
+    <section class="panel"><h2>Ajuste adaptativo</h2><div class="grid g4">${num('stepUp', 'Ajuste por acierto', { step: 0.05, hint: 'Niveles que sube theta.' })}${num('stepDown', 'Ajuste por error', { step: 0.05, hint: 'Niveles que baja theta.' })}${num('fastPct', 'Respuesta rápida (% del tiempo)', { min: 1, hint: 'Hasta este % se considera rápida.' })}${num('slowPct', 'Respuesta lenta (% del tiempo)', { min: 1, hint: 'Desde este % se considera lenta.' })}
+      ${num('timeWeight', 'Peso del tiempo (0 a 1)', { step: 0.05, hint: 'Cuánto amplifica o atenúa el cambio.' })}${num('stopDelta', 'Parada: variación máxima', { step: 0.05, hint: 'Rango de theta para considerarla estable.' })}${num('stopWindow', 'Parada: respuestas a comparar', { min: 2 })}${num('certDays', 'Vigencia del certificado (días)', { min: 1 })}</div></section>
+    <section class="panel"><h2>Tiempo por habilidad y nivel (segundos)</h2><p class="muted">Vacío = usa el tiempo por defecto. Una pregunta con tiempo propio tiene prioridad.</p>
+      <div class="tbl-wrap"><table><thead><tr><th scope="col">Habilidad</th>${LEVELS.map(l => `<th scope="col">${l}</th>`).join('')}</tr></thead><tbody>${Object.entries(SKILLS).map(([k, n]) => `<tr><th scope="row">${n}</th>${LEVELS.map(l => `<td><input type="number" min="5" name="t_${k}_${l}" value="${c.timeTable[k]?.[l] ?? ''}" aria-label="${n} ${l}" style="min-width:64px"></td>`).join('')}</tr>`).join('')}</tbody></table></div></section>
+    <div class="row"><button class="btn btn-primary" type="submit">Guardar configuración</button><button class="btn" type="button" data-act="cfgReset">Restablecer valores</button></div></form>`;
+}
+function saveCfg(form) {
+  const v = Object.fromEntries(new FormData(form)), e = [], c = {};
+  ['minQ', 'maxQ', 'defaultTime', 'stepUp', 'stepDown', 'fastPct', 'slowPct', 'timeWeight', 'stopDelta', 'stopWindow', 'certDays'].forEach(k => c[k] = parseFloat(v[k]));
+  if ([...Object.values(c)].some(isNaN)) e.push('Completa todos los campos numéricos.');
+  if (c.minQ < 3 || c.maxQ < c.minQ) e.push('El máximo de preguntas debe ser mayor o igual al mínimo (mínimo 3).');
+  if (c.maxQ > S.questions.filter(q => q.status === 'activa').length) e.push('El máximo supera las preguntas activas del banco.');
+  if (c.stepUp <= 0 || c.stepDown <= 0 || c.stepUp > 2 || c.stepDown > 2) e.push('Los ajustes por acierto y error deben estar entre 0 y 2.');
+  if (!(c.fastPct >= 1 && c.slowPct <= 100 && c.fastPct < c.slowPct)) e.push('El umbral rápido debe ser menor que el lento, entre 1 y 100.');
+  if (c.timeWeight < 0 || c.timeWeight > 1) e.push('El peso del tiempo debe estar entre 0 y 1.');
+  if (c.stopWindow < 2 || c.stopWindow > c.minQ) e.push('Las respuestas a comparar deben estar entre 2 y el mínimo de preguntas.');
+  const tt = {};
+  Object.keys(SKILLS).forEach(k => { tt[k] = {}; LEVELS.forEach(l => { const x = v[`t_${k}_${l}`]; if (x !== '' && x != null) { if (+x < 5) e.push(`Tiempo inválido en ${SKILLS[k]} ${l} (mínimo 5 s).`); else tt[k][l] = +x; } }); });
+  const g = $('#e-form', form);
+  if (e.length) { g.innerHTML = e.map(esc).join('<br>'); g.hidden = false; g.scrollIntoView({ block: 'center' }); return; }
+  S.cfg = { ...S.cfg, ...c, startLevel: v.startLevel, timeTable: tt };
+  commit(); toast('Configuración guardada. Se aplicará al siguiente examen.');
+}
+
+/* =====================================================================
+   13. VISTAS: resultados y certificados
+   ===================================================================== */
+function filteredAttempts() {
+  const oid = scopeOrg(), q = fv('rQ').toLowerCase(), lv = fv('rLvl'), f = fv('rFrom'), t = fv('rTo'), og = fv('rOrg');
+  return attemptsScope(oid).filter(a => (!lv || a.level === lv) && (!f || ts(a.finishedAt) >= ts(f + 'T00:00:00')) && (!t || ts(a.finishedAt) <= ts(t + 'T23:59:59')) && (!og || (og === '_i' ? !a.orgId : a.orgId === og)) && (!q || (candOf(a.candId)?.name || '').toLowerCase().includes(q))).sort((a, b) => ts(b.finishedAt) - ts(a.finishedAt));
+}
+function vResultados() {
+  const list = filteredAttempts(), oid = scopeOrg();
+  const rows = list.map(a => {
+    const c = certOf(a.id), cs = c ? certState(c) : null;
+    return `<tr><td><b>${esc(candOf(a.candId)?.name)}</b>${oid ? '' : `<br><span class="muted">${esc(orgName(a.orgId))}</span>`}</td><td>${esc(examOf(a.examId)?.name)}</td><td>${lvlTag(LEVELS.indexOf(a.level))}</td><td>${a.score}/100</td><td>${fmtD(a.finishedAt)}</td><td>${cs ? badge(cs[0].toUpperCase() + cs.slice(1), CERT_BADGE[cs]) : badge('Sin certificado')}</td>
+      <td class="act"><button class="btn btn-sm" data-act="attOpen" data-id="${a.id}">Detalle</button></td></tr>`;
+  });
+  return head('Resultados y certificación', 'Exámenes finalizados, su evolución pregunta a pregunta y el estado de sus certificados.', '<button class="btn" data-act="csv">Exportar CSV</button>') +
+    `<div class="toolbar">${bindIn('rQ', 'Candidato', 'Nombre…')}${bindSel('rLvl', 'Nivel', [['', 'Todos'], ...LEVELS.map(l => [l, l])])}${bindIn('rFrom', 'Desde', '', 'date')}${bindIn('rTo', 'Hasta', '', 'date')}${oid ? '' : bindSel('rOrg', 'Organización', [['', 'Todas'], ...S.orgs.map(o => [o.id, o.name]), ['_i', 'Independientes']])}</div>` +
+    tbl(['Candidato', 'Examen', 'Nivel', 'Puntaje', 'Fecha', 'Certificado', 'Acciones'], rows, 'No hay resultados con esos filtros.');
+}
+function exportCSV() {
+  const rows = [['Candidato', 'Documento', 'Organización', 'Examen', 'Nivel', 'Puntaje', 'Fecha', 'Certificado', 'Estado certificado']];
+  filteredAttempts().forEach(a => { const c = certOf(a.id), p = candOf(a.candId); rows.push([p?.name, p ? p.docType + ' ' + p.docNum : '', orgName(a.orgId), examOf(a.examId)?.name, a.level, a.score, fmtD(a.finishedAt), c?.number || '', c ? certState(c) : '']); });
+  downloadCSV('resultados-levexa.csv', rows); toast('CSV exportado con ' + (rows.length - 1) + ' filas.');
+}
+// Gráfica SVG de la evolución del nivel estimado (theta) pregunta a pregunta
+function thetaChart(trace, start) {
+  const W = 640, H = 250, L = 38, Rr = 12, T = 12, Bm = 28, n = trace.length;
+  const x = i => L + (W - L - Rr) * i / Math.max(1, n), y = v => T + (H - T - Bm) * (1 - v / 6);
+  const pts = [start, ...trace.map(t => t.theta)];
+  const grid = LEVELS.map((l, i) => `<line x1="${L}" x2="${W - Rr}" y1="${y(i)}" y2="${y(i)}" stroke="var(--border)"/><text x="${L - 6}" y="${y(i + 0.5) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${l}</text>`).join('') + `<line x1="${L}" x2="${W - Rr}" y1="${y(6)}" y2="${y(6)}" stroke="var(--border)"/>`;
+  const xl = pts.map((_, i) => (n < 16 || i % 2 === 0) ? `<text x="${x(i)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="var(--muted)">${i === 0 ? 'Ini' : i}</text>` : '').join('');
+  const dots = pts.map((v, i) => { const t = trace[i - 1], col = i === 0 ? 'var(--muted)' : t.correct ? 'var(--ok)' : 'var(--bad)'; return `<circle cx="${x(i)}" cy="${y(v)}" r="5" fill="${col}"><title>${i === 0 ? 'Nivel inicial' : 'Pregunta ' + i + (t.expired ? ' (expirada)' : t.correct ? ' (correcta)' : ' (incorrecta)')}: ${v}</title></circle>`; }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolución del nivel estimado a lo largo de ${n} preguntas">${grid}<polyline fill="none" stroke="var(--primary)" stroke-width="2.5" points="${pts.map((v, i) => x(i) + ',' + y(v)).join(' ')}"/>${dots}${xl}</svg>
+  <div class="legend"><span><i style="background:var(--ok)"></i>Correcta</span><span><i style="background:var(--bad)"></i>Incorrecta o expirada</span><span>Eje vertical: nivel estimado (0 = A1, 6 = C2)</span></div>`;
+}
+function openAttempt(id) {
+  const a = byId(S.attempts, id), p = candOf(a.candId), c = certOf(a.id), cs = c ? certState(c) : null;
+  const trs = a.trace.map((t, i) => `<tr><td>${i + 1}</td><td>${esc(SKILLS[t.skill])} · ${lvlTag(t.level)}</td><td>${esc(t.stem)}${t.stem.length >= 80 ? '…' : ''}</td><td>${t.expired ? badge('Expirada', 'warn') : t.correct ? badge('Correcta', 'ok') : badge('Incorrecta', 'bad')}</td><td>${t.used} s / ${t.limit} s</td><td>${t.theta}</td></tr>`);
+  const canIssue = !c || cs !== 'vigente';
+  openModal({
+    title: `Intento de ${p?.name}`, wide: true, noFooter: true,
+    body: `<dl class="dl"><dt>Examen</dt><dd>${esc(examOf(a.examId)?.name)}</dd><dt>Nivel / puntaje</dt><dd>${lvlTag(LEVELS.indexOf(a.level))} · ${a.score}/100 (theta ${a.theta})</dd><dt>Fecha</dt><dd>${fmtDT(a.finishedAt)} · tiempo total ${fmtSec(a.totalTime)}</dd><dt>Licencia</dt><dd class="mono">${a.licCode}</dd></dl>
+      <h3 style="margin-top:16px">Evolución del nivel</h3><div class="chart">${thetaChart(a.trace, LEVELS.indexOf(S.cfg.startLevel) + 0.5)}</div>
+      <h3>Certificado</h3><div class="row" style="margin-bottom:14px">${c ? `${badge(cs[0].toUpperCase() + cs.slice(1), CERT_BADGE[cs])} <span class="mono">${c.number}</span> <button type="button" class="btn btn-sm" data-act="certView" data-id="${c.id}">Ver / imprimir</button>` : badge('Sin certificado')}
+        ${c && cs === 'vigente' ? `<button type="button" class="btn btn-sm btn-danger" data-act="certRevoke" data-id="${c.id}" data-att="${a.id}">Revocar</button>` : ''}${canIssue ? `<button type="button" class="btn btn-sm btn-primary" data-act="certIssue" data-att="${a.id}">Emitir ${c ? 'nuevo ' : ''}certificado</button>` : ''}</div>
+      ${c && cs === 'revocado' ? `<div class="notice bad">Revocado el ${fmtD(c.revokedAt)}. Motivo: ${esc(c.revokedReason)}</div>` : ''}
+      <h3>Preguntas</h3>${tbl(['#', 'Habilidad y nivel', 'Pregunta', 'Resultado', 'Tiempo usado / límite', 'Theta'], trs)}`
+  });
+}
+function certHTML(c) {
+  const a = byId(S.attempts, c.attemptId), p = candOf(a.candId), st = certState(c);
+  return `<div class="cert"><h2>CERTIFICADO DE NIVEL DE INGLÉS</h2><p>Levexa certifica que</p><div class="nm">${esc(p?.name)}</div><p>obtuvo el nivel del Marco Común Europeo (MCER)</p><div class="lv">${a.level}</div><p>Puntaje ${a.score}/100 · ${esc(examOf(a.examId)?.name)}</p>
+    ${st !== 'vigente' ? `<div class="stamp">${st.toUpperCase()}</div>` : ''}
+    <div class="meta"><div><b>Fecha de emisión</b>${fmtD(c.issuedAt)}</div><div><b>Vigente hasta</b>${fmtD(c.validUntil)}</div><div><b>Número</b>${c.number}</div><div><b>Código de verificación</b><span class="mono">${c.code}</span></div></div>
+    <p style="margin-top:14px;font-size:.78rem">Verifica su autenticidad en el verificador público de Levexa con el código indicado.</p></div>`;
+}
+function openCert(id) {
+  const c = byId(S.certs, id);
+  openModal({ title: 'Certificado ' + c.number, wide: true, cancel: null, submit: 'Cerrar', extra: '<button type="button" class="btn btn-primary" data-act="print">Imprimir / guardar PDF</button>', body: certHTML(c), onSubmit() { } });
+}
+
+/* =====================================================================
+   14. VISTAS: candidato (examen, compra) y verificador público
+   ===================================================================== */
+const examLocked = () => S.ui.role === 'cand' && U.ex.stage === 'run';
+function vExamen() {
+  const ex = U.ex;
+  if (ex.stage === 'instr') return vInstr();
+  if (ex.stage === 'run') return vRun();
+  if (ex.stage === 'final') return vFinal();
+  return vEntry();
+}
+function sampleCodes() {
+  const L = S.licenses, out = [];
+  const pick = (f) => L.find(l => f(l));
+  const ok = pick(l => l.status === 'asignada' && licState(l) === 'asignada' && ts(l.deadline) > Date.now() && batchOf(l).orgId && !isRecoverable(l)) || pick(l => l.status === 'asignada' && licState(l) === 'asignada' && ts(l.deadline) > Date.now());
+  const doc = l => candOf(l.candId)?.docNum || '';
+  if (ok) { out.push(['Válido', ok.code, doc(ok)]); const other = S.candidates.find(c => c.id !== ok.candId && c.orgId === batchOf(ok).orgId); if (other) out.push(['Asignada a otra persona', ok.code, other.docNum]); }
+  const v = pick(l => licState(l) === 'vencida'); if (v) out.push(['Vencido', v.code, doc(v)]);
+  const r = pick(l => l.status === 'revocada'); if (r) out.push(['Revocado', r.code, '']);
+  const c = pick(l => l.status === 'consumida'); if (c) out.push(['Consumido', c.code, doc(c)]);
+  const late = pick(l => l.status === 'asignada' && licState(l) === 'asignada' && ts(l.deadline) < Date.now()); if (late) out.push(['Fuera de plazo', late.code, doc(late)]);
+  const d = pick(l => l.status === 'disponible' && licState(l) === 'disponible'); if (d) out.push(['Sin asignar', d.code, '']);
+  out.push(['No existe', 'ENG-ZZZZ-0000', '']);
+  return out;
+}
+function vEntry() {
+  return head('Realizar examen', 'Ingresa el código de tu licencia y tu número de documento para comenzar.') +
+    `<section class="panel" style="max-width:640px"><form data-form="entry" novalidate><div class="notice bad" id="e-form" role="alert" hidden></div>
+      ${fld('Código de licencia', 'code', U.entry.code, { req: 1, attrs: 'placeholder="ENG-XXXX-XXXX" autocomplete="off" style="text-transform:uppercase"' })}
+      ${fld('Número de documento', 'doc', U.entry.doc, { attrs: 'autocomplete="off"', hint: 'Debe coincidir con el documento al que está asignada la licencia.' })}
+      <button class="btn btn-primary" type="submit">Continuar</button></form></section>
+    <section class="panel" style="max-width:640px"><h2>Códigos de ejemplo</h2><p class="muted">Haz clic en uno para rellenar el formulario y probar cada validación.</p>
+      <div class="chips">${sampleCodes().map(([t, c, d]) => `<button class="chip" type="button" data-act="fill" data-code="${c}" data-doc="${d}">${esc(t)}</button>`).join('')}</div></section>`;
+}
+function vInstr() {
+  const { lic, cand } = U.ex, b = batchOf(lic), c = S.cfg;
+  return head('Instrucciones del examen', `Hola, ${cand.name}.`) +
+    `<section class="panel" style="max-width:700px"><ul><li>Es un examen <b>adaptativo</b>: la dificultad de cada pregunta depende de tus respuestas y de tu rapidez.</li>
+      <li>Responderás entre <b>${c.minQ}</b> y <b>${c.maxQ}</b> preguntas, una por pantalla.</li><li>Cada pregunta tiene un <b>temporizador</b>. Al agotarse se marca como expirada y se avanza.</li><li>No puedes volver a una pregunta anterior ni pausar el examen.</li></ul>
+      <div class="notice warn"><b>Atención:</b> al iniciar se consume tu licencia <span class="mono">${lic.code}</span>. Solo permite un examen y <b>no hay vuelta atrás</b>, aunque cierres la ventana.</div>
+      <form data-form="start" novalidate><div class="field"><label><input type="checkbox" name="ok" value="1"> Entiendo que iniciar consume mi licencia y no se puede deshacer.</label><small class="err" id="e-ok" role="alert"></small></div>
+      <div class="row"><button type="button" class="btn" data-act="exCancel">Volver</button><button class="btn btn-primary" type="submit">Iniciar examen</button></div></form></section>`;
+}
+function vRun() {
+  const ex = U.ex, q = ex.q, n = ex.E.trace.length + 1, max = ex.E.cfg.maxQ;
+  return `<div class="exam"><div class="row" style="justify-content:space-between;margin-bottom:6px"><b>Pregunta ${n}</b><span class="muted">máximo ${max}</span></div>
+    <div class="tbar" style="margin-bottom:16px" role="progressbar" aria-label="Progreso del examen" aria-valuemin="0" aria-valuemax="${max}" aria-valuenow="${n - 1}"><i style="width:${(n - 1) / max * 100}%;background:var(--ok)"></i></div>
+    <section class="panel"><div class="row" style="justify-content:space-between"><span class="muted">${esc(SKILLS[q.skill])}</span><b id="tsec" role="timer" aria-live="off">${ex.limit} s</b></div><div class="tbar" id="tbar" style="margin:6px 0 16px"><i style="width:100%"></i></div>
+    <form data-form="answer" novalidate>${questionHTML(q, true)}<div class="row" style="margin-top:14px"><button class="btn btn-primary" type="submit" id="ans-btn">Responder</button></div></form></section></div>`;
+}
+function vFinal() {
+  const { sum, cert, cand } = U.ex;
+  return head('Examen finalizado', `Gracias, ${cand.name}.`) +
+    `<div class="grid g2"><section class="panel" style="text-align:center"><p class="muted">Tu nivel MCER</p><div class="bignum">${sum.level}</div><p>Puntaje <b>${sum.score}/100</b> · tiempo total <b>${fmtSec(sum.totalTime)}</b></p>
+      <p class="muted">Certificado <span class="mono">${cert.number}</span><br>Código de verificación: <b class="mono">${cert.code}</b></p><div class="row" style="justify-content:center"><button class="btn btn-primary" data-act="certView" data-id="${cert.id}">Ver certificado</button><button class="btn" data-act="exDone">Salir</button></div></section>
+    <section class="panel"><h2>Desglose por habilidad</h2><div class="bars">${Object.entries(sum.bySkill).map(([k, v]) => `<div class="bar" style="grid-template-columns:130px 1fr 44px"><span>${SKILLS[k]}</span><div><i style="width:${v.n ? v.ok / v.n * 100 : 0}%"></i></div><b>${v.ok}/${v.n}</b></div>`).join('')}</div></section></div>`;
+}
+// Flujo del examen: validar código, iniciar, responder, finalizar
+function submitEntry(form) {
+  const v = Object.fromEntries(new FormData(form)); U.entry = { code: v.code, doc: v.doc };
+  const r = validateEntry(v.code, v.doc), g = $('#e-form', form);
+  if (!r.ok) { g.textContent = r.msg; g.hidden = false; g.focus?.(); return; }
+  U.ex = { stage: 'instr', lic: r.lic, cand: r.cand }; render();
+}
+function startExam() {
+  const ex = U.ex, l = ex.lic, b = batchOf(l), nowS = new Date().toISOString();
+  l.status = 'consumida'; l.consumedAt = nowS; closeActive(l, 'Examen realizado', 'consumida');
+  const cfg = JSON.parse(JSON.stringify(S.cfg));
+  ex.E = newEngine(cfg, S.questions, Math.random);
+  ex.att = { id: uid('t'), licCode: l.code, candId: ex.cand.id, orgId: b.orgId, examId: b.examId, status: 'en_curso', startedAt: nowS };
+  S.attempts.push(ex.att); save();
+  ex.stage = 'run'; nextStep();
+}
+function nextStep() {
+  const ex = U.ex;
+  if (isDone(ex.E)) return finishExam();
+  ex.q = nextQuestion(ex.E); ex.limit = timeFor(ex.q, ex.E.cfg); ex.t0 = Date.now(); render();
+  clearInterval(ex.tm); ex.tm = setInterval(tick, 150);
+}
+function tick() {
+  const ex = U.ex; if (ex.stage !== 'run') return clearInterval(ex.tm);
+  const el = (Date.now() - ex.t0) / 1000, left = Math.max(0, ex.limit - el), bar = $('#tbar');
+  if (bar) { bar.firstElementChild.style.width = (left / ex.limit * 100) + '%'; bar.classList.toggle('low', left / ex.limit < 0.2); $('#tsec').textContent = Math.ceil(left) + ' s'; }
+  if (left <= 0) answer(null);
+}
+function answer(opt) {
+  const ex = U.ex; clearInterval(ex.tm);
+  const used = Math.min(ex.limit, (Date.now() - ex.t0) / 1000);
+  applyAnswer(ex.E, ex.q, opt, used, ex.limit); nextStep();
+}
+function finishExam() {
+  const ex = U.ex, sum = summarize(ex.E), a = ex.att;
+  Object.assign(a, { status: 'finalizado', finishedAt: new Date().toISOString(), theta: sum.theta, level: sum.level, score: sum.score, bySkill: sum.bySkill, totalTime: sum.totalTime, trace: ex.E.trace });
+  ex.cert = issueCert(S, a, S.cfg); ex.sum = sum; ex.stage = 'final'; commit();
+}
+
+function vComprar() {
+  const b = U.buy, e = examOf(b.exam), tot = e.price * b.qty, lp = U.lastPurchase;
+  if (lp) return head('Compra realizada', 'Tu pago simulado fue aprobado.') + `<section class="panel" style="max-width:640px"><div class="notice ok">Se generó un lote con ${lp.codes.length} licencia(s) asignada(s) a ti.</div>
+    <p>Tus códigos de licencia:</p><div class="chips" style="margin-bottom:14px">${lp.codes.map(c => `<span class="badge b-info mono" style="font-size:.95rem">${c}</span>`).join('')}</div>
+    <p class="muted">Plazo para usarla: 30 días. Total pagado: ${fmtMoney(lp.total, lp.currency)}.</p><div class="row"><button class="btn btn-primary" data-act="buyExam">Ir a realizar el examen</button><button class="btn" data-act="buyAgain">Nueva compra</button></div></section>`;
+  const bi = (k, label, type = 'text') => `<div class="field"><label for="b-buy.${k}">${label}</label><input id="b-buy.${k}" data-bind="buy.${k}" type="${type}" value="${esc(b[k])}"></div>`;
+  return head('Comprar licencia', 'Para candidatos independientes. Cada licencia permite un solo examen.') +
+    `<div class="grid g2"><form class="panel" data-form="buy" novalidate><h2>Tus datos</h2><div class="notice bad" id="e-form" role="alert" hidden></div>${bi('name', 'Nombres y apellidos')}
+      <div class="fgrid"><div class="field"><label for="b-buy.docType">Tipo de documento</label><select id="b-buy.docType" data-bind="buy.docType">${DOC_TYPES.map(d => `<option${b.docType === d ? ' selected' : ''}>${d}</option>`).join('')}</select></div>${bi('docNum', 'Número de documento')}</div>${bi('email', 'Correo', 'email')}
+      <div class="fgrid"><div class="field"><label for="b-buy.exam">Examen</label><select id="b-buy.exam" data-bind="buy.exam">${S.exams.map(x => `<option value="${x.id}"${b.exam === x.id ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select></div>
+      <div class="field"><label for="b-buy.qty">Cantidad</label><select id="b-buy.qty" data-bind="buy.qty">${[1, 2, 3, 4, 5].map(n => `<option${+b.qty === n ? ' selected' : ''}>${n}</option>`).join('')}</select></div></div>
+      <div class="notice info">Pago simulado: no se solicitan datos de tarjeta ni se hace ningún cobro real.</div>
+      <div class="field"><label><input type="checkbox" data-bind="buy.fail"${b.fail ? ' checked' : ''}> Simular pago rechazado</label></div>
+      <button class="btn btn-primary" type="submit">Pagar ${fmtMoney(tot, e.currency)} (simulado)</button></form>
+    <section class="panel"><h2>Resumen</h2><dl class="dl"><dt>Examen</dt><dd>${esc(e.name)}</dd><dt>Precio unitario</dt><dd>${fmtMoney(e.price, e.currency)}</dd><dt>Cantidad</dt><dd>${b.qty}</dd><dt>Total</dt><dd><b>${fmtMoney(tot, e.currency)}</b></dd><dt>Plazo de uso</dt><dd>30 días desde la compra</dd></dl></section></div>`;
+}
+function submitBuy(form) {
+  const b = U.buy, e = [], g = $('#e-form', form);
+  if (!b.name.trim()) e.push('Ingresa tu nombre.');
+  if (!b.docNum.trim()) e.push('Ingresa tu número de documento.');
+  if (!isEmail(b.email.trim())) e.push('Ingresa un correo válido.');
+  if (e.length) { g.innerHTML = e.map(esc).join('<br>'); g.hidden = false; g.focus?.(); return; }
+  const ex = examOf(b.exam), qty = +b.qty, total = ex.price * qty;
+  let c = S.candidates.find(x => !x.orgId && x.docType === b.docType && x.docNum === b.docNum.trim());
+  if (!c) { c = { id: uid('c'), orgId: null, docType: b.docType, docNum: b.docNum.trim(), studentCode: '', name: b.name.trim(), email: b.email.trim(), program: '', status: 'activo' }; S.candidates.push(c); }
+  const p = { id: uid('p'), candId: c.id, examId: ex.id, qty, total, currency: ex.currency, status: b.fail ? 'rechazado' : 'pagado', date: new Date().toISOString(), codes: [], batchId: null };
+  if (b.fail) { S.purchases.push(p); commit(); toast('El pago fue rechazado (simulado). No se generaron licencias.', 'bad'); return; }
+  const nowS = new Date().toISOString(), bt = { id: uid('b'), num: 'L-' + String(S.batches.length + 1).padStart(4, '0'), orgId: null, examId: ex.id, qty, price: ex.price, currency: ex.currency, expiry: addDays(nowS, 365), studentDays: 30, inactivityDays: 0, createdAt: nowS };
+  S.batches.push(bt); const used = new Set(S.licenses.map(l => l.code));
+  for (let i = 0; i < qty; i++) {
+    const l = { code: genCode('ENG', used), batchId: bt.id, status: 'asignada', candId: c.id, assignedAt: nowS, deadline: planDeadline(bt, nowS), consumedAt: null, history: [{ candId: c.id, at: nowS, state: 'activa', closedAt: null, reason: '' }] };
+    S.licenses.push(l); p.codes.push(l.code);
+  }
+  p.batchId = bt.id; S.purchases.push(p); U.lastPurchase = { codes: p.codes, total, currency: ex.currency, doc: c.docNum }; commit(); toast('Pago aprobado (simulado). Licencia generada.');
+}
+function vCompras() {
+  const rows = [...S.purchases].sort((a, b) => ts(b.date) - ts(a.date)).map(p => `<tr><td>${fmtDT(p.date)}</td><td>${esc(candOf(p.candId)?.name)}</td><td>${esc(examOf(p.examId)?.name)}</td><td>${p.qty}</td><td>${fmtMoney(p.total, p.currency)}</td><td>${badge(p.status === 'pagado' ? 'Pagado' : 'Rechazado', p.status === 'pagado' ? 'ok' : 'bad')}</td><td class="mono">${p.codes.join(', ') || '—'}</td></tr>`);
+  return head('Historial de compras', 'En esta demo se muestran las compras de todos los candidatos independientes.') + tbl(['Fecha', 'Comprador', 'Examen', 'Cant.', 'Total', 'Pago', 'Códigos'], rows, 'Aún no hay compras.');
+}
+
+function vVerificar() {
+  const r = U.verRes;
+  const samples = S.certs.filter((c, i, arr) => ['vigente', 'revocado', 'vencido'].every(() => true) && arr.findIndex(x => certState(x) === certState(c)) === i);
+  let res = '';
+  if (r) {
+    if (!r.c) res = `<div class="notice bad"><b>Código no encontrado.</b> Verifica que esté escrito exactamente como aparece en el certificado.</div>`;
+    else { const st = certState(r.c), a = byId(S.attempts, r.c.attemptId), p = candOf(a.candId);
+      res = `<section class="panel"><div class="notice ${st === 'vigente' ? 'ok' : 'bad'}"><b>${st === 'vigente' ? 'Certificado válido y vigente' : st === 'revocado' ? 'Certificado revocado' : 'Certificado vencido'}</b></div>
+        <dl class="dl"><dt>A nombre de</dt><dd><b>${esc(p?.name)}</b></dd><dt>Nivel MCER</dt><dd>${lvlTag(LEVELS.indexOf(a.level))} · puntaje ${a.score}/100</dd><dt>Número</dt><dd class="mono">${r.c.number}</dd><dt>Emitido</dt><dd>${fmtD(r.c.issuedAt)}</dd><dt>Vigente hasta</dt><dd>${fmtD(r.c.validUntil)}</dd>${st === 'revocado' ? `<dt>Revocado</dt><dd>${fmtD(r.c.revokedAt)}</dd>` : ''}</dl></section>`; }
+  }
+  return head('Verificar certificado', 'Consulta pública: ingresa el código de verificación impreso en el certificado.') +
+    `<section class="panel" style="max-width:640px"><form data-form="verify" novalidate>${fld('Código de verificación', 'code', U.ver, { req: 1, attrs: 'placeholder="VER-XXXX-XXXX" autocomplete="off" style="text-transform:uppercase"' })}<button class="btn btn-primary" type="submit">Verificar</button></form>
+    <p class="muted" style="margin-top:14px">Códigos de ejemplo:</p><div class="chips">${samples.map(c => `<button class="chip" type="button" data-act="fillVer" data-code="${c.code}">${certState(c)[0].toUpperCase() + certState(c).slice(1)}</button>`).join('')}<button class="chip" type="button" data-act="fillVer" data-code="VER-0000-0000">No existe</button></div></section>${res}`;
+}
+
+/* =====================================================================
+   15. NAVEGACIÓN, ACCIONES Y ARRANQUE
+   ===================================================================== */
+const ROLES = {
+  admin: { label: 'Administrador de la plataforma', nav: [['resumen', 'Resumen'], ['orgs', 'Organizaciones'], ['lotes', 'Lotes y licencias'], ['banco', 'Banco de preguntas'], ['config', 'Configuración del examen'], ['usuarios', 'Usuarios'], ['indep', 'Candidatos independientes'], ['resultados', 'Resultados y certificados']] },
+  org: { label: 'Administrador de organización', nav: [['resumen', 'Resumen'], ['lotes', 'Lotes y licencias'], ['candidatos', 'Candidatos'], ['usuarios', 'Usuarios'], ['resultados', 'Resultados y certificados']] },
+  cand: { label: 'Candidato', nav: [['examen', 'Realizar examen'], ['comprar', 'Comprar licencia'], ['compras', 'Historial de compras']] },
+  pub: { label: 'Verificador público', nav: [['verificar', 'Verificar certificado']] }
+};
+const VIEWS = { resumen: vResumen, orgs: vOrgs, lotes: vLotes, banco: vBanco, config: vConfig, usuarios: vUsuarios, indep: vIndep, resultados: vResultados, candidatos: vCandidatos, examen: vExamen, comprar: vComprar, compras: vCompras, verificar: vVerificar };
+
+function commit() { save(); render(); }
+function render() {
+  const a = document.activeElement, aid = a && a.id && a.closest('main') ? a.id : null, ss = a && a.selectionStart, se = a && a.selectionEnd;
+  const role = S.ui.role, R = ROLES[role];
+  if (!R.nav.some(n => n[0] === S.ui.view)) S.ui.view = R.nav[0][0];
+  $('#role-sel').value = role;
+  $('#org-wrap').hidden = role !== 'org';
+  const os = $('#org-sel'); if (os.options.length !== S.orgs.length) os.innerHTML = S.orgs.map(o => `<option value="${o.id}">${esc(o.name)}</option>`).join('');
+  os.value = S.ui.orgId;
+  $('#side').innerHTML = `<div class="role-tag">${esc(R.label)}</div>` + R.nav.map(([k, t]) => `<button type="button" data-act="nav" data-view="${k}"${S.ui.view === k ? ' aria-current="page"' : ''}>${t}</button>`).join('');
+  $('#main').innerHTML = VIEWS[S.ui.view]();
+  $('#menu-btn').setAttribute('aria-expanded', $('#side').classList.contains('open'));
+  if (aid) { const el = document.getElementById(aid); if (el) { el.focus(); try { if (ss != null) el.setSelectionRange(ss, se); } catch (e) { /* tipos sin selección */ } } }
+}
+function guardExam() { if (examLocked()) { toast('Termina el examen en curso antes de salir.', 'warn'); return true; } return false; }
+function setRole(r) { S.ui.role = r; S.ui.view = ROLES[r].nav[0][0]; U.orgDetail = null; U.lotSel = null; U.f = {}; if (U.ex.stage !== 'run') U.ex = { stage: 'entry' }; commit(); }
+
+const A = {
+  menu() { $('#side').classList.toggle('open'); render(); },
+  theme() { const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light'), nx = cur === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = nx; try { localStorage.setItem('levexa_theme', nx); } catch (e) { /* sin almacenamiento */ } },
+  async reset() { if (guardExam()) return; if (await confirmDlg({ title: 'Reiniciar datos de demo', msg: 'Se borrarán todos los cambios y se restaurarán los datos de ejemplo originales.', ok: 'Reiniciar', danger: true })) { try { localStorage.removeItem(KEY); } catch (e) { /* nada */ } S = seed(); U.orgDetail = null; U.lotSel = null; U.f = {}; U.ex = { stage: 'entry' }; U.lastPurchase = null; commit(); toast('Datos de demo restaurados.'); } },
+  nav(d) { if (guardExam()) return; S.ui.view = d.view; U.orgDetail = null; U.lotSel = null; U.f = {}; U.ex = U.ex.stage === 'final' ? { stage: 'entry' } : U.ex.stage === 'instr' ? { stage: 'entry' } : U.ex; if (S.ui.view !== 'comprar') U.lastPurchase = null; $('#side').classList.remove('open'); commit(); $('#main').focus(); },
+  orgNew() { openOrg(); }, orgEdit(d) { openOrg(d.id); }, orgStatus(d) { openOrgStatus(d.id); },
+  orgOpen(d) { U.orgDetail = d.id; U.orgTab = 'datos'; U.f = {}; U.lotSel = null; render(); }, orgBack() { U.orgDetail = null; U.lotSel = null; U.f = {}; render(); },
+  orgTab(d) { U.orgTab = d.tab; U.lotSel = null; U.f = {}; render(); },
+  ctNew(d) { openContact(d.org); }, ctEdit(d) { openContact(d.org, d.id); },
+  async ctDel(d) { if (await confirmDlg({ title: 'Eliminar contacto', msg: 'Esta acción no se puede deshacer.', ok: 'Eliminar', danger: true })) { S.contacts = S.contacts.filter(c => c.id !== d.id); commit(); toast('Contacto eliminado.'); } },
+  batchNew() { openBatch(); }, lotOpen(d) { U.lotSel = d.id; U.f = {}; render(); }, lotBack() { U.lotSel = null; U.f = {}; render(); },
+  licAssign(d) { openAssign(d.code, 'assign'); }, licReassign(d) { openAssign(d.code, 'reassign'); },
+  licRevoke(d) { licAction('revoke', d.code); }, licRecover(d) { licAction('recover', d.code); }, licHist(d) { openHistory(d.code); }, bulkAssign(d) { openBulk(d.id); },
+  qNew() { openQuestion(); }, qEdit(d) { openQuestion(d.id); }, qPrev(d) { openQPreview(byId(S.questions, d.id)); },
+  qPrevForm(d, t) { const m = t.closest('.modal-bg'); const r = readQuestion($('form', m), {}); openQPreview(r.q); },
+  async qStatus(d) { const q = byId(S.questions, d.id), nx = q.status === 'activa' ? 'retirada' : 'activa'; if (await confirmDlg({ title: nx === 'retirada' ? 'Retirar pregunta' : 'Activar pregunta', msg: `La pregunta ${q.id} pasará a estado «${nx}».`, ok: 'Confirmar' })) { q.status = nx; commit(); toast('Estado actualizado.'); } },
+  async cfgReset() { if (await confirmDlg({ title: 'Restablecer configuración', msg: 'Se restauran los valores predeterminados del examen.', ok: 'Restablecer' })) { S.cfg = defaultCfg(); commit(); toast('Configuración restablecida.'); } },
+  usrNew() { openUser(); }, usrEdit(d) { openUser(d.id); },
+  async usrDel(d) { if (await confirmDlg({ title: 'Eliminar usuario', msg: 'Esta acción no se puede deshacer.', ok: 'Eliminar', danger: true })) { S.users = S.users.filter(u => u.id !== d.id); commit(); toast('Usuario eliminado.'); } },
+  cdNew(d) { openCand(d.org || null); }, cdEdit(d) { openCand(d.org || null, d.id); }, cdImport(d) { openImport(d.org); },
+  async cdDel(d) {
+    if (S.licenses.some(l => l.candId === d.id && ['asignada', 'consumida'].includes(l.status))) { toast('Tiene licencias asignadas o consumidas: márcalo como inactivo en lugar de eliminarlo.', 'warn'); return; }
+    if (await confirmDlg({ title: 'Eliminar candidato', msg: 'Esta acción no se puede deshacer.', ok: 'Eliminar', danger: true })) { S.candidates = S.candidates.filter(c => c.id !== d.id); commit(); toast('Candidato eliminado.'); }
+  },
+  csvSample(d, t) { const ta = $('[name=csv]', t.closest('.modal-bg')); ta.value = 'tipo_doc,num_doc,codigo,nombres,correo,programa\nCC,1099000111,E2026001,Rafael Montoya Díaz,rafael.montoya@ejemplo.edu.co,Derecho\nCC,1099000112,E2026002,Elena Cortés Mora,elena.cortes@ejemplo.edu.co,Psicología\nXX,1,E0,Fila con tipo inválido,x@ejemplo.edu.co,N/A'; ta.focus(); },
+  attOpen(d) { openAttempt(d.id); }, csv() { exportCSV(); }, print() { window.print(); },
+  certView(d) { openCert(d.id); },
+  certRevoke(d) { const c = byId(S.certs, d.id); openModal({ title: 'Revocar certificado ' + c.number, submit: 'Revocar', danger: true, body: `<p>Un certificado revocado deja de ser válido en el verificador público.</p>${fld('Motivo', 'reason', '', { type: 'textarea', rows: 2, req: 1 })}`, onSubmit(v) { if (!v.reason.trim()) return { reason: 'Indica el motivo de la revocación.' }; c.status = 'revocado'; c.revokedAt = new Date().toISOString(); c.revokedReason = v.reason.trim(); save(); render(); closeTop(); closeTop(); openAttempt(d.att); toast('Certificado revocado.', 'warn'); return false; } }); },
+  async certIssue(d) { const a = byId(S.attempts, d.att); if (await confirmDlg({ title: 'Emitir certificado', msg: 'Se emitirá un nuevo certificado con número y código propios.', ok: 'Emitir' })) { const n = issueCert(S, { ...a, finishedAt: new Date().toISOString() }, S.cfg); save(); render(); closeTop(); openAttempt(d.att); toast('Certificado ' + n.number + ' emitido.'); } },
+  fill(d) { U.entry = { code: d.code, doc: d.doc }; render(); },
+  exCancel() { U.ex = { stage: 'entry' }; render(); }, exDone() { U.ex = { stage: 'entry' }; U.entry = { code: '', doc: '' }; render(); },
+  buyExam() { const c = S.candidates.find(x => !x.orgId && x.docNum === U.lastPurchase.doc); U.entry = { code: U.lastPurchase.codes[0], doc: c ? c.docNum : '' }; U.lastPurchase = null; S.ui.view = 'examen'; U.ex = { stage: 'entry' }; commit(); },
+  buyAgain() { U.lastPurchase = null; render(); },
+  fillVer(d) { U.ver = d.code; U.verRes = null; render(); }
+};
+// Un solo escuchador de clics para todas las acciones
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act]'); if (!t) return;
+  const fn = A[t.dataset.act]; if (!fn) return;
+  if (t.tagName === 'A') e.preventDefault();
+  fn(t.dataset, t);
+});
+// Filtros y campos enlazados a U (data-bind="ruta.a.valor")
+document.addEventListener('input', e => {
+  const t = e.target; if (!t.dataset || !t.dataset.bind) return;
+  const path = t.dataset.bind.split('.'); let o = U; path.slice(0, -1).forEach(k => o = o[k]);
+  o[path.at(-1)] = t.type === 'checkbox' ? t.checked : t.value; render();
+});
+// Formularios de página
+document.addEventListener('submit', e => {
+  const f = e.target.closest('form[data-form]'); if (!f) return;
+  e.preventDefault(); const kind = f.dataset.form;
+  if (kind === 'cfg') saveCfg(f);
+  else if (kind === 'entry') submitEntry(f);
+  else if (kind === 'buy') submitBuy(f);
+  else if (kind === 'start') { if (!f.ok.checked) { $('#e-ok').textContent = 'Debes confirmar para iniciar.'; f.ok.focus(); } else startExam(); }
+  else if (kind === 'answer') { const r = f.querySelector('[name=ans]:checked'); if (!r) { toast('Selecciona una opción antes de responder.', 'warn'); return; } answer(+r.value); }
+  else if (kind === 'verify') { const code = new FormData(f).get('code').trim().toUpperCase(); U.ver = code; if (!code) { $('#e-code').textContent = 'Ingresa el código.'; return; } U.verRes = { c: S.certs.find(c => c.code === code) }; render(); }
+});
+$('#role-sel').addEventListener('change', e => { if (guardExam()) { e.target.value = S.ui.role; return; } setRole(e.target.value); });
+$('#org-sel').addEventListener('change', e => { if (guardExam()) return; S.ui.orgId = e.target.value; U.lotSel = null; U.f = {}; commit(); });
+
+(function boot() {
+  try { const th = localStorage.getItem('levexa_theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) { /* sin almacenamiento */ }
+  load();
+  $('#role-sel').innerHTML = Object.entries(ROLES).map(([k, r]) => `<option value="${k}">${r.label}</option>`).join('');
+  $('#org-sel').innerHTML = S.orgs.map(o => `<option value="${o.id}">${esc(o.name)}</option>`).join('');
+  render();
+})();
+</script>
+</body>
+</html>

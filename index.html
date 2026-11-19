@@ -21,6 +21,8 @@
   --sedga-soft:#e3f4fd;
   --diversia:#7c5cfc;
   --diversia-soft:#efeafe;
+  --levexa:#2f5fd0;
+  --levexa-soft:#e6edfc;
   --shadow: 0 1px 2px rgba(32,36,31,0.05), 0 10px 26px -12px rgba(32,36,31,0.14);
   --shadow-hover: 0 18px 38px -16px rgba(32,36,31,0.28);
   color-scheme: light;
@@ -71,6 +73,7 @@ p.lead{ color:var(--text-muted); margin:0 0 42px; font-size:1.02rem; max-width:5
   animation:card-in .5s cubic-bezier(.2,.8,.2,1) both;
 }
 .card:nth-child(2){ animation-delay:.08s; }
+.card:nth-child(3){ animation-delay:.16s; }
 .card::before{
   content:""; position:absolute; inset:0; opacity:0; pointer-events:none;
   background:radial-gradient(420px circle at var(--mx,50%) var(--my,0%), rgba(0,0,0,0.035), transparent 60%);
@@ -83,6 +86,7 @@ p.lead{ color:var(--text-muted); margin:0 0 42px; font-size:1.02rem; max-width:5
 }
 .card.sedga:hover{ border-color:var(--sedga); }
 .card.diversia:hover{ border-color:var(--diversia); }
+.card.levexa:hover{ border-color:var(--levexa); }
 .card:active{ transform:translateY(-4px) scale(1.005); }
 
 .card-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
@@ -92,6 +96,7 @@ p.lead{ color:var(--text-muted); margin:0 0 42px; font-size:1.02rem; max-width:5
 }
 .card.sedga .logo-badge{ background:var(--sedga-soft); }
 .card.diversia .logo-badge{ background:var(--diversia); padding:14px; }
+.card.levexa .logo-badge{ background:var(--levexa-soft); padding:12px; }
 .card:hover .logo-badge{ transform:scale(1.08) rotate(-4deg); }
 .logo-badge img, .logo-badge svg{ width:100%; height:100%; object-fit:contain; }
 
@@ -102,10 +107,12 @@ p.lead{ color:var(--text-muted); margin:0 0 42px; font-size:1.02rem; max-width:5
 }
 .card.sedga:hover .go-arrow{ background:var(--sedga); border-color:var(--sedga); color:#fff; transform:translate(3px,-3px); }
 .card.diversia:hover .go-arrow{ background:var(--diversia); border-color:var(--diversia); color:#fff; transform:translate(3px,-3px); }
+.card.levexa:hover .go-arrow{ background:var(--levexa); border-color:var(--levexa); color:#fff; transform:translate(3px,-3px); }
 
 .card-tag{ font-size:0.72rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; }
 .card.sedga .card-tag{ color:var(--sedga); }
 .card.diversia .card-tag{ color:var(--diversia); }
+.card.levexa .card-tag{ color:var(--levexa); }
 
 .card h2{ font-family:'Outfit', sans-serif; margin:4px 0 0; font-size:1.2rem; font-weight:600; }
 .card p{ margin:0; color:var(--text-muted); font-size:0.92rem; line-height:1.55; }
@@ -113,6 +120,7 @@ p.lead{ color:var(--text-muted); margin:0 0 42px; font-size:1.02rem; max-width:5
 .card-foot{ display:flex; align-items:center; gap:6px; font-size:0.84rem; font-weight:600; margin-top:auto; }
 .card.sedga .card-foot{ color:var(--sedga); }
 .card.diversia .card-foot{ color:var(--diversia); }
+.card.levexa .card-foot{ color:var(--levexa); }
 .card-foot svg{ transition:transform .35s cubic-bezier(.2,.8,.2,1); }
 .card:hover .card-foot svg{ transform:translateX(4px); }
 
@@ -168,6 +176,23 @@ footer{ margin-top:52px; font-size:0.8rem; color:var(--text-muted); }
           <h2>Flujo funcional v2</h2>
         </div>
         <p>Gestión de árboles de proyecto, revisión por grupos y seguimiento de avance por formato.</p>
+        <span class="card-foot">Ver prototipo
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </span>
+      </a>
+
+      <a class="card levexa" href="levexa/" data-tilt>
+        <div class="card-top">
+          <span class="logo-badge"><img src="assets/levexa-logo.svg" alt="Isotipo de Levexa" width="56" height="56"></span>
+          <span class="go-arrow">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+          </span>
+        </div>
+        <div>
+          <span class="card-tag">Levexa</span>
+          <h2>Exámenes de clasificación de inglés</h2>
+        </div>
+        <p>Examen adaptativo con niveles MCER, licencias por organización, certificados y verificación pública.</p>
         <span class="card-foot">Ver prototipo
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
         </span>
