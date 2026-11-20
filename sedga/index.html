@@ -248,6 +248,28 @@ button.detail-row:hover{ border-color:var(--accent); background:var(--accent-sof
 .legend span{ display:inline-flex; align-items:center; gap:6px; }
 .legend i{ width:10px; height:10px; border-radius:3px; display:inline-block; }
 
+/* ---------- Guía de validación del cargue ---------- */
+.vg{ display:flex; flex-direction:column; gap:10px; }
+.vg-legend{ display:flex; flex-direction:column; gap:7px; font-size:0.78rem; line-height:1.45; color:var(--text-muted); padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:var(--surface-alt); }
+.vg-legend div{ display:flex; gap:8px; align-items:flex-start; }
+.vg-legend .badge{ flex:none; }
+.vg details{ border:1px solid var(--border); border-radius:12px; background:var(--surface); }
+.vg summary{ cursor:pointer; padding:10px 14px; font-size:0.85rem; font-weight:600; list-style:none; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.vg summary::-webkit-details-marker{ display:none; }
+.vg summary::after{ content:'+'; color:var(--text-muted); font-weight:500; font-size:1.1rem; line-height:1; }
+.vg details[open] > summary::after{ content:'−'; }
+.vg details[open] > summary{ border-bottom:1px solid var(--border); }
+.vg-body{ padding:12px 14px; display:flex; flex-direction:column; gap:12px; font-size:0.78rem; color:var(--text-muted); line-height:1.5; }
+.vg-sub{ display:flex; align-items:center; gap:8px; font-size:0.78rem; font-weight:600; color:var(--text); margin-bottom:6px; }
+.vg-table{ width:100%; border-collapse:collapse; font-size:0.76rem; }
+.vg-table th{ text-align:left; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted); font-weight:600; padding:0 10px 6px 0; border-bottom:1px solid var(--border); }
+.vg-table td{ padding:7px 10px 7px 0; border-bottom:1px solid var(--border); vertical-align:top; color:var(--text); overflow-wrap:anywhere; }
+.vg-table td:last-child{ color:var(--text-muted); padding-right:0; }
+.vg-table tr:last-child td{ border-bottom:none; }
+.vg-cols{ display:flex; flex-wrap:wrap; gap:5px; }
+.vg-cols span{ font-size:0.7rem; padding:2px 8px; border-radius:6px; background:var(--accent-soft); color:var(--accent-strong); }
+.vg-body ul{ margin:0; padding-left:18px; display:flex; flex-direction:column; gap:3px; }
+
 /* ---------- Tables ---------- */
 table{ width:100%; border-collapse:collapse; font-size:0.86rem; }
 thead th{ text-align:left; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted); font-weight:600; padding:0 12px 10px; border-bottom:1px solid var(--border); white-space:nowrap; }
@@ -939,7 +961,16 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
 
               <div style="display:flex; flex-direction:column; gap:4px; font-size:0.8rem; color:var(--text-muted); line-height:1.45;">
                 <div style="font-weight:600; color:var(--text); font-size:0.85rem;">¿Cómo funciona este módulo?</div>
-                <div>Elige el tipo, sube el archivo y Sedga lo revisa solo. Si todo está bien, queda listo para Consultar tasas.</div>
+                <div>Elige el tipo, sube el archivo y Sedga lo revisa solo antes de guardar. Si todo está bien, queda listo para Consultar tasas.</div>
+              </div>
+
+              <div class="vg">
+                <div class="vg-legend">
+                  <div><span class="badge err">Error</span><span>La fila tiene un problema. <strong>Con un solo error el archivo completo se rechaza</strong> y no se guarda nada: corrige el archivo y vuelve a subirlo.</span></div>
+                  <div><span class="badge warn">Advertencia</span><span>Aviso informativo. <strong>No impide subir</strong>; explica algo que el sistema hizo o no hizo con ese dato.</span></div>
+                  <div><span style="flex:none; width:0;"></span><span>Cada error y advertencia indica la <strong>fila del Excel</strong> (el encabezado es la fila 1) y el motivo. La precarga los muestra todos sin guardar nada.</span></div>
+                </div>
+                <div id="vg-root" class="vg"></div>
               </div>
 
             </div>
@@ -1881,9 +1912,121 @@ label{ font-size:0.78rem; font-weight:600; color:var(--text-muted); display:flex
     }
   }
 
+  /* ---- Guía de validación (basada en "SEDGA - Validaciones por plantilla") ---- */
+  function vgEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  var VG_GENERAL = [
+    ['El usuario tiene el permiso de cargar plantillas','403 - sin permiso'],
+    ['La institución del usuario está activa','Tu institución está inactiva: no se pueden cargar plantillas'],
+    ['Hay un periodo con fechas que incluye el día de hoy (ventana de subida)','No hay un periodo abierto hoy en tu institución: las plantillas solo se pueden cargar mientras haya un periodo abierto'],
+    ['El archivo es .xlsx o .csv','Formato no soportado: solo se aceptan archivos .xlsx o .csv'],
+    ['El archivo se puede abrir','No se pudo leer el archivo: no es un .xlsx válido o está dañado'],
+    ['El archivo corresponde al tipo elegido (Primer curso, Matriculados y Graduados se distinguen por sus columnas propias)','El archivo parece ser de Matriculados y no de Graduados: revisa el tipo de plantilla.'],
+    ['Tiene todas las columnas obligatorias del tipo','Faltan columnas obligatorias: NUM_ACTA_GRADO, FECHA_GRADO']
+  ];
+  var VG_GENERAL_NOTES = [
+    'Los nombres de las columnas no distinguen mayúsculas y se ignoran los espacios al inicio y al final.',
+    'Las columnas extra que el sistema no conoce se ignoran.',
+    'Fechas aceptadas: celdas de fecha de Excel o texto en los formatos AAAA-MM-DD, DD/MM/AAAA, AAAA/MM/DD o DD-MM-AAAA.',
+    'Los periodos no se validan: el ANNIO y SEMESTRE de las filas no tienen que estar registrados ni activos.'
+  ];
+  var VG_BASE_COLS = ['ID_IES','ID_TIPO_DOCUMENTO','NUM_DOCUMENTO','ID_PARTICIPANTE','FECHA_NACIMIENTO','ANNIO','SEMESTRE','PRO_CONSECUTIVO','ID_MUNICIPIO_PROGRAMA','MUNICIPIO_PROGRAMA'];
+  var VG_BASE_ERR = [
+    ['Campo obligatorio vacío','Campos obligatorios vacios: NUM_DOCUMENTO, ...'],
+    ['Tipo de documento que no está en el catálogo',"Tipo de documento 'XX' no existe en el catalogo"],
+    ['ID_IES distinto al de la institución del usuario',"ID_IES 'B2' no corresponde a la institución de tu usuario (A1)"],
+    ['Fecha que no se entiende',"FECHA_NACIMIENTO: fecha no valida '31/02/2001'"],
+    ['Valor más largo de lo permitido','NUM_DOCUMENTO: el valor excede 50 caracteres (tiene 61)'],
+    ['Participante repetido: mismo participante, año, semestre y programa en dos filas (aunque cambie el documento)','Registro repetido: el participante 123 ya aparece en la fila 8 con el mismo año, semestre y programa']
+  ];
+  var VG_BASE_WARN = [
+    ['Año-semestre de la fila no registrado: se registra solo, sin fechas','Se registró el periodo 2007-1 porque no existía en tu institución'],
+    ['El documento ya pertenece a otro participante: se usa ese estudiante','El documento CC 1001 ya estaba registrado con otro participante (P9); se usa ese estudiante'],
+    ['El participante ya existe con otro documento: se conserva el primero','El participante P1 ya existe con otro documento (TI 1001); se conserva el primero'],
+    ['País o municipio de nacimiento distinto al guardado: no se cambia',"birth_country distinto al guardado ('Colombia' vs 'Peru'); no se sobrescribe"],
+    ['Fecha de nacimiento distinta a la guardada: no se cambia','birth_date distinto al guardado (1990-05-01 vs 1990-05-02); no se sobrescribe']
+  ];
+  var VG_EMAIL_WARN = ['EMAIL_PERSONAL con formato inválido: la fila se guarda sin ese correo',"Correo invalido 'juan@': no se guardo"];
+  var VG_TYPES = {
+    'Primer curso': {
+      cols: VG_BASE_COLS, req: 'Todas deben venir con valor en cada fila.',
+      errors: VG_BASE_ERR, warnings: VG_BASE_WARN,
+      notes: ['Columnas que se leen además: PAIS_NACIMIENTO, IDMUNICIPIO_NACIMIENTO, ID_TIPO_VINCULACION, …']
+    },
+    'Matriculados': {
+      cols: VG_BASE_COLS, req: 'Todas deben venir con valor en cada fila.',
+      errors: VG_BASE_ERR.concat([
+        ['NUM_MATERIAS_INSCRITAS o NUM_MATERIAS_APROBADAS no es un número',"enrolled_courses_count: 'diez' no es un numero"],
+        ['NUM_MATERIAS_INSCRITAS o NUM_MATERIAS_APROBADAS negativo','approved_courses_count: no puede ser negativo (-1)']
+      ]),
+      warnings: VG_BASE_WARN.concat([
+        VG_EMAIL_WARN,
+        ['El estudiante ya tiene otro CODIGO_ESTUDIANTE: se conserva el que tenía','El estudiante ya tiene el codigo 2020101; el codigo 2020555 no se guardo'],
+        ['El CODIGO_ESTUDIANTE ya pertenece a otro participante','El codigo 2020101 ya lo tiene el participante P7; no se guardo']
+      ]),
+      notes: [
+        'CODIGO_ESTUDIANTE igual a 0 se toma como vacío. El correo, el teléfono y la zona de residencia se actualizan con el valor más reciente.',
+        'Columnas que se leen además: PAIS_NACIMIENTO, IDMUNICIPIO_NACIMIENTO, CODIGO_ESTUDIANTE, ID_ZONA_RESIDENCIA, EMAIL_PERSONAL, TELEFONO_CONTACTO, NUM_MATERIAS_INSCRITAS, NUM_MATERIAS_APROBADAS.',
+        'No se guardan: MUNICIPIO_NACIMIENTO, ES_REINTEGRO_ESTD_ANTES_DE1998, AÑO_PRIMER_CURSO, SEMESTRE_PRIMER_CURSO, VALOR_DERECHOS_MATRÍCULA, FUENTE, FECHA_ULTIMO_CARGUE.'
+      ]
+    },
+    'Graduados': {
+      cols: VG_BASE_COLS.concat(['NUM_ACTA_GRADO','FECHA_GRADO']), req: 'Todas deben venir con valor en cada fila.',
+      errors: VG_BASE_ERR.concat([['FECHA_GRADO que no se entiende',"FECHA_GRADO: fecha no valida '2021-13-40'"]]),
+      warnings: VG_BASE_WARN.concat([VG_EMAIL_WARN]),
+      notes: [
+        'El correo y el teléfono se actualizan con el valor más reciente.',
+        'Columnas que se leen además: PAIS_NACIMIENTO, IDMUNICIPIO_NACIMIENTO, CODIGO_ENTIDAD_AULA, SNP_SABER_PRO, NUM_FOLIO, VERIFICADO, EMAIL_PERSONAL, TELEFONO_CONTACTO.',
+        'No se guardan: MUNICIPIO_NACIMIENTO, FUENTE, FECHA_ULTIMO_CARGUE.'
+      ]
+    },
+    'Programas': {
+      cols: ['CODIGO PROGRAMA','PRO_CONSECUTIVO','MODALIDAD','METODOLOGIA','ID FACULTAD'], req: 'Las mismas cinco columnas no pueden venir vacías.',
+      errors: [
+        ['Campo obligatorio vacío','Campos obligatorios vacíos: pro_consecutive'],
+        ['MODALIDAD distinta de PREGRADO o POSGRADO',"Modalidad no válida: 'tecnico'"],
+        ['METODOLOGIA que no es una de las válidas',"Metodología no válida: 'hibrida'"],
+        ['La facultad (ID FACULTAD) existe pero está inactiva. Sale un solo error con la cantidad de filas',"La facultad con ID FACULTAD '31' está inactiva en tu institución: pide al superadministrador que la reactive (2 filas rechazadas; ...)"],
+        ['La facultad no existe y la fila no trae el nombre (FACULTAD) para crearla',"La facultad con ID FACULTAD '99' no existe y la fila no trae FACULTAD para crearla"],
+        ['Programa repetido: mismo PRO_CONSECUTIVO y CODIGO PROGRAMA en dos filas','Programa repetido en el archivo: ya aparece en la fila 12'],
+        ['Valor más largo de lo permitido','PROGRAMA TERMINAL: el valor excede 255 caracteres (tiene 300)']
+      ],
+      warnings: [['Facultad nueva: no existía y se crea con el nombre de FACULTAD',"Se registró la facultad '45' (FACULTAD DE SALUD) porque no existía en tu institución"]],
+      notes: ['Si un programa ya existe (mismo PRO_CONSECUTIVO y CODIGO PROGRAMA), se actualizan sus datos. Todas las columnas del archivo se guardan.']
+    }
+  };
+  function vgTable(h1, h2, rows){
+    return '<table class="vg-table"><thead><tr><th>'+h1+'</th><th>'+h2+'</th></tr></thead><tbody>'+
+      rows.map(function(r){ return '<tr><td>'+vgEsc(r[0])+'</td><td><span class="mono" style="font-size:0.72rem;">'+vgEsc(r[1])+'</span></td></tr>'; }).join('')+'</tbody></table>';
+  }
+  function vgList(items){ return '<ul>'+items.map(function(n){ return '<li>'+vgEsc(n)+'</li>'; }).join('')+'</ul>'; }
+  function renderGuide(tipo){
+    var t = VG_TYPES[tipo]; if(!t) return;
+    var html = '';
+    html += '<details><summary>Validaciones de todo archivo</summary><div class="vg-body">'+
+      '<div>Se revisan antes de leer las filas. Si alguna falla, el archivo completo se rechaza con un mensaje en <span class="mono">errors.file</span>.</div>'+
+      vgTable('Qué se valida','Mensaje', VG_GENERAL)+vgList(VG_GENERAL_NOTES)+'</div></details>';
+    html += '<details open><summary>Validaciones de «'+vgEsc(tipo)+'»</summary><div class="vg-body">'+
+      '<div><div class="vg-sub">Columnas obligatorias</div><div class="vg-cols">'+t.cols.map(function(c){ return '<span class="mono">'+vgEsc(c)+'</span>'; }).join('')+'</div><div style="margin-top:6px;">'+vgEsc(t.req)+'</div></div>'+
+      '<div><div class="vg-sub"><span class="badge err">Error</span> Bloquea la carga</div>'+vgTable('Qué se valida','Mensaje que devuelve', t.errors)+'</div>'+
+      '<div><div class="vg-sub"><span class="badge warn">Advertencia</span> No bloquea</div>'+vgTable('Qué ocurre','Mensaje que devuelve', t.warnings)+'</div>'+
+      vgList(t.notes)+'</div></details>';
+    html += '<details><summary>Tipos de documento y errores frecuentes</summary><div class="vg-body">'+
+      '<div>ID_TIPO_DOCUMENTO debe ser uno de los códigos del catálogo de tipos de documento del sistema. Hoy el catálogo tiene:</div>'+
+      '<div class="vg-cols">'+['CA','CC','CE','DE','NP','PA','PS','PT','RC','TI'].map(function(c){ return '<span class="mono">'+c+'</span>'; }).join('')+'</div>'+
+      '<div>Un código que no esté ahí es un error.</div>'+
+      '<div class="vg-sub" style="margin:0;">Errores frecuentes en los archivos reales</div>'+
+      vgList(['Participante repetido con otro documento (el mismo estudiante reportado con TI y con CC en el mismo año, semestre y programa): deja una sola fila por participante.','Programas sin PRO_CONSECUTIVO: completa el dato o quita la fila.'])+'</div></details>';
+    document.getElementById('vg-root').innerHTML = html;
+  }
+
   function syncGuideTemplateType(){
     var tipo = document.getElementById('template-type').value;
     document.getElementById('guide-template-type').textContent = tipo;
+    var open = document.querySelectorAll('#vg-root details');
+    var estados = []; for(var i=0;i<open.length;i++) estados.push(open[i].open);
+    renderGuide(tipo);
+    var nuevos = document.querySelectorAll('#vg-root details');
+    for(var j=0;j<nuevos.length && j<estados.length;j++) nuevos[j].open = estados[j];
   }
   document.getElementById('template-type').addEventListener('change', syncGuideTemplateType);
   syncGuideTemplateType();
