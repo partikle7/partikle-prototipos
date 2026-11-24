@@ -378,9 +378,12 @@ const SK = { g: 'grammar', v: 'vocabulary', r: 'reading', l: 'listening' };
 function defaultCfg() {
   const t = (a1, a2, b1, b2, c1, c2) => ({ A1: a1, A2: a2, B1: b1, B2: b2, C1: c1, C2: c2 });
   return {
-    startLevel: 'B1', minQ: 10, maxQ: 20, defaultTime: 45,
+    startLevel: 'B1', minQ: 8, maxQ: 15, defaultTime: 45,
     timeTable: { grammar: t(25, 25, 35, 40, 45, 50), vocabulary: t(25, 25, 30, 35, 40, 45), reading: t(50, 60, 75, 90, 110, 130), listening: t(40, 45, 55, 65, 75, 85) },
-    stepUp: 0.4, stepDown: 0.5, fastPct: 40, slowPct: 85, timeWeight: 0.4, stopDelta: 0.6, stopWindow: 4, certDays: 730
+    // Escalera por niveles: el tiempo define la rapidez (% del límite) y con ella el avance y la calidad de cada acierto
+    fastPct: 40, slowPct: 85,
+    gaugeUp: 2, gaugeDown: 1, advFast: 2, advNormal: 1, advSlow: 0.5,
+    qFast: 1, qNormal: 0.8, qSlow: 0.5, passQ: 0.6, minPerLevel: 2, certDays: 730
   };
 }
 
@@ -398,7 +401,7 @@ function seed() {
     { id: 'x1', name: 'Clasificación MCER completa', price: 85000, currency: 'COP', estado: 'publicado' },
     { id: 'x2', name: 'Clasificación MCER express', price: 55000, currency: 'COP', estado: 'publicado' }
   ];
-  s.niveles = LEVELS.map((l, i) => ({ id: 'n' + (i + 1), codigo: l, nombre: ['Acceso', 'Plataforma', 'Umbral', 'Avanzado', 'Dominio operativo eficaz', 'Maestría'][i], orden: i + 1, thetaMin: i, thetaMax: i + 1 }));
+  s.niveles = LEVELS.map((l, i) => ({ id: 'n' + (i + 1), codigo: l, nombre: ['Acceso', 'Plataforma', 'Umbral', 'Avanzado', 'Dominio operativo eficaz', 'Maestría'][i], orden: i + 1 }));
   s.plantillas = [{ id: 'pc1', orgId: null, nombre: 'Plantilla base Levexa', logoUrl: '', activa: true }];
   s.roles = [{ id: 'r1', codigo: 'super_admin', nombre: 'Superadministrador' }, { id: 'r2', codigo: 'admin_org', nombre: 'Administrador de organización' }, { id: 'r3', codigo: 'coordinador', nombre: 'Coordinador' }];
   s.orgs = [
@@ -501,12 +504,12 @@ function seed() {
       if (!recByText[res]) { recByText[res] = 'rc' + (i + 1); s.recursos.push({ id: recByText[res], tipo: sk === 'l' ? 'audio' : 'texto', contenido: sk === 'l' ? '' : res, urlArchivo: '', transcripcion: sk === 'l' ? res : '' }); }
       recursoId = recByText[res];
     }
-    s.questions.push({ id: 'q' + (i + 1), skill: SK[sk], level: lv, type: opts === TF ? 'tf' : 'mc', stem, opts: [...opts], correct, difficulty: +(lv + 0.12 + k * 0.1).toFixed(2), discriminacion: 1, version: 1, timeLimit: null, recursoId, status: [6, 38].includes(i) ? 'borrador' : [22, 45].includes(i) ? 'retirada' : 'activa' });
+    s.questions.push({ id: 'q' + (i + 1), skill: SK[sk], level: lv, type: opts === TF ? 'tf' : 'mc', stem, opts: [...opts], correct, discriminacion: 1, version: 1, timeLimit: null, recursoId, status: [6, 38].includes(i) ? 'borrador' : [22, 45].includes(i) ? 'retirada' : 'activa' });
     s.exams.forEach(e => s.examenPreguntas.push({ examId: e.id, qId: 'q' + (i + 1), activa: true }));
   });
 
   // Configuración versionada: v1 histórica y v2 vigente
-  const v1 = defaultCfg(); v1.maxQ = 16; v1.stepUp = 0.5; v1.stepDown = 0.4;
+  const v1 = defaultCfg(); v1.maxQ = 12; v1.gaugeUp = 3; v1.passQ = 0.65;
   addCfgVersion(s, v1); s.configs[0].createdAt = at(-300);
   addCfgVersion(s, defaultCfg());
   const cfgV2 = s.configs.find(c => c.vigente), cfgRT = cfgRuntime(s, cfgV2);
@@ -532,7 +535,7 @@ const rolesOfSt = (st, u) => st.usuarioRoles.filter(x => x.usuarioId === u.id).m
    recursos, questions, examenPreguntas, configs, configTiempos, compras, batches (lotes), licenses,
    asignaciones, attempts (intentos), intentoPreguntas, resultados, resultadoHabilidades, plantillas, certs
    ===================================================================== */
-const KEY = 'levexa_proto_v2';
+const KEY = 'levexa_proto_v3';
 let S;
 function load() {
   try { const r = localStorage.getItem(KEY); if (r) { S = JSON.parse(r); } } catch (e) { S = null; }
@@ -561,7 +564,7 @@ const rolesOf = u => S.usuarioRoles.filter(x => x.usuarioId === u.id).map(x => b
 function addCfgVersion(st, cfg, examId = 'x1') {
   st.configs.forEach(c => { if (c.examId === examId) c.vigente = false; });
   const ver = Math.max(0, ...st.configs.filter(c => c.examId === examId).map(c => c.version)) + 1;
-  const c = { id: 'cf' + (st.seq++), examId, version: ver, nivelInicial: cfg.startLevel, minQ: cfg.minQ, maxQ: cfg.maxQ, errorEstandarParada: cfg.stopDelta, ventanaParada: cfg.stopWindow, tiempoDefault: cfg.defaultTime, pasoCorrecta: cfg.stepUp, pasoIncorrecta: cfg.stepDown, umbralRapido: cfg.fastPct, umbralLento: cfg.slowPct, pesoTiempo: cfg.timeWeight, certDias: cfg.certDays, vigente: true, createdAt: new Date().toISOString() };
+  const c = { id: 'cf' + (st.seq++), examId, version: ver, nivelInicial: cfg.startLevel, minQ: cfg.minQ, maxQ: cfg.maxQ, tiempoDefault: cfg.defaultTime, umbralRapido: cfg.fastPct, umbralLento: cfg.slowPct, medidorSubir: cfg.gaugeUp, medidorBajar: cfg.gaugeDown, avanceRapido: cfg.advFast, avanceNormal: cfg.advNormal, avanceLento: cfg.advSlow, calidadRapida: cfg.qFast, calidadNormal: cfg.qNormal, calidadLenta: cfg.qSlow, umbralAprobacion: cfg.passQ, minRespNivel: cfg.minPerLevel, certDias: cfg.certDays, vigente: true, createdAt: new Date().toISOString() };
   st.configs.push(c);
   Object.entries(cfg.timeTable || {}).forEach(([sk, m]) => Object.entries(m).forEach(([lv, sec]) => st.configTiempos.push({ id: 'ct' + (st.seq++), configId: c.id, habilidad: sk, nivel: lv, tipo: null, segundos: sec })));
   return c;
@@ -569,7 +572,7 @@ function addCfgVersion(st, cfg, examId = 'x1') {
 function cfgRuntime(st, c) {
   const tt = {};
   st.configTiempos.filter(t => t.configId === c.id).forEach(t => { (tt[t.habilidad] = tt[t.habilidad] || {})[t.nivel] = t.segundos; });
-  return { id: c.id, version: c.version, startLevel: c.nivelInicial, minQ: c.minQ, maxQ: c.maxQ, defaultTime: c.tiempoDefault, stepUp: c.pasoCorrecta, stepDown: c.pasoIncorrecta, fastPct: c.umbralRapido, slowPct: c.umbralLento, timeWeight: c.pesoTiempo, stopDelta: c.errorEstandarParada, stopWindow: c.ventanaParada, certDays: c.certDias, timeTable: tt };
+  return { id: c.id, version: c.version, startLevel: c.nivelInicial, minQ: c.minQ, maxQ: c.maxQ, defaultTime: c.tiempoDefault, fastPct: c.umbralRapido, slowPct: c.umbralLento, gaugeUp: c.medidorSubir, gaugeDown: c.medidorBajar, advFast: c.avanceRapido, advNormal: c.avanceNormal, advSlow: c.avanceLento, qFast: c.calidadRapida, qNormal: c.calidadNormal, qSlow: c.calidadLenta, passQ: c.umbralAprobacion, minPerLevel: c.minRespNivel, certDays: c.certDias, timeTable: tt };
 }
 const activeCfg = (examId = 'x1') => cfgRuntime(S, S.configs.find(c => c.examId === examId && c.vigente));
 // Preguntas del pool de un examen (EXAMEN_PREGUNTA)
@@ -582,56 +585,74 @@ const recOf = q => q.recursoId ? byId(S.recursos, q.recursoId) : null;
 // Tiempo límite de una pregunta: propio > tabla habilidad×nivel > por defecto
 function timeFor(q, cfg) { return q.timeLimit || cfg.timeTable?.[q.skill]?.[LEVELS[q.level]] || cfg.defaultTime; }
 
+// Escalera por niveles: el candidato está siempre en un nivel entero y un medidor decide cuándo sube o baja.
+// El tiempo entra de dos formas: la rapidez cambia el avance del medidor y la calidad de cada acierto.
 function newEngine(cfg, bank, rand) {
-  return { cfg, rand, theta: LEVELS.indexOf(cfg.startLevel) + 0.5, used: new Set(), trace: [], pool: bank.filter(q => q.status === 'activa') };
+  return { cfg, rand, lvl: LEVELS.indexOf(cfg.startLevel), gauge: 0, used: new Set(), trace: [], pool: bank.filter(q => q.status === 'activa') };
 }
-// Siguiente pregunta no usada con dificultad más cercana al nivel estimado
+// Siguiente pregunta: al azar entre las no usadas del nivel actual (si no quedan, del nivel más cercano, primero hacia abajo)
 function nextQuestion(E) {
-  let best = null, bd = 1e9;
-  for (const q of E.pool) {
-    if (E.used.has(q.id)) continue;
-    const d = Math.abs(q.difficulty - E.theta) + E.rand() * 0.001;
-    if (d < bd) { bd = d; best = q; }
+  const free = E.pool.filter(q => !E.used.has(q.id));
+  for (let d = 0; d <= 5; d++) {
+    for (const lv of d ? [E.lvl - d, E.lvl + d] : [E.lvl]) {
+      const c = free.filter(q => q.level === lv);
+      if (c.length) return c[Math.floor(E.rand() * c.length)];
+    }
   }
-  return best;
+  return null;
 }
-// Ajusta theta: acierto sube y error baja; la rapidez amplifica o atenúa el cambio
+// Rapidez de una respuesta según el % del tiempo límite usado
+function speedOf(c, used, limit, expired) {
+  const r = expired ? 1 : used / limit;
+  return r <= c.fastPct / 100 ? 'rapida' : r >= c.slowPct / 100 ? 'lenta' : 'normal';
+}
+// Aplica una respuesta: calcula calidad y avance, mueve el medidor y, si lo alcanza, cambia de nivel
 function applyAnswer(E, q, opt, usedSec, limit) {
   const c = E.cfg, expired = opt === null, correct = !expired && opt === q.correct;
-  const r = expired ? 1 : usedSec / limit, w = c.timeWeight;
-  let delta, f = 1;
-  if (correct) { delta = c.stepUp; f = r <= c.fastPct / 100 ? 1 + w : r >= c.slowPct / 100 ? 1 - w : 1; }
-  else { delta = -c.stepDown; f = (expired || r >= c.slowPct / 100) ? 1 + w : 1; }
-  const antes = E.theta;
-  E.theta = clamp(E.theta + delta * f, 0, 6);
+  const speed = speedOf(c, usedSec, limit, expired);
+  const calidad = correct ? { rapida: c.qFast, normal: c.qNormal, lenta: c.qSlow }[speed] : 0;
+  const avance = correct ? { rapida: c.advFast, normal: c.advNormal, lenta: c.advSlow }[speed] : -1;
+  const antes = E.lvl;
+  E.gauge += avance;
+  if (E.gauge >= c.gaugeUp) { if (E.lvl < 5) E.lvl++; E.gauge = 0; }
+  else if (E.gauge <= -c.gaugeDown) { if (E.lvl > 0) E.lvl--; E.gauge = 0; }
   E.used.add(q.id);
-  E.trace.push({ qId: q.id, stem: q.stem.slice(0, 80), skill: q.skill, level: q.level, correct, expired, used: +usedSec.toFixed(1), limit, theta: +E.theta.toFixed(2), antes: +antes.toFixed(2), opt });
+  E.trace.push({ qId: q.id, stem: q.stem.slice(0, 80), skill: q.skill, level: q.level, correct, expired, used: +usedSec.toFixed(1), limit, speed, calidad, avance, medidor: +E.gauge.toFixed(2), antes: LEVELS[antes], despues: LEVELS[E.lvl], opt });
   return correct;
 }
-// Termina al llegar al máximo, sin preguntas, o al mínimo si la estimación se estabiliza
+// Calidad media por nivel (solo cuentan las respuestas a preguntas de ese nivel) y nivel más alto aprobado
+function levelStats(trace, c) {
+  const ev = LEVELS.map(() => ({ n: 0, sum: 0, avg: 0, ok: false }));
+  trace.forEach(t => { ev[t.level].n++; ev[t.level].sum += t.calidad; });
+  ev.forEach(e => { e.avg = e.n ? e.sum / e.n : 0; e.ok = e.n >= c.minPerLevel && e.avg >= c.passQ; });
+  let top = -1; ev.forEach((e, i) => { if (e.ok) top = i; });
+  return { ev, top };
+}
+// Techo confirmado: el nivel siguiente al más alto aprobado ya tiene respuestas suficientes y no se aprobó
+function ceilingConfirmed(E) {
+  const { ev, top } = levelStats(E.trace, E.cfg);
+  return top === 5 || ev[top + 1].n >= E.cfg.minPerLevel;
+}
+// Termina al llegar al máximo, sin preguntas, o desde el mínimo si ya se confirmó el techo
 function isDone(E) {
   const n = E.trace.length, c = E.cfg;
   if (n >= c.maxQ || !nextQuestion(E)) return true;
-  if (n >= c.minQ && n >= c.stopWindow) {
-    const w = E.trace.slice(-c.stopWindow).map(t => t.theta);
-    if (Math.max(...w) - Math.min(...w) <= c.stopDelta) return true;
-  }
-  return false;
+  return n >= c.minQ && ceilingConfirmed(E);
 }
 function summarize(E) {
   const bySkill = {}; let totalTime = 0;
   Object.keys(SKILLS).forEach(k => bySkill[k] = { ok: 0, n: 0 });
   E.trace.forEach(t => { bySkill[t.skill].n++; if (t.correct) bySkill[t.skill].ok++; totalTime += t.used; });
-  const theta = +E.theta.toFixed(2);
-  return { theta, level: LEVELS[Math.min(5, Math.floor(theta))], score: Math.round(theta / 6 * 100), bySkill, totalTime: Math.round(totalTime) };
+  const { ev, top } = levelStats(E.trace, E.cfg), idx = Math.max(0, top), cal = +ev[idx].avg.toFixed(2);
+  return { level: LEVELS[idx], levelIdx: idx, calidad: cal, score: Math.round((idx + cal) / 6 * 100), confianza: ceilingConfirmed(E) ? 'alta' : 'media', bySkill, totalTime: Math.round(totalTime) };
 }
-// Simula un examen completo con una habilidad real conocida (datos históricos)
+// Simula un examen completo con una habilidad real conocida (0 a 6) para los datos históricos
 function simulate(cfg, bank, ability, R) {
   const E = newEngine(cfg, bank, R);
   while (!isDone(E)) {
     const q = nextQuestion(E), lim = timeFor(q, cfg);
     const guess = q.opts.length === 2 ? 0.5 : 0.25;
-    const p = guess + (1 - guess) / (1 + Math.exp(-(ability - q.difficulty) * 1.6));
+    const p = guess + (1 - guess) / (1 + Math.exp(-(ability - q.level) * 1.6));
     if (R() < 0.05) { applyAnswer(E, q, null, lim, lim); continue; }
     const ok = R() < p;
     applyAnswer(E, q, ok ? q.correct : (q.correct + 1) % q.opts.length, lim * (0.15 + R() * 0.75), lim);
@@ -646,16 +667,15 @@ function simulate(cfg, bank, ability, R) {
 function persistAttempt(st, o) {
   const E = o.E, sum = summarize(E), n = E.trace.length;
   const t0 = ts(o.startedAt), finished = o.finishedAt || iso(t0 + sum.totalTime * 1000 + 30000);
-  const se = +(0.9 / Math.sqrt(Math.max(1, n))).toFixed(2);
   const a = o.att || { id: 't' + (st.seq++), asgId: o.asgId, candId: o.candId, examId: o.examId, cfgId: o.cfgId, startedAt: o.startedAt, ip: '', userAgent: 'demo' };
-  Object.assign(a, { status: 'finalizado', finishedAt: finished, thetaActual: sum.theta, errorEstandar: se });
+  Object.assign(a, { status: 'finalizado', finishedAt: finished, nivelActual: sum.level });
   if (!o.att) st.attempts.push(a);
   let cum = 0;
   E.trace.forEach((t, i) => {
-    st.intentoPreguntas.push({ id: 'ip' + (st.seq++), intentoId: a.id, qId: t.qId, opt: t.opt, orden: i + 1, limit: t.limit, shownAt: iso(t0 + cum * 1000), answeredAt: iso(t0 + (cum + t.used) * 1000), tiempoMs: Math.round(t.used * 1000), correct: t.correct, expired: t.expired, thetaAntes: t.antes, thetaDespues: t.theta });
+    st.intentoPreguntas.push({ id: 'ip' + (st.seq++), intentoId: a.id, qId: t.qId, opt: t.opt, orden: i + 1, limit: t.limit, shownAt: iso(t0 + cum * 1000), answeredAt: iso(t0 + (cum + t.used) * 1000), tiempoMs: Math.round(t.used * 1000), correct: t.correct, expired: t.expired, rapidez: t.speed, calidad: t.calidad, avance: t.avance, medidor: t.medidor, nivelAntes: t.antes, nivelDespues: t.despues });
     cum += t.used;
   });
-  const r = { id: 'rs' + (st.seq++), intentoId: a.id, nivel: sum.level, thetaFinal: sum.theta, puntaje: sum.score, errorEstandar: se, preguntas: n, tiempoTotal: sum.totalTime, calculadoEn: finished };
+  const r = { id: 'rs' + (st.seq++), intentoId: a.id, nivel: sum.level, calidadNivel: sum.calidad, puntaje: sum.score, confianza: sum.confianza, preguntas: n, tiempoTotal: sum.totalTime, calculadoEn: finished };
   st.resultados.push(r);
   Object.entries(sum.bySkill).forEach(([sk, v]) => {
     const lv = Math.max(0, ...E.trace.filter(t => t.skill === sk && t.correct).map(t => t.level));
@@ -669,12 +689,12 @@ function attemptView(a) {
   const asg = byId(S.asignaciones, a.asgId), c = candOf(a.candId);
   const trace = S.intentoPreguntas.filter(x => x.intentoId === a.id).sort((x, y) => x.orden - y.orden).map(x => {
     const q = byId(S.questions, x.qId);
-    return { qId: x.qId, stem: (q?.stem || '').slice(0, 80), skill: q?.skill, level: q?.level, correct: x.correct, expired: x.expired, used: +(x.tiempoMs / 1000).toFixed(1), limit: x.limit, theta: x.thetaDespues, opt: x.opt };
+    return { qId: x.qId, stem: (q?.stem || '').slice(0, 80), skill: q?.skill, level: q?.level, correct: x.correct, expired: x.expired, used: +(x.tiempoMs / 1000).toFixed(1), limit: x.limit, speed: x.rapidez, calidad: x.calidad, avance: x.avance, medidor: x.medidor, antes: x.nivelAntes, despues: x.nivelDespues, opt: x.opt };
   });
   const bySkill = {}; Object.keys(SKILLS).forEach(k => bySkill[k] = { ok: 0, n: 0 });
   trace.forEach(t => { if (bySkill[t.skill]) { bySkill[t.skill].n++; if (t.correct) bySkill[t.skill].ok++; } });
   const cf = byId(S.configs, a.cfgId);
-  return { id: a.id, candId: a.candId, orgId: c?.orgId || null, examId: a.examId, status: a.status, licCode: asg?.licCode, startedAt: a.startedAt, finishedAt: a.finishedAt, theta: r.thetaFinal, level: r.nivel, score: r.puntaje, totalTime: r.tiempoTotal, bySkill, trace, resultadoId: r.id, cfgVersion: cf?.version, startTheta: LEVELS.indexOf(cf?.nivelInicial || 'B1') + 0.5 };
+  return { id: a.id, candId: a.candId, orgId: c?.orgId || null, examId: a.examId, status: a.status, licCode: asg?.licCode, startedAt: a.startedAt, finishedAt: a.finishedAt, calidad: r.calidadNivel, confianza: r.confianza, level: r.nivel, score: r.puntaje, totalTime: r.tiempoTotal, bySkill, trace, resultadoId: r.id, cfgVersion: cf?.version, startLevel: cf?.nivelInicial || 'B1' };
 }
 const attemptViewById = id => { const a = byId(S.attempts, id); return a ? attemptView(a) : null; };
 
@@ -1525,11 +1545,11 @@ const STATUS_Q = { activa: 'ok', borrador: 'warn', retirada: 'gray' };
 function vBanco() {
   const qs = fv('bQ').toLowerCase();
   const rows = S.questions.filter(q => (!fv('bSk') || q.skill === fv('bSk')) && (fv('bLv') === '' || q.level === +fv('bLv')) && (!fv('bTy') || q.type === fv('bTy')) && (!fv('bSt') || q.status === fv('bSt')) && (!qs || q.stem.toLowerCase().includes(qs))).map(q => `<tr>
-    <td class="mono">${q.id}</td><td style="min-width:260px">${esc(q.stem)}</td><td>${esc(SKILLS[q.skill])}</td><td>${lvlTag(q.level)}</td><td>${q.type === 'tf' ? 'V/F' : 'Opción múltiple'}</td><td>${q.difficulty}</td><td>${q.timeLimit ? q.timeLimit + ' s' : 'Por defecto'}</td><td>${badge(q.status, STATUS_Q[q.status])}</td>
+    <td class="mono">${q.id}</td><td style="min-width:260px">${esc(q.stem)}</td><td>${esc(SKILLS[q.skill])}</td><td>${lvlTag(q.level)}</td><td>${q.type === 'tf' ? 'V/F' : 'Opción múltiple'}</td><td>${q.timeLimit ? q.timeLimit + ' s' : 'Por defecto'}</td><td>${badge(q.status, STATUS_Q[q.status])}</td>
     <td class="act"><div class="row"><button class="btn btn-sm" data-act="qPrev" data-id="${q.id}">Vista previa</button><button class="btn btn-sm" data-act="qEdit" data-id="${q.id}">Editar</button><button class="btn btn-sm" data-act="qStatus" data-id="${q.id}">${q.status === 'activa' ? 'Retirar' : 'Activar'}</button></div></td></tr>`);
   return head('Banco de preguntas', `${S.questions.length} preguntas, ${S.questions.filter(q => q.status === 'activa').length} activas. Solo las activas entran al examen.`, '<button class="btn btn-primary" data-act="qNew">Nueva pregunta</button>') +
     `<div class="toolbar">${bindIn('bQ', 'Buscar enunciado', 'Texto…')}${bindSel('bSk', 'Habilidad', [['', 'Todas'], ...Object.entries(SKILLS)])}${bindSel('bLv', 'Nivel', [['', 'Todos'], ...LEVELS.map((l, i) => [i, l])])}${bindSel('bTy', 'Tipo', [['', 'Todos'], ['mc', 'Opción múltiple'], ['tf', 'Verdadero/Falso']])}${bindSel('bSt', 'Estado', [['', 'Todos'], ['activa', 'Activa'], ['borrador', 'Borrador'], ['retirada', 'Retirada']])}</div>` +
-    tbl(['ID', 'Enunciado', 'Habilidad', 'Nivel', 'Tipo', 'Dificultad', 'Tiempo', 'Estado', 'Acciones'], rows, 'Ninguna pregunta coincide con los filtros.');
+    tbl(['ID', 'Enunciado', 'Habilidad', 'Nivel', 'Tipo', 'Tiempo', 'Estado', 'Acciones'], rows, 'Ninguna pregunta coincide con los filtros.');
 }
 // HTML de una pregunta tal como la ve el estudiante (compartido por examen y vista previa)
 function questionHTML(q, interactive) {
@@ -1538,14 +1558,14 @@ function questionHTML(q, interactive) {
     ${q.opts.map((o, i) => `<label class="opt"><input type="radio" name="ans" value="${i}"${interactive ? (i === 0 ? ' checked' : '') : ' disabled'}> <span>${esc(o)}</span></label>`).join('')}</fieldset>`;
 }
 function openQuestion(id) {
-  const q = id ? byId(S.questions, id) : { skill: 'grammar', level: 2, type: 'mc', stem: 'My brother ___ football every Saturday.', opts: ['plays', 'play', 'playing', 'played'], correct: 0, difficulty: 2.5, timeLimit: '', resource: '', status: 'activa' };
+  const q = id ? byId(S.questions, id) : { skill: 'grammar', level: 2, type: 'mc', stem: 'My brother ___ football every Saturday.', opts: ['plays', 'play', 'playing', 'played'], correct: 0, timeLimit: '', resource: '', status: 'activa' };
   const o4 = [...q.opts, '', '', '', ''].slice(0, 4), rtxt0 = id ? (recOf(q)?.contenido || recOf(q)?.transcripcion || '') : q.resource;
   openModal({
     title: id ? 'Editar pregunta ' + id : 'Nueva pregunta', wide: true,
     body: `${fld('Enunciado', 'stem', q.stem, { type: 'textarea', rows: 2, req: 1 })}
       <div class="fgrid">${fld('Habilidad', 'skill', q.skill, { type: 'select', opts: Object.entries(SKILLS) })}${fld('Nivel MCER', 'level', q.level, { type: 'select', opts: LEVELS.map((l, i) => [i, l]) })}
       ${fld('Tipo', 'type', q.type, { type: 'select', opts: [['mc', 'Opción múltiple'], ['tf', 'Verdadero / Falso']] })}${fld('Estado', 'status', q.status, { type: 'select', opts: [['borrador', 'Borrador'], ['activa', 'Activa'], ['retirada', 'Retirada']] })}
-      ${fld('Dificultad numérica (0 a 6)', 'difficulty', q.difficulty, { type: 'number', req: 1, attrs: 'step="0.05" min="0" max="6"', hint: 'Se usa para elegir la pregunta más cercana al nivel estimado.' })}${fld('Tiempo límite (s), opcional', 'timeLimit', q.timeLimit || '', { type: 'number', attrs: 'min="5"', hint: 'Vacío = usa la configuración del examen.' })}</div>
+      ${fld('Tiempo límite (s), opcional', 'timeLimit', q.timeLimit || '', { type: 'number', attrs: 'min="5"', hint: 'Vacío = usa la configuración del examen.' })}</div>
       ${fld('Recurso asociado (texto de lectura o transcripción)', 'resource', rtxt0, { type: 'textarea', rows: 3, hint: 'Si el recurso agrupa varias preguntas, el cambio las afecta a todas.' })}
       <div id="q-mc"><label>Opciones (marca la correcta)</label>${o4.map((t, i) => `<div class="row" style="margin-bottom:6px;flex-wrap:nowrap"><input type="radio" name="correct" value="${i}" aria-label="Opción ${i + 1} correcta"${q.type === 'mc' && q.correct === i ? ' checked' : ''}><input type="text" name="opt${i}" value="${esc(t)}" aria-label="Texto de la opción ${i + 1}" placeholder="Opción ${i + 1}"></div>`).join('')}<small class="hint">Deja vacías las opciones que no uses (mínimo 2).</small><small class="err" id="e-opts" role="alert"></small></div>
       <div id="q-tf" hidden><label>Respuesta correcta</label>${TF.map((t, i) => `<label class="opt"><input type="radio" name="correctTf" value="${i}"${q.type === 'tf' && q.correct === i ? ' checked' : !id && i === 0 ? ' checked' : ''}> ${t}</label>`).join('')}</div>`,
@@ -1574,7 +1594,7 @@ function openQuestion(id) {
 // Lee y valida el formulario del editor de preguntas
 function readQuestion(form, base, validate) {
   const g = n => (form.querySelector(`[name="${n}"]`) || {}).value || '', e = {};
-  const type = g('type'), stem = g('stem').trim(), d = parseFloat(g('difficulty'));
+  const type = g('type'), stem = g('stem').trim();
   let opts, correct;
   if (type === 'tf') { opts = [...TF]; correct = +(form.querySelector('[name=correctTf]:checked')?.value ?? 0); }
   else {
@@ -1584,9 +1604,8 @@ function readQuestion(form, base, validate) {
     if (opts.length < 2) e.opts = 'Ingresa al menos 2 opciones.'; else if (correct < 0) e.opts = 'Marca cuál opción es la correcta (y que no esté vacía).';
   }
   if (!stem) e.stem = 'El enunciado es obligatorio.';
-  if (isNaN(d) || d < 0 || d > 6) e.difficulty = 'Ingresa un número entre 0 y 6.';
   const tl = g('timeLimit'); if (tl && +tl < 5) e.timeLimit = 'Mínimo 5 segundos.';
-  const q = { ...base, stem, skill: g('skill'), level: +g('level'), type, status: g('status'), difficulty: d, timeLimit: tl ? +tl : null, resource: g('resource').trim(), opts, correct };
+  const q = { ...base, stem, skill: g('skill'), level: +g('level'), type, status: g('status'), timeLimit: tl ? +tl : null, resource: g('resource').trim(), opts, correct };
   return Object.keys(e).length && validate ? { errs: e } : { q };
 }
 function openQPreview(q) {
@@ -1598,26 +1617,31 @@ function vConfig() {
   return head('Configuración del examen', `Los cambios se aplican al siguiente examen. Cada guardado crea una nueva versión (vigente: v${S.configs.find(x => x.vigente).version}).`) +
     `<form data-form="cfg" novalidate><div class="notice bad" id="e-form" role="alert" hidden></div>
     <section class="panel"><h2>Estructura</h2><div class="grid g4">${fld('Nivel inicial', 'startLevel', c.startLevel, { type: 'select', opts: LEVELS.map(l => [l, l]) })}${num('minQ', 'Mínimo de preguntas', { min: 3 })}${num('maxQ', 'Máximo de preguntas', { min: 3 })}${num('defaultTime', 'Tiempo por defecto (s)', { min: 5 })}</div></section>
-    <section class="panel"><h2>Ajuste adaptativo</h2><div class="grid g4">${num('stepUp', 'Ajuste por acierto', { step: 0.05, hint: 'Niveles que sube theta.' })}${num('stepDown', 'Ajuste por error', { step: 0.05, hint: 'Niveles que baja theta.' })}${num('fastPct', 'Respuesta rápida (% del tiempo)', { min: 1, hint: 'Hasta este % se considera rápida.' })}${num('slowPct', 'Respuesta lenta (% del tiempo)', { min: 1, hint: 'Desde este % se considera lenta.' })}
-      ${num('timeWeight', 'Peso del tiempo (0 a 1)', { step: 0.05, hint: 'Cuánto amplifica o atenúa el cambio.' })}${num('stopDelta', 'Parada: variación máxima', { step: 0.05, hint: 'Rango de theta para considerarla estable.' })}${num('stopWindow', 'Parada: respuestas a comparar', { min: 2 })}${num('certDays', 'Vigencia del certificado (días)', { min: 1 })}</div></section>
+    <section class="panel"><h2>Rapidez de respuesta</h2><p class="muted">Se mide como el porcentaje del tiempo límite que usó el candidato.</p><div class="grid g4">${num('fastPct', 'Respuesta rápida (% del tiempo)', { min: 1, hint: 'Hasta este % se considera rápida.' })}${num('slowPct', 'Respuesta lenta (% del tiempo)', { min: 1, hint: 'Desde este % se considera lenta.' })}</div></section>
+    <section class="panel"><h2>Escalera de niveles</h2><p class="muted">Cada nivel tiene un medidor que parte en 0. Cada acierto suma su avance y cada error o tiempo agotado resta 1. Al llegar al límite, el candidato sube o baja un nivel y el medidor vuelve a 0.</p><div class="grid g4">${num('gaugeUp', 'Medidor para subir', { step: 0.5, min: 0.5, hint: 'Avance acumulado que sube un nivel.' })}${num('gaugeDown', 'Medidor para bajar', { step: 0.5, min: 0.5, hint: 'Errores acumulados que bajan un nivel.' })}${num('advFast', 'Avance: acierto rápido', { step: 0.5, min: 0, hint: 'Puntos que suma en el medidor.' })}${num('advNormal', 'Avance: acierto normal', { step: 0.5, min: 0 })}${num('advSlow', 'Avance: acierto lento', { step: 0.5, min: 0 })}</div></section>
+    <section class="panel"><h2>Resultado</h2><p class="muted">Cada respuesta vale una calidad. El nivel final es el más alto cuyo promedio de calidad alcanza el umbral. El puntaje suma ese promedio como subnivel.</p><div class="grid g4">${num('qFast', 'Calidad: acierto rápido (0 a 1)', { step: 0.05 })}${num('qNormal', 'Calidad: acierto normal (0 a 1)', { step: 0.05 })}${num('qSlow', 'Calidad: acierto lento (0 a 1)', { step: 0.05 })}${num('passQ', 'Umbral de aprobación (0 a 1)', { step: 0.05, hint: 'Calidad media mínima para aprobar un nivel.' })}
+      ${num('minPerLevel', 'Mínimo de respuestas por nivel', { min: 1, hint: 'Para aprobar un nivel y confirmar el techo.' })}${num('certDays', 'Vigencia del certificado (días)', { min: 1 })}</div></section>
     <section class="panel"><h2>Tiempo por habilidad y nivel (segundos)</h2><p class="muted">Vacío = usa el tiempo por defecto. Una pregunta con tiempo propio tiene prioridad.</p>
       <div class="tbl-wrap"><table><thead><tr><th scope="col">Habilidad</th>${LEVELS.map(l => `<th scope="col">${l}</th>`).join('')}</tr></thead><tbody>${Object.entries(SKILLS).map(([k, n]) => `<tr><th scope="row">${n}</th>${LEVELS.map(l => `<td><input type="number" min="5" name="t_${k}_${l}" value="${c.timeTable[k]?.[l] ?? ''}" aria-label="${n} ${l}" style="min-width:64px"></td>`).join('')}</tr>`).join('')}</tbody></table></div></section>
     <div class="row"><button class="btn btn-primary" type="submit">Guardar configuración</button><button class="btn" type="button" data-act="cfgReset">Restablecer valores</button></div></form>` + cfgVersions();
 }
 function cfgVersions() {
-  const rows = [...S.configs].sort((a, b) => b.version - a.version).map(c => `<tr><td><b>v${c.version}</b> ${c.vigente ? badge('Vigente', 'ok') : ''}</td><td>${fmtD(c.createdAt)}</td><td>${c.nivelInicial}</td><td>${c.minQ}–${c.maxQ}</td><td>+${c.pasoCorrecta} / −${c.pasoIncorrecta}</td><td>${S.attempts.filter(a => a.cfgId === c.id).length}</td></tr>`);
-  return '<h2 style="margin-top:24px">Versiones de la configuración</h2><p class="muted">Cada intento queda ligado a la versión que lo rigió.</p>' + tbl(['Versión', 'Creada', 'Nivel inicial', 'Preguntas', 'Ajuste acierto / error', 'Intentos'], rows);
+  const rows = [...S.configs].sort((a, b) => b.version - a.version).map(c => `<tr><td><b>v${c.version}</b> ${c.vigente ? badge('Vigente', 'ok') : ''}</td><td>${fmtD(c.createdAt)}</td><td>${c.nivelInicial}</td><td>${c.minQ}–${c.maxQ}</td><td>+${c.medidorSubir} / −${c.medidorBajar}</td><td>${Math.round(c.umbralAprobacion * 100)}%</td><td>${S.attempts.filter(a => a.cfgId === c.id).length}</td></tr>`);
+  return '<h2 style="margin-top:24px">Versiones de la configuración</h2><p class="muted">Cada intento queda ligado a la versión que lo rigió.</p>' + tbl(['Versión', 'Creada', 'Nivel inicial', 'Preguntas', 'Medidor subir / bajar', 'Aprobación', 'Intentos'], rows);
 }
 function saveCfg(form) {
   const v = Object.fromEntries(new FormData(form)), e = [], c = {};
-  ['minQ', 'maxQ', 'defaultTime', 'stepUp', 'stepDown', 'fastPct', 'slowPct', 'timeWeight', 'stopDelta', 'stopWindow', 'certDays'].forEach(k => c[k] = parseFloat(v[k]));
+  ['minQ', 'maxQ', 'defaultTime', 'fastPct', 'slowPct', 'gaugeUp', 'gaugeDown', 'advFast', 'advNormal', 'advSlow', 'qFast', 'qNormal', 'qSlow', 'passQ', 'minPerLevel', 'certDays'].forEach(k => c[k] = parseFloat(v[k]));
   if ([...Object.values(c)].some(isNaN)) e.push('Completa todos los campos numéricos.');
   if (c.minQ < 3 || c.maxQ < c.minQ) e.push('El máximo de preguntas debe ser mayor o igual al mínimo (mínimo 3).');
   if (c.maxQ > S.questions.filter(q => q.status === 'activa').length) e.push('El máximo supera las preguntas activas del banco.');
-  if (c.stepUp <= 0 || c.stepDown <= 0 || c.stepUp > 2 || c.stepDown > 2) e.push('Los ajustes por acierto y error deben estar entre 0 y 2.');
   if (!(c.fastPct >= 1 && c.slowPct <= 100 && c.fastPct < c.slowPct)) e.push('El umbral rápido debe ser menor que el lento, entre 1 y 100.');
-  if (c.timeWeight < 0 || c.timeWeight > 1) e.push('El peso del tiempo debe estar entre 0 y 1.');
-  if (c.stopWindow < 2 || c.stopWindow > c.minQ) e.push('Las respuestas a comparar deben estar entre 2 y el mínimo de preguntas.');
+  if (c.gaugeUp < 0.5 || c.gaugeDown < 0.5 || c.gaugeUp > 10 || c.gaugeDown > 10) e.push('Los medidores para subir y bajar deben estar entre 0.5 y 10.');
+  if ([c.advFast, c.advNormal, c.advSlow].some(x => x < 0 || x > 10)) e.push('Los avances por acierto deben estar entre 0 y 10.');
+  if (!(c.advFast >= c.advNormal && c.advNormal >= c.advSlow)) e.push('El avance debe ser mayor o igual para respuestas más rápidas (rápido ≥ normal ≥ lento).');
+  if (![c.qFast, c.qNormal, c.qSlow, c.passQ].every(x => x >= 0 && x <= 1)) e.push('Las calidades y el umbral de aprobación deben estar entre 0 y 1.');
+  if (!(c.qFast >= c.qNormal && c.qNormal >= c.qSlow)) e.push('La calidad debe ser mayor o igual para respuestas más rápidas (rápido ≥ normal ≥ lento).');
+  if (c.minPerLevel < 1 || c.minPerLevel > c.minQ) e.push('El mínimo de respuestas por nivel debe estar entre 1 y el mínimo de preguntas.');
   const tt = {};
   Object.keys(SKILLS).forEach(k => { tt[k] = {}; LEVELS.forEach(l => { const x = v[`t_${k}_${l}`]; if (x !== '' && x != null) { if (+x < 5) e.push(`Tiempo inválido en ${SKILLS[k]} ${l} (mínimo 5 s).`); else tt[k][l] = +x; } }); });
   const g = $('#e-form', form);
@@ -1649,29 +1673,30 @@ function exportCSV() {
   filteredAttempts().forEach(a => { const c = certOf(a.id), p = candOf(a.candId); rows.push([p?.name, p ? p.docType + ' ' + p.docNum : '', orgName(a.orgId), examOf(a.examId)?.name, a.level, a.score, fmtD(a.finishedAt), c?.number || '', c ? certState(c) : '']); });
   downloadCSV('resultados-levexa.csv', rows); toast('CSV exportado con ' + (rows.length - 1) + ' filas.');
 }
-// Gráfica SVG de la evolución del nivel estimado (theta) pregunta a pregunta
-function thetaChart(trace, start) {
+// Gráfica SVG del nivel del candidato (escalera) pregunta a pregunta
+const RAPIDEZ = { rapida: "rápida", normal: "normal", lenta: "lenta" };
+function levelChart(trace, start) {
   const W = 640, H = 250, L = 38, Rr = 12, T = 12, Bm = 28, n = trace.length;
   const x = i => L + (W - L - Rr) * i / Math.max(1, n), y = v => T + (H - T - Bm) * (1 - v / 6);
-  const pts = [start, ...trace.map(t => t.theta)];
+  const pts = [LEVELS.indexOf(start) + 0.5, ...trace.map(t => LEVELS.indexOf(t.despues) + 0.5)];
   const grid = LEVELS.map((l, i) => `<line x1="${L}" x2="${W - Rr}" y1="${y(i)}" y2="${y(i)}" stroke="var(--border)"/><text x="${L - 6}" y="${y(i + 0.5) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${l}</text>`).join('') + `<line x1="${L}" x2="${W - Rr}" y1="${y(6)}" y2="${y(6)}" stroke="var(--border)"/>`;
   const xl = pts.map((_, i) => (n < 16 || i % 2 === 0) ? `<text x="${x(i)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="var(--muted)">${i === 0 ? 'Ini' : i}</text>` : '').join('');
-  const dots = pts.map((v, i) => { const t = trace[i - 1], col = i === 0 ? 'var(--muted)' : t.correct ? 'var(--ok)' : 'var(--bad)'; return `<circle cx="${x(i)}" cy="${y(v)}" r="5" fill="${col}"><title>${i === 0 ? 'Nivel inicial' : 'Pregunta ' + i + (t.expired ? ' (expirada)' : t.correct ? ' (correcta)' : ' (incorrecta)')}: ${v}</title></circle>`; }).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolución del nivel estimado a lo largo de ${n} preguntas">${grid}<polyline fill="none" stroke="var(--primary)" stroke-width="2.5" points="${pts.map((v, i) => x(i) + ',' + y(v)).join(' ')}"/>${dots}${xl}</svg>
-  <div class="legend"><span><i style="background:var(--ok)"></i>Correcta</span><span><i style="background:var(--bad)"></i>Incorrecta o expirada</span><span>Eje vertical: nivel estimado (0 = A1, 6 = C2)</span></div>`;
+  const dots = pts.map((v, i) => { const t = trace[i - 1], col = i === 0 ? 'var(--muted)' : t.correct ? 'var(--ok)' : 'var(--bad)'; return `<circle cx="${x(i)}" cy="${y(v)}" r="5" fill="${col}"><title>${i === 0 ? 'Nivel inicial' : 'Pregunta ' + i + (t.expired ? ' (expirada)' : t.correct ? ' (correcta)' : ' (incorrecta)')}: nivel ${LEVELS[Math.floor(v)]}</title></circle>`; }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolución del nivel a lo largo de ${n} preguntas">${grid}<polyline fill="none" stroke="var(--primary)" stroke-width="2.5" points="${pts.map((v, i) => x(i) + ',' + y(v)).join(' ')}"/>${dots}${xl}</svg>
+  <div class="legend"><span><i style="background:var(--ok)"></i>Correcta</span><span><i style="background:var(--bad)"></i>Incorrecta o expirada</span><span>El punto muestra el nivel en el que quedó el candidato tras cada pregunta</span></div>`;
 }
 function openAttempt(id) {
   const a = attemptViewById(id), p = candOf(a.candId), c = certOf(a.id), cs = c ? certState(c) : null;
-  const trs = a.trace.map((t, i) => `<tr><td>${i + 1}</td><td>${esc(SKILLS[t.skill])} · ${lvlTag(t.level)}</td><td>${esc(t.stem)}${t.stem.length >= 80 ? '…' : ''}</td><td>${t.expired ? badge('Expirada', 'warn') : t.correct ? badge('Correcta', 'ok') : badge('Incorrecta', 'bad')}</td><td>${t.used} s / ${t.limit} s</td><td>${t.theta}</td></tr>`);
+  const trs = a.trace.map((t, i) => `<tr><td>${i + 1}</td><td>${esc(SKILLS[t.skill])} · ${lvlTag(t.level)}</td><td>${esc(t.stem)}${t.stem.length >= 80 ? '…' : ''}</td><td>${t.expired ? badge('Expirada', 'warn') : t.correct ? badge('Correcta', 'ok') : badge('Incorrecta', 'bad')}</td><td>${t.used} s / ${t.limit} s <span class="muted">(${RAPIDEZ[t.speed]})</span></td><td>${t.calidad}</td><td>${t.avance > 0 ? "+" : ""}${t.avance} → ${t.medidor}</td><td>${lvlTag(LEVELS.indexOf(t.despues))}</td></tr>`);
   const canIssue = !c || cs !== 'vigente';
   openModal({
     title: `Intento de ${p?.name}`, wide: true, noFooter: true,
-    body: `<dl class="dl"><dt>Examen</dt><dd>${esc(examOf(a.examId)?.name)}</dd><dt>Nivel / puntaje</dt><dd>${lvlTag(LEVELS.indexOf(a.level))} · ${a.score}/100 (theta ${a.theta})</dd><dt>Fecha</dt><dd>${fmtDT(a.finishedAt)} · tiempo total ${fmtSec(a.totalTime)}</dd><dt>Licencia</dt><dd class="mono">${a.licCode}</dd></dl>
-      <h3 style="margin-top:16px">Evolución del nivel</h3><div class="chart">${thetaChart(a.trace, a.startTheta)}</div>
+    body: `<dl class="dl"><dt>Examen</dt><dd>${esc(examOf(a.examId)?.name)}</dd><dt>Nivel / puntaje</dt><dd>${lvlTag(LEVELS.indexOf(a.level))} · ${a.score}/100 · calidad ${Math.round(a.calidad * 100)}% en el nivel · confianza ${a.confianza}</dd><dt>Fecha</dt><dd>${fmtDT(a.finishedAt)} · tiempo total ${fmtSec(a.totalTime)}</dd><dt>Licencia</dt><dd class="mono">${a.licCode}</dd></dl>
+      <h3 style="margin-top:16px">Evolución del nivel</h3><div class="chart">${levelChart(a.trace, a.startLevel)}</div>
       <h3>Certificado</h3><div class="row" style="margin-bottom:14px">${c ? `${badge(cs[0].toUpperCase() + cs.slice(1), CERT_BADGE[cs])} <span class="mono">${c.number}</span> <button type="button" class="btn btn-sm" data-act="certView" data-id="${c.id}">Ver / imprimir</button>` : badge('Sin certificado')}
         ${c && cs === 'vigente' ? `<button type="button" class="btn btn-sm btn-danger" data-act="certRevoke" data-id="${c.id}" data-att="${a.id}">Revocar</button>` : ''}${!c ? `<button type="button" class="btn btn-sm btn-primary" data-act="certIssue" data-att="${a.id}">Emitir certificado</button>` : ''}${c && cs === 'vencido' ? `<button type="button" class="btn btn-sm btn-primary" data-act="certRenew" data-id="${c.id}" data-att="${a.id}">Renovar vigencia</button>` : ''}</div>
       ${c && cs === 'revocado' ? `<div class="notice bad">Revocado el ${fmtD(c.revokedAt)}. Motivo: ${esc(c.revokedReason)}</div>` : ''}
-      <h3>Preguntas</h3>${tbl(['#', 'Habilidad y nivel', 'Pregunta', 'Resultado', 'Tiempo usado / límite', 'Theta'], trs)}`
+      <h3>Preguntas</h3>${tbl(['#', 'Habilidad y nivel', 'Pregunta', 'Resultado', 'Tiempo usado / límite', 'Calidad', 'Medidor', 'Nivel después'], trs)}`
   });
 }
 function certHTML(c) {
@@ -1725,7 +1750,7 @@ function vEntry() {
 function vInstr() {
   const { lic, cand } = U.ex, c = activeCfg(lic.examId);
   return head('Instrucciones del examen', `Hola, ${cand.name}.`) +
-    `<section class="panel" style="max-width:700px"><ul><li>Es un examen <b>adaptativo</b>: la dificultad de cada pregunta depende de tus respuestas y de tu rapidez.</li>
+    `<section class="panel" style="max-width:700px"><ul><li>Es un examen <b>adaptativo</b>: el nivel de las preguntas sube cuando aciertas y baja cuando fallas. Acertar con rapidez te hace avanzar más y vale más en tu resultado.</li>
       <li>Responderás entre <b>${c.minQ}</b> y <b>${c.maxQ}</b> preguntas, una por pantalla.</li><li>Cada pregunta tiene un <b>temporizador</b>. Al agotarse se marca como expirada y se avanza.</li><li>No puedes volver a una pregunta anterior ni pausar el examen.</li></ul>
       <div class="notice warn"><b>Atención:</b> al iniciar se consume tu licencia <span class="mono">${lic.code}</span>. Solo permite un examen y <b>no hay vuelta atrás</b>, aunque cierres la ventana.</div>
       <form data-form="start" novalidate><div class="field"><label><input type="checkbox" name="ok" value="1" checked> Entiendo que iniciar consume mi licencia y no se puede deshacer.</label><small class="err" id="e-ok" role="alert"></small></div>
@@ -1758,7 +1783,7 @@ function startExam() {
   Object.assign(ex.asg, { status: 'consumida', closedAt: nowS, closedBy: null, reason: 'Examen iniciado' });
   const cfg = activeCfg(l.examId);
   ex.E = newEngine(cfg, poolFor(S, l.examId), Math.random);
-  ex.att = { id: uid('t'), asgId: ex.asg.id, candId: ex.cand.id, examId: l.examId, cfgId: cfg.id, status: 'en_curso', startedAt: nowS, finishedAt: null, thetaActual: ex.E.theta, errorEstandar: null, ip: '', userAgent: (navigator.userAgent || '').slice(0, 80) };
+  ex.att = { id: uid('t'), asgId: ex.asg.id, candId: ex.cand.id, examId: l.examId, cfgId: cfg.id, status: 'en_curso', startedAt: nowS, finishedAt: null, nivelActual: cfg.startLevel, ip: '', userAgent: (navigator.userAgent || '').slice(0, 80) };
   S.attempts.push(ex.att); save();
   ex.stage = 'run'; nextStep();
 }
