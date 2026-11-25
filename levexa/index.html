@@ -1477,10 +1477,30 @@ function openUser(id) {
 }
 
 function vCandidatos() { return head('Candidatos', 'Estudiantes de tu organización que pueden recibir licencias.') + candPanel(scopeOrg()); }
+// Candidatos independientes: una sola tabla; cada fila se expande y muestra sus licencias compradas
 function vIndep() {
-  const rows = S.licenses.filter(l => !l.batch_id).map(l => { const inf = licInfo(l), s = licState(l); return `<tr><td class="mono"><b>${l.code}</b></td><td>${esc(personName(l.owner_user_id))}</td><td>${badge(LIC_LABEL[s], STATUS_LIC[s])}</td><td>${fmtD(inf.assignedAt)}</td><td>${fmtD(l.expires_at)}</td><td><button class="btn btn-sm btn-ghost" data-act="licHist" data-code="${l.code}">Historial</button></td></tr>`; });
-  return head('Candidatos independientes', 'Personas que compraron una licencia por su cuenta, sin organización.') + candPanel(null) +
-    '<h2 style="margin-top:24px">Licencias de compra individual</h2><p class="muted">Se generan sin lote (batch_id vacío) y el candidato es su dueño y se las auto-asigna. Vencen por fecha.</p>' + tbl(['Código', 'Propietario', 'Estado', 'Asignada', 'Vence', ''], rows, 'Aún no hay compras individuales.');
+  const q = fv('cdQ').toLowerCase(), st = fv('cdSt'), ls = fv('cdLic');
+  U.indepOpen = U.indepOpen || {};
+  const all = candidates().filter(c => !c.orgId).map(c => ({ c, lics: S.licenses.filter(l => !l.batch_id && l.owner_user_id === c.id) }));
+  const cnt = lics => { const o = {}; lics.forEach(l => { const s = licState(l); o[s] = (o[s] || 0) + 1; }); return o; };
+  const list = all.filter(({ c, lics }) => (!st || String(c.active) === st) && (!q || (c.name + c.docNum + c.email).toLowerCase().includes(q)) &&
+    (!ls || (ls === 'none' ? !lics.length : lics.some(l => licState(l) === ls))));
+  const total = all.reduce((n, x) => n + x.lics.length, 0), sum = cnt(all.flatMap(x => x.lics));
+  const kpis = `<div class="chips" style="margin-bottom:12px"><span class="chip">${all.length} candidatos</span><span class="chip">${total} licencias compradas</span>${Object.keys(LIC_LABEL).filter(k => sum[k]).map(k => `<span class="chip">${esc(LIC_LABEL[k])}: ${sum[k]}</span>`).join('')}</div>`;
+  const rows = list.flatMap(({ c, lics }) => {
+    const open = lics.length && (U.indepOpen[c.id] || (q && list.length === 1));
+    const cs = cnt(lics), resumen = lics.length ? Object.keys(cs).map(k => badge(`${LIC_LABEL[k]}: ${cs[k]}`, STATUS_LIC[k])).join(' ') : '<span class="muted">Sin licencias</span>';
+    const main = `<tr${lics.length ? ` style="cursor:pointer" data-act="indepToggle" data-id="${c.id}"` : ''}><td>${lics.length ? `<span aria-hidden="true">${open ? '▾' : '▸'}</span> ` : ''}<b>${esc(c.name)}</b><br><span class="muted mono">${esc(c.docType)} ${esc(c.docNum)}</span> · <span class="muted">${esc(c.email)}</span></td>
+      <td>${badge(ACTIVE_LABEL[c.active], c.active ? 'ok' : 'gray')}</td><td>${resumen}</td>
+      <td class="act"><div class="row">${lics.length ? `<button class="btn btn-sm" data-act="indepToggle" data-id="${c.id}" aria-expanded="${!!open}">${open ? 'Ocultar licencias' : 'Ver licencias'}</button>` : ''}<button class="btn btn-sm" data-act="cdEdit" data-id="${c.id}" data-org="">Editar</button><button class="btn btn-sm" data-act="cdDel" data-id="${c.id}">Eliminar</button></div></td></tr>`;
+    if (!open) return [main];
+    const sub = lics.map(l => { const inf = licInfo(l), s = licState(l); return `<tr><td class="mono"><b>${l.code}</b></td><td>${esc(examOf(l.exam_id)?.title || '—')}</td><td>${badge(LIC_LABEL[s], STATUS_LIC[s])}</td><td>${fmtD(inf.assignedAt)}</td><td>${fmtD(l.expires_at)}</td><td><button class="btn btn-sm btn-ghost" data-act="licHist" data-code="${l.code}">Historial</button></td></tr>`; }).join('');
+    return [main, `<tr><td colspan="4" style="background:var(--bg-soft,rgba(127,127,127,.07));padding:8px 12px 12px 28px"><div class="muted" style="margin-bottom:6px">Licencias compradas por ${esc(c.name)}</div><table style="width:100%"><thead><tr><th scope="col">Código</th><th scope="col">Examen</th><th scope="col">Estado</th><th scope="col">Asignada</th><th scope="col">Vence</th><th scope="col"></th></tr></thead><tbody>${sub}</tbody></table></td></tr>`];
+  });
+  return head('Candidatos independientes', 'Personas que compraron una licencia por su cuenta, sin organización. Abre una fila para ver sus licencias.') + kpis +
+    `<div class="toolbar">${bindIn('cdQ', 'Buscar', 'Nombre, documento o correo')}${bindSel('cdSt', 'Estado', [['', 'Todos'], ...ACTIVE_OPTS])}${bindSel('cdLic', 'Licencias', [['', 'Todas'], ['none', 'Sin licencias'], ...Object.keys(LIC_LABEL).map(k => [k, 'Con ' + LIC_LABEL[k].toLowerCase()])])}
+    <button class="btn btn-primary" data-act="cdNew" data-org="">Nuevo candidato</button></div>` +
+    tbl(['Candidato', 'Estado', 'Licencias', 'Acciones'], rows, 'No hay candidatos con esos filtros.');
 }
 function candPanel(oid) {
   const q = fv('cdQ').toLowerCase(), st = fv('cdSt');
@@ -1933,6 +1953,7 @@ const A = {
   async cfgReset() { if (await confirmDlg({ title: 'Restablecer configuración', msg: 'Se restauran los valores predeterminados del examen.', ok: 'Restablecer' })) { addCfgVersion(S, defaultCfg()); commit(); toast('Configuración restablecida.'); } },
   usrNew() { openUser(); }, usrEdit(d) { openUser(d.id); },
   async usrDel(d) { if (await confirmDlg({ title: 'Eliminar usuario', msg: 'Esta acción no se puede deshacer.', ok: 'Eliminar', danger: true })) { if (S.auth?.userId === d.id) { toast('No puedes eliminar tu propio usuario.', 'warn'); return; } const pid = userOf(d.id).profile_id; S.users = S.users.filter(u => u.id !== d.id); S.profiles = S.profiles.filter(p => p.id !== pid); commit(); toast('Usuario eliminado.'); } },
+  indepToggle(d, t) { if (t.closest('button') && t.closest('button').dataset.act !== 'indepToggle') return; U.indepOpen = U.indepOpen || {}; U.indepOpen[d.id] = !U.indepOpen[d.id]; render(); },
   cdNew(d) { openCand(d.org || null); }, cdEdit(d) { openCand(d.org || null, d.id); }, cdImport(d) { openImport(d.org); },
   async cdDel(d) {
     if (S.license_assignments.some(a => a.user_id === d.id) || S.exam_attempts.some(a => a.candidate_id === d.id) || S.purchases.some(p => p.user_id === d.id)) { toast('Tiene licencias, intentos o compras: márcalo como inactivo en lugar de eliminarlo.', 'warn'); return; }
