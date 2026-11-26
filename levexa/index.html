@@ -175,6 +175,27 @@ td .row{flex-wrap:nowrap;}
 .bars .bar div{height:14px;background:var(--surface-2);border-radius:99px;overflow:hidden;}
 .bars .bar div i{display:block;height:100%;background:linear-gradient(90deg,#be6ffb,#9b0feb);border-radius:99px;min-width:0;}
 
+/* ===== Bienvenida (inicio de candidatos y resumen de administradores) ===== */
+.welcome{position:relative;overflow:hidden;background:var(--deep);color:#fff;border-radius:28px;padding:28px 32px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center;gap:24px;box-shadow:0 26px 50px -28px rgba(49,27,76,.9);}
+.welcome>*{position:relative;z-index:1;}
+.welcome::before{content:"";position:absolute;right:-70px;top:-90px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(190,111,251,.6),transparent 68%);z-index:0;}
+.welcome::after{content:"";position:absolute;inset:0;z-index:0;background-image:radial-gradient(rgba(255,255,255,.14) 1.2px,transparent 1.4px);background-size:22px 22px;-webkit-mask-image:linear-gradient(115deg,transparent 40%,#000);mask-image:linear-gradient(115deg,transparent 40%,#000);}
+.welcome .wdate{display:inline-flex;align-items:center;gap:8px;font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.75);margin-bottom:8px;}
+.welcome .wdate::before{content:"";width:11px;height:11px;background:var(--lime);clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);}
+.welcome h1{color:#fff;font-size:clamp(1.6rem,3.6vw,2.4rem);margin:0 0 8px;}
+.welcome h1 span{color:var(--lime);}
+.welcome p{color:rgba(255,255,255,.8);margin:0 0 16px;max-width:58ch;font-weight:500;}
+.wchips{display:flex;flex-wrap:wrap;gap:8px;}
+.wchips span{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:99px;padding:5px 14px;font-size:.82rem;font-weight:600;}
+.wchips b{color:var(--lime);font-family:var(--f-display);font-weight:800;}
+.wmark{position:relative;width:120px;height:120px;flex:none;}
+.wmark i{position:absolute;display:block;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);}
+.wmark i:nth-child(1){inset:0;background:var(--lime);animation:twirl 9s ease-in-out infinite;}
+.wmark i:nth-child(2){width:44px;height:44px;right:-14px;top:-6px;background:var(--lilac);animation:twirl 7s ease-in-out infinite reverse;}
+.wmark i:nth-child(3){width:26px;height:26px;left:-6px;bottom:-4px;background:#ea0fcc;animation:twirl 6s ease-in-out infinite;}
+@keyframes twirl{50%{transform:rotate(25deg) scale(1.06);}}
+@media (max-width:700px){.wmark{display:none;}.welcome{padding:22px 20px;}}
+
 /* ===== Modal y avisos ===== */
 .modal-bg{position:fixed;inset:0;background:rgba(25,10,45,.62);backdrop-filter:blur(5px);display:flex;align-items:flex-start;justify-content:center;padding:4vh 14px;overflow-y:auto;z-index:60;}
 .modal{background:var(--surface);border:1px solid var(--border);border-radius:30px;width:100%;max-width:580px;box-shadow:0 40px 90px -24px rgba(30,10,60,.65);animation:rise .22s ease-out;}
@@ -1138,6 +1159,13 @@ const idTypeOpts = () => S.identification_types.map(t => [t.id, t.code + ' · ' 
    8. VISTAS: resumen
    ===================================================================== */
 function attemptsScope(oid) { return S.exam_attempts.filter(a => a.status === 'finished').map(attemptView).filter(v => v && (!oid || v.orgId === oid)); }
+// Banner de bienvenida: saludo con el nombre de la persona, la fecha y datos clave en pastillas
+const welcome = (greet, sub, chips = [], end = '') => {
+  const first = esc(String((S.auth && S.auth.name) || '').trim().split(/\s+/)[0] || 'bienvenido');
+  const fecha = new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
+  return `<section class="welcome" aria-label="Bienvenida"><div><div class="wdate">${esc(fecha)}</div><h1>${greet} <span>${first}</span>${end}</h1><p>${sub}</p>` +
+    `<div class="wchips">${chips.map(([v, t]) => `<span><b>${v}</b>${esc(t)}</span>`).join('')}</div></div><div class="wmark" aria-hidden="true"><i></i><i></i><i></i></div></section>`;
+};
 function vResumen() {
   const oid = scopeOrg();
   const bs = S.batch_licenses.filter(b => !oid || b.organization_id === oid);
@@ -1149,7 +1177,10 @@ function vResumen() {
   const dist = LEVELS.map((_, i) => at.filter(a => LEVELS.indexOf(a.level) === i).length);
   const mx = Math.max(1, ...dist);
   const k = (v, t) => `<div class="kpi"><b>${v}</b><span>${t}</span></div>`;
-  return head(oid ? orgName(oid) : 'Resumen de la plataforma', 'Indicadores generales de licencias, exámenes y certificados.') +
+  const atIds = new Set(at.map(a => a.id)), erOk = new Set(S.exam_results.filter(r => atIds.has(r.exam_attempt_id)).map(r => r.id));
+  const pend = (S.skill_results || []).filter(r => r.status === 'pending' && erOk.has(r.exam_result_id)).length;
+  return welcome('Hola,', oid ? `Así va la actividad de ${esc(orgName(oid))} hoy.` : 'Así va la actividad de la plataforma hoy.', [[cnt.available, 'licencias disponibles'], [at.length, 'exámenes realizados'], [vig, 'certificados vigentes'], ...(pend ? [[pend, 'Writing por calificar']] : [])]) +
+    head(oid ? orgName(oid) : 'Resumen de la plataforma', 'Indicadores generales de licencias, exámenes y certificados.') +
     `<div class="grid g4" style="margin-bottom:16px">
       ${oid ? k(bs.length, 'Lotes') : k(S.organizations.length, 'Organizaciones')}
       ${k(ls.length, 'Licencias en total')}${k(cnt.available, 'Disponibles')}${k(cnt.assigned, 'Asignadas')}
@@ -2030,7 +2061,8 @@ function sampleCodes() {
   return out;
 }
 function vEntry() {
-  return head('Realizar examen', 'Ingresa el código de tu licencia y tu número de documento para comenzar.') +
+  return welcome('¡Te damos la bienvenida,', 'Aquí descubres tu nivel de inglés. El examen se adapta a tus respuestas y al final recibes tu nivel MCER y tu certificado.', [['4', 'partes del examen'], ['Pre-A1 a C1', 'niveles MCER'], ['Pausa', 'y reanuda cuando quieras']], '!') +
+    head('Realizar examen', 'Ingresa el código de tu licencia y tu número de documento para comenzar.') +
     `<section class="panel" style="max-width:640px"><form data-form="entry" novalidate><div class="notice bad" id="e-form" role="alert" hidden></div>
       ${fld('Código de licencia', 'code', U.entry.code || (sampleCodes()[0] || [])[1] || '', { req: 1, attrs: 'placeholder="ENG-XXXX-XXXX" autocomplete="off" style="text-transform:uppercase"' })}
       ${fld('Número de documento', 'doc', U.entry.doc || (U.entry.code ? '' : (sampleCodes()[0] || [])[2] || ''), { attrs: 'autocomplete="off"', hint: 'Debe coincidir con el documento al que está asignada la licencia.' })}
