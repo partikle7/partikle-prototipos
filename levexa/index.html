@@ -175,6 +175,15 @@ td .row{flex-wrap:nowrap;}
 .bars .bar div{height:14px;background:var(--surface-2);border-radius:99px;overflow:hidden;}
 .bars .bar div i{display:block;height:100%;background:linear-gradient(90deg,#be6ffb,#9b0feb);border-radius:99px;min-width:0;}
 
+/* ===== Modo examen: sin menú ni controles, solo el examen ===== */
+body.focus #side,body.focus .top-ctrl,body.focus .menu-btn{display:none !important;}
+body.focus .layout{grid-template-columns:1fr;}
+body.focus main{max-width:860px;margin:0 auto;}
+body.focus main .panel{margin-left:auto;margin-right:auto;}
+body.focus .page-head{max-width:700px;margin-left:auto;margin-right:auto;}
+body.focus .top{justify-content:space-between;}
+body.focus #exit-btn{margin-left:0 !important;}
+
 /* ===== Bienvenida (inicio de candidatos y resumen de administradores) ===== */
 .welcome{position:relative;overflow:hidden;background:var(--deep);color:#fff;border-radius:28px;padding:28px 32px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center;gap:24px;box-shadow:0 26px 50px -28px rgba(49,27,76,.9);}
 .welcome>*{position:relative;z-index:1;}
@@ -338,6 +347,7 @@ body.auth #side,body.auth .top .menu-btn{display:none !important;}
     <i class="logo-l" aria-hidden="true">L</i>
     <span>Levexa</span><small>Prototipo</small>
   </div>
+  <button class="btn btn-sm" type="button" id="exit-btn" data-act="exExit" hidden style="margin-left:auto">Salir del examen</button>
   <div class="top-ctrl">
     <div class="user-chip" id="user-chip" hidden></div>
     <button class="btn btn-sm" data-act="logout" id="logout-btn" type="button" hidden>Cerrar sesión</button>
@@ -2287,6 +2297,9 @@ function renderHeader() {
 function render() {
   const a = document.activeElement, aid = a && a.id && a.closest('main') ? a.id : null, ss = a && a.selectionStart, se = a && a.selectionEnd;
   document.body.classList.toggle('auth', !S.auth);
+  const focus = !!S.auth && S.ui.role === 'cand' && S.ui.view === 'examen' && !U.pay && ['instr', 'run', 'between', 'final'].includes(U.ex.stage);
+  document.body.classList.toggle('focus', focus);
+  $('#exit-btn').hidden = !(focus && U.ex.stage !== 'final');
   renderHeader();
   if (!S.auth) { $('#side').innerHTML = ''; $('#main').innerHTML = vAuth(); }
   else {
@@ -2354,6 +2367,15 @@ const A = {
   },
   fill(d) { U.entry = { code: d.code, doc: d.doc }; render(); },
   exCancel() { U.ex = { stage: 'entry' }; render(); },
+  // Salir sin terminar (útil en la demo): el intento queda interrumpido y se puede reanudar con el mismo código
+  async exExit() {
+    const ex = U.ex;
+    if (!(await confirmDlg({ title: 'Salir del examen', msg: 'Puedes salir ahora sin terminar. Tus respuestas quedan guardadas y podrás reanudarlo con el mismo código de licencia.', ok: 'Salir del examen' }))) return;
+    clearInterval(ex.tm);
+    if (ex.att && ex.att.status === 'in_progress') { ex.att.status = 'interrupted'; ex.att.interruptions = (ex.att.interruptions || 0) + 1; }
+    save(); U.entry = { code: ex.lic ? ex.lic.code : '', doc: ex.cand ? (ex.cand.docNum || '') : '' }; U.ex = { stage: 'entry' };
+    toast('Saliste del examen. Puedes reanudarlo con el mismo código.', 'warn'); render();
+  },
   exOmit() { answer(null); }, exNext() { beginSkill(U.ex.nextK); }, wrGrade(d) { openWritingGrade(d.att); }, exDone() { U.ex = { stage: 'entry' }; U.entry = { code: '', doc: '' }; render(); },
   buyExam() { const c = candOf(S.auth.userId); U.entry = { code: U.lastPurchase.codes[0], doc: c ? c.docNum : '' }; U.lastPurchase = null; S.ui.view = 'examen'; U.ex = { stage: 'entry' }; commit(); },
   buyAgain() { U.lastPurchase = null; render(); },
