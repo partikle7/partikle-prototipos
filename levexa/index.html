@@ -598,7 +598,7 @@ function seed() {
   s.roles = ['super_admin', 'org_admin', 'coordinator', 'candidate'].map((name, i) => ({ id: 'r' + (i + 1), name }));
   const PERMS = [['manage_organizations', 'Gestionar organizaciones'], ['manage_batches', 'Crear lotes de licencias'], ['manage_licenses', 'Asignar y revocar licencias'], ['purchase_licenses', 'Comprar licencias'], ['manage_candidates', 'Gestionar candidatos'], ['manage_users', 'Gestionar usuarios'], ['manage_questions', 'Gestionar el banco de preguntas'], ['manage_exam_config', 'Configurar el examen'], ['view_results', 'Ver resultados y certificados'], ['take_exam', 'Realizar el examen'], ['view_purchases', 'Ver el historial de compras'], ['grade_writing', 'Calificar Writing']];
   s.permissions = PERMS.map(([code, name], i) => ({ id: 'pm' + (i + 1), code, name }));
-  const GRANTS = { super_admin: ['manage_organizations', 'manage_batches', 'manage_licenses', 'manage_candidates', 'manage_users', 'manage_questions', 'manage_exam_config', 'view_results', 'grade_writing'], org_admin: ['manage_licenses', 'purchase_licenses', 'manage_candidates', 'manage_users', 'view_results', 'view_purchases', 'grade_writing'], coordinator: ['manage_licenses', 'manage_candidates', 'view_results', 'grade_writing'], candidate: ['take_exam', 'purchase_licenses', 'view_purchases'] };
+  const GRANTS = { super_admin: ['manage_organizations', 'manage_batches', 'manage_licenses', 'manage_candidates', 'manage_users', 'manage_questions', 'manage_exam_config', 'view_results', 'grade_writing'], org_admin: ['manage_licenses', 'manage_candidates', 'manage_users', 'view_results', 'view_purchases', 'grade_writing'], coordinator: ['manage_licenses', 'manage_candidates', 'view_results', 'grade_writing'], candidate: ['take_exam', 'purchase_licenses', 'view_purchases'] };
   Object.entries(GRANTS).forEach(([rn, codes]) => codes.forEach(c => s.group_permissions.push({ id: uid('gp'), role_id: s.roles.find(r => r.name === rn).id, permission_id: s.permissions.find(p => p.code === c).id })));
 
   // Organizaciones y contactos
@@ -664,7 +664,7 @@ function seed() {
     return l;
   };
   const mkBatch = (orgId, expiryDays, price, created, plan) => {
-    const purchase = mkPurchase({ orgId, userId: adminOf(orgId).id, qty: plan.length, price, date: at(created), gateway: 'pse' });
+    const purchase = mkPurchase({ orgId, userId: adminOf(orgId).id, qty: plan.length, price, date: at(created), gateway: 'manual' });
     const b = { id: uid('b'), purchase_id: purchase.id, organization_id: orgId, exam_id: 'x1', code: 'L-' + String(++bn).padStart(4, '0'), quantity: plan.length, expires_at: at(expiryDays), status: 'active' };
     s.batch_licenses.push(b);
     plan.forEach(tok => mkLic(b, { orgId, expires: b.expires_at }, tok));
@@ -678,11 +678,11 @@ function seed() {
   mkBatch('o4', 60, 55000, -35, ['A:3', 'A:30', 'D', 'D', 'D']);
   // Compras individuales: la licencia se crea directamente, sin lote (batch_id = null)
   const ind = (u, tok, age) => {
-    const p = mkPurchase({ userId: u.id, qty: 1, price: EXAM_PRICE.x1, date: at(-age), gateway: 'card' });
+    const p = mkPurchase({ userId: u.id, qty: 1, price: EXAM_PRICE.x1, date: at(-age), gateway: 'pse' });
     mkLic(null, { owner: u.id, purchaseId: p.id, expires: at(365 - age), orgId: null }, tok, u.id);
   };
   ind(indep[0], 'C:45', 45); ind(indep[1], 'A:5', 5); ind(indep[2], 'A:1', 1);
-  mkPurchase({ userId: indep[2].id, qty: 1, price: EXAM_PRICE.x2, date: at(-2), status: 'failed', gateway: 'card', examId: 'x2' });
+  mkPurchase({ userId: indep[2].id, qty: 1, price: EXAM_PRICE.x2, date: at(-2), status: 'failed', gateway: 'pse', examId: 'x2' });
 
   // Banco de ítems: cada pregunta tiene subnivel (.1 / .2) y parámetros TRI (a, b, c) dentro del rango de θ de su nivel; opciones y recurso propios
   const Rb = rng(77), grp = {};
@@ -731,7 +731,7 @@ function seed() {
    question_resources, exam_questions, exam_configs, exam_skill_configs, purchases, batch_licenses, licenses,
    license_assignments, exam_attempts, attempt_questions, exam_results, skill_results, certificate_templates, certificates
    ===================================================================== */
-const KEY = 'levexa_proto_v5';
+const KEY = 'levexa_proto_v6';
 let S;
 function load() {
   try { const r = localStorage.getItem(KEY); if (r) { S = JSON.parse(r); } } catch (e) { S = null; }
@@ -1045,7 +1045,7 @@ function issueCert(st, result, cfg) {
 /* =====================================================================
    7. INFRAESTRUCTURA DE INTERFAZ: modales, avisos, formularios, tablas
    ===================================================================== */
-const U = { orgDetail: null, orgTab: 'datos', lotSel: null, f: {}, buy: { exam: 'x1', qty: 1 }, lbuy: { exam: 'x1', qty: 25 }, pay: null, authTab: 'login', regType: 'ind', login: { email: 'admin@levexa.demo', pass: 'Demo1234' }, lastPurchase: null, ex: { stage: 'entry' }, entry: { code: '', doc: '' }, ver: '', verRes: null };
+const U = { orgDetail: null, orgTab: 'datos', lotSel: null, f: {}, buy: { exam: 'x1', qty: 1 }, pay: null, authTab: 'login', regType: 'ind', login: { email: 'admin@levexa.demo', pass: 'Demo1234' }, lastPurchase: null, ex: { stage: 'entry' }, entry: { code: '', doc: '' }, ver: '', verRes: null };
 
 function toast(msg, type = '') {
   const t = document.createElement('div');
@@ -1453,7 +1453,7 @@ const DEMO_PASS = 'Demo1234';
 const passOk = p => (p || '').length >= 8 && /[A-Za-z]/.test(p) && /\d/.test(p);
 const ROLE_LABEL = { admin: 'Administrador de plataforma', org: 'Administrador de organización', cand: 'Candidato', pub: 'Visitante' };
 // Cada módulo exige un permiso (GROUP_PERMISSION del rol del usuario)
-const NAV_PERM = { resumen: null, orgs: 'manage_organizations', lotes: 'manage_licenses', banco: 'manage_questions', config: 'manage_exam_config', usuarios: 'manage_users', indep: 'manage_candidates', resultados: 'view_results', comprarLote: 'purchase_licenses', candidatos: 'manage_candidates', compras: 'view_purchases', examen: 'take_exam', comprar: 'purchase_licenses', verificar: null };
+const NAV_PERM = { resumen: null, orgs: 'manage_organizations', lotes: 'manage_licenses', banco: 'manage_questions', config: 'manage_exam_config', usuarios: 'manage_users', indep: 'manage_candidates', resultados: 'view_results', candidatos: 'manage_candidates', compras: 'view_purchases', examen: 'take_exam', comprar: 'purchase_licenses', verificar: null };
 const navOf = role => ROLES[role].nav.filter(([k]) => can(NAV_PERM[k]));
 const UI_ROLE = { super_admin: 'admin', org_admin: 'org', coordinator: 'org', candidate: 'cand' };
 const initials = n => (n || '?').split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
@@ -1543,7 +1543,7 @@ function submitReg(f) {
     const o = { id: uid('o'), name: v.orgName, nit: v.nit, code, status: 'active' };
     S.organizations.push(o); S.organization_contacts.push({ id: uid('k'), organization_id: o.id, fullname: `${v.name} ${v.last_name}`, email, phone: v.phone, status: 'active' });
     const u = mkAccount(mkProfile(o.id, 'manager'), 'org_admin');
-    toast('Organización registrada. Ya puedes comprar licencias.'); login({ userId: u.id, role: 'org', name: `${v.name} ${v.last_name}`, email, orgId: o.id });
+    toast('Organización registrada. Levexa te asignará tus lotes de licencias.'); login({ userId: u.id, role: 'org', name: `${v.name} ${v.last_name}`, email, orgId: o.id });
   }
 }
 
@@ -1564,65 +1564,36 @@ function vComprar() {
 }
 function submitBuy() {
   const b = U.buy, e = examOf(b.exam), c = candOf(S.auth.userId), qty = +b.qty;
-  goPay({ kind: 'indep', desc: `${qty} × ${e.title}`, lines: [[e.title, `${qty} × ${fmtMoney(EXAM_PRICE[e.id], CURRENCY)}`]], amount: EXAM_PRICE[e.id] * qty, currency: CURRENCY, payer: c.name, doc: c.docNum, ctx: { exam: e.id, qty, userId: c.id } });
-}
-// Compra de lotes por una organización (con descuento por volumen)
-const discOf = q => q >= 100 ? 0.2 : q >= 25 ? 0.1 : 0;
-function vComprarLote() {
-  const b = U.lbuy, e = examOf(b.exam), q = +b.qty || 0, d = discOf(q), unit = Math.round(EXAM_PRICE[e.id] * (1 - d)), o = orgOf(S.ui.orgId), pubs = S.exams.filter(x => x.status === 'published');
-  const bi = (k, label, attrs = '') => `<div class="field"><label for="b-lbuy.${k}">${label}</label><input id="b-lbuy.${k}" type="number" data-bind="lbuy.${k}" value="${esc(b[k])}" ${attrs}></div>`;
-  return head('Comprar licencias', 'Adquiere un lote para tu organización. Los códigos se generan al confirmar el pago.') +
-    `<div class="grid g2"><form class="panel" data-form="lbuy" novalidate><h2>Configura el lote</h2><div class="notice bad" id="e-form" role="alert" hidden></div>
-      <div class="field"><label for="b-lbuy.exam">Examen</label><select id="b-lbuy.exam" data-bind="lbuy.exam">${pubs.map(x => `<option value="${x.id}"${b.exam === x.id ? ' selected' : ''}>${esc(x.title)}</option>`).join('')}</select></div>
-      ${bi('qty', 'Cantidad de licencias', 'min="5" max="500"')}
-      <button class="btn btn-primary" type="submit">Continuar al pago</button></form>
-    <section class="panel"><h2>Resumen</h2><dl class="dl"><dt>Organización</dt><dd>${esc(o.name)}</dd><dt>Precio de lista</dt><dd>${fmtMoney(EXAM_PRICE[e.id], CURRENCY)}</dd><dt>Descuento</dt><dd>${d ? `<b>${d * 100}%</b> por volumen` : 'Sin descuento'}</dd><dt>Precio unitario</dt><dd>${fmtMoney(unit, CURRENCY)}</dd><dt>Cantidad</dt><dd>${q}</dd><dt>Total</dt><dd><b>${fmtMoney(unit * q, CURRENCY)}</b></dd><dt>Vence</dt><dd>12 meses desde la compra</dd></dl>
-      <p class="hint">Descuentos: 10 % desde 25 licencias y 20 % desde 100.</p></section></div>`;
-}
-function submitLote(f) {
-  const b = U.lbuy, e = examOf(b.exam), q = +b.qty, g = $('#e-form', f), er = [];
-  if (!Number.isInteger(q) || q < 5 || q > 500) er.push('La cantidad debe ser un entero entre 5 y 500.');
-  if (er.length) { g.innerHTML = er.map(esc).join('<br>'); g.hidden = false; g.focus?.(); return; }
-  const unit = Math.round(EXAM_PRICE[e.id] * (1 - discOf(q))), o = orgOf(S.ui.orgId);
-  goPay({ kind: 'lote', desc: `Lote de ${q} × ${e.title}`, lines: [[e.title, `${q} × ${fmtMoney(unit, CURRENCY)}`], ...(discOf(q) ? [['Descuento por volumen', discOf(q) * 100 + ' %']] : [])], amount: unit * q, currency: CURRENCY, payer: o.name, doc: o.nit, ctx: { exam: e.id, qty: q, unit, orgId: o.id, userId: meUser() } });
+  goPay({ kind: 'indep', desc: `${qty} × ${e.title}`, lines: [[e.title, `${qty} × ${fmtMoney(EXAM_PRICE[e.id], CURRENCY)}`]], amount: EXAM_PRICE[e.id] * qty, currency: CURRENCY, payer: c.name, doc: c.docNum, email: c.email, ctx: { exam: e.id, qty, userId: c.id } });
 }
 function goPay(p) {
-  U.pay = { stage: 'form', method: 'card', card: { number: '4242 4242 4242 4242', name: p.payer, exp: '12/30', cvc: '123' }, pse: { bank: 'Banco Demo', persona: 'natural', doc: p.doc || '' }, wallet: { phone: '3000000000' }, ...p };
+  U.pay = { stage: 'form', method: 'pse', pse: { bank: 'Bancolombia', persona: 'natural', docType: 'CC', doc: p.doc || '', email: p.email || '' }, ...p };
   render(); window.scrollTo(0, 0);
 }
-function luhn(n) { let s = 0, alt = false; for (let i = n.length - 1; i >= 0; i--) { let d = +n[i]; if (alt) { d *= 2; if (d > 9) d -= 9; } s += d; alt = !alt; } return s % 10 === 0; }
-const PAY_METHODS = { card: 'Tarjeta', pse: 'PSE (débito bancario)', wallet: 'Billetera digital' };
+const PAY_METHODS = { pse: 'PSE (débito bancario)' };
 const GATEWAY_LABEL = { ...PAY_METHODS, manual: 'Manual (administrador)' };
+const PSE_BANKS = ['Bancolombia', 'Davivienda', 'Banco de Bogotá', 'BBVA Colombia', 'Banco Demo (rechaza)'];
 function vPago() {
   const p = U.pay;
-  if (p.stage === 'processing') return `<div class="panel" style="max-width:520px;margin:50px auto;text-align:center"><div class="spinner" aria-hidden="true"></div><h2>Procesando tu pago…</h2><p class="muted">No cierres esta ventana. Es una simulación: no se realiza ningún cobro.</p></div>`;
+  if (p.stage === 'processing') return `<div class="panel" style="max-width:520px;margin:50px auto;text-align:center"><div class="spinner" aria-hidden="true"></div><h2>Te llevamos a tu banco…</h2><p class="muted">Autoriza el pago en la página de tu banco. Es una simulación: no se realiza ningún cobro.</p></div>`;
   if (p.stage === 'done') return vPagoResult(p);
-  const m = p.method, c = p.card;
   const inp = (path, label, o = {}) => `<div class="field"><label for="b-${path}">${label}</label><input id="b-${path}" data-bind="${path}" value="${esc(path.split('.').reduce((a, k) => a[k], U))}" ${o.attrs || ''}></div>`;
-  let form;
-  if (m === 'card') form = `${inp('pay.card.number', 'Número de tarjeta', { attrs: 'inputmode="numeric" autocomplete="off"' })}${inp('pay.card.name', 'Nombre del titular')}<div class="fgrid">${inp('pay.card.exp', 'Vencimiento (MM/AA)', { attrs: 'placeholder="12/30" autocomplete="off"' })}${inp('pay.card.cvc', 'CVC', { attrs: 'inputmode="numeric" autocomplete="off" maxlength="4"' })}</div>
-    <p class="muted" style="margin-bottom:6px">Tarjetas de prueba:</p><div class="chips" style="margin-bottom:14px"><button type="button" class="chip" data-act="payFill" data-n="4242 4242 4242 4242">Aprobada</button><button type="button" class="chip" data-act="payFill" data-n="4000 0000 0000 0002">Rechazada</button><button type="button" class="chip" data-act="payFill" data-n="1234 5678 9012 3456">Inválida</button></div>`;
-  else if (m === 'pse') form = `<div class="field"><label for="b-pay.pse.bank">Banco</label><select id="b-pay.pse.bank" data-bind="pay.pse.bank">${['Banco Demo', 'Banco Demo (rechaza)', 'Banco Ejemplo'].map(b => `<option${p.pse.bank === b ? ' selected' : ''}>${b}</option>`).join('')}</select></div>
-    <div class="field"><label for="b-pay.pse.persona">Tipo de persona</label><select id="b-pay.pse.persona" data-bind="pay.pse.persona"><option value="natural"${p.pse.persona === 'natural' ? ' selected' : ''}>Natural</option><option value="juridica"${p.pse.persona === 'juridica' ? ' selected' : ''}>Jurídica</option></select></div>${inp('pay.pse.doc', 'Documento o NIT del titular')}`;
-  else form = `${inp('pay.wallet.phone', 'Celular asociado a la billetera', { attrs: 'inputmode="tel" placeholder="3000000000"' })}<p class="hint">Se enviaría una notificación de aprobación a tu celular (simulado).</p>`;
-  return `<div class="row" style="margin-bottom:10px"><button class="btn btn-sm" data-act="payCancel">← Volver</button></div>` + head('Pasarela de pago', 'Pago seguro simulado. No ingreses datos reales: usa las tarjetas de prueba.') +
-    `<div class="grid split"><form class="panel" data-form="pay" novalidate><div class="notice warn">Entorno de pruebas: ninguna tarjeta real se procesa ni se almacena.</div>
-      <div class="tabs" role="tablist" aria-label="Método de pago">${Object.entries(PAY_METHODS).map(([k, t]) => `<button type="button" role="tab" aria-selected="${m === k}" data-act="payMethod" data-m="${k}">${t}</button>`).join('')}</div>
-      <div class="notice bad" id="e-form" role="alert" hidden></div>${form}<button class="btn btn-primary" type="submit" style="width:100%">Pagar ${fmtMoney(p.amount, p.currency)}</button></form>
+  const sel = (path, label, opts) => `<div class="field"><label for="b-${path}">${label}</label><select id="b-${path}" data-bind="${path}">${opts.map(([v, t]) => `<option value="${esc(v)}"${path.split('.').reduce((a, k) => a[k], U) === v ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></div>`;
+  const form = `${sel('pay.pse.bank', 'Banco', PSE_BANKS.map(b => [b, b]))}${sel('pay.pse.persona', 'Tipo de persona', [['natural', 'Natural'], ['juridica', 'Jurídica']])}
+    <div class="fgrid">${sel('pay.pse.docType', 'Tipo de documento', [['CC', 'Cédula de ciudadanía'], ['CE', 'Cédula de extranjería'], ['NIT', 'NIT'], ['PA', 'Pasaporte']])}${inp('pay.pse.doc', 'Número de documento', { attrs: 'inputmode="numeric" autocomplete="off"' })}</div>
+    ${inp('pay.pse.email', 'Correo para el comprobante', { attrs: 'type="email" autocomplete="email"' })}`;
+  return `<div class="row" style="margin-bottom:10px"><button class="btn btn-sm" data-act="payCancel">← Volver</button></div>` + head('Pago con PSE', 'Pagas desde tu cuenta bancaria. Pasarela simulada: no se realiza ningún cobro.') +
+    `<div class="grid split"><form class="panel" data-form="pay" novalidate><div class="notice info"><b>PSE</b>: al continuar te llevamos a tu banco para autorizar el débito. Para probar un rechazo elige «Banco Demo (rechaza)».</div>
+      <div class="notice bad" id="e-form" role="alert" hidden></div>${form}<button class="btn btn-primary" type="submit" style="width:100%">Pagar ${fmtMoney(p.amount, p.currency)} con PSE</button></form>
     <section class="panel"><h2>Resumen del pedido</h2><dl class="dl" style="grid-template-columns:1fr auto">${p.lines.map(([a, b]) => `<dt style="text-transform:none;letter-spacing:0;font-size:.9rem">${esc(a)}</dt><dd>${esc(b)}</dd>`).join('')}</dl>
       <hr style="border:0;border-top:2px solid var(--surface-2);margin:14px 0"><div class="row" style="justify-content:space-between"><b>Total a pagar</b><b style="font-size:1.4rem;color:var(--primary-strong)">${fmtMoney(p.amount, p.currency)}</b></div>
       <p class="muted" style="margin-top:12px">Comprador: ${esc(p.payer)}</p></section></div>`;
 }
 function payErrors(p) {
   const e = [];
-  if (p.method === 'card') {
-    const c = p.card, n = c.number.replace(/\s/g, ''), m = /^(\d{2})\/(\d{2})$/.exec(c.exp.trim());
-    if (!/^\d{13,19}$/.test(n) || !luhn(n)) e.push('El número de tarjeta no es válido.');
-    if (!c.name.trim()) e.push('Ingresa el nombre del titular.');
-    if (!m || +m[1] < 1 || +m[1] > 12 || new Date(2000 + +m[2], +m[1], 0, 23, 59) < new Date()) e.push('La fecha de vencimiento no es válida o ya pasó (formato MM/AA).');
-    if (!/^\d{3,4}$/.test(c.cvc)) e.push('El CVC debe tener 3 o 4 dígitos.');
-  } else if (p.method === 'pse') { if (!p.pse.doc.trim()) e.push('Ingresa el documento o NIT del titular.'); }
-  else if (!/^3\d{9}$/.test(p.wallet.phone)) e.push('Ingresa un celular válido de 10 dígitos que empiece por 3.');
+  if (!p.pse.bank) e.push('Elige tu banco.');
+  if (!/^[A-Za-z0-9.\-]{5,20}$/.test(p.pse.doc.trim())) e.push('Ingresa un número de documento válido (5 a 20 caracteres).');
+  if (!isEmail(p.pse.email.trim())) e.push('Ingresa un correo válido para el comprobante.');
   return e;
 }
 function submitPay(f) {
@@ -1633,19 +1604,17 @@ function submitPay(f) {
 function finishPay() {
   const p = U.pay; if (!p || p.stage !== 'processing') return;
   let ok = true, reason = '';
-  if (p.method === 'card' && p.card.number.replace(/\s/g, '') === '4000000000000002') { ok = false; reason = 'Fondos insuficientes (tarjeta de prueba de rechazo).'; }
-  if (p.method === 'pse' && p.pse.bank === 'Banco Demo (rechaza)') { ok = false; reason = 'El banco rechazó la transacción.'; }
-  if (p.method === 'wallet' && p.wallet.phone === '3000000001') { ok = false; reason = 'La billetera no tiene saldo suficiente.'; }
-  const tx = { id: 'TX-' + Math.random().toString(36).slice(2, 8).toUpperCase(), method: p.method, last4: p.method === 'card' ? p.card.number.replace(/\s/g, '').slice(-4) : '', at: new Date().toISOString() };
-  const purchase = p.kind === 'lote' ? createLotPurchase(p.ctx, tx, ok) : createIndepPurchase(p.ctx, tx, ok);
+  if (p.pse.bank === 'Banco Demo (rechaza)') { ok = false; reason = 'El banco rechazó la transacción.'; }
+  const tx = { id: 'TX-' + Math.random().toString(36).slice(2, 8).toUpperCase(), method: p.method, last4: '', at: new Date().toISOString() };
+  const purchase = createIndepPurchase(p.ctx, tx, ok);
   p.result = { ok, tx, reason, purchase }; p.stage = 'done'; save(); render();
 }
 function vPagoResult(p) {
   const r = p.result, t = r.tx;
-  if (!r.ok) return head('Pago rechazado', 'No se realizó ningún cobro ni se generaron licencias.') + `<section class="panel" style="max-width:600px"><div class="notice bad"><b>${esc(r.reason)}</b></div><p class="muted">Referencia: <span class="mono">${t.id}</span></p><div class="row"><button class="btn btn-primary" data-act="payRetry">Reintentar con otro método</button><button class="btn" data-act="payCancel">Cancelar</button></div></section>`;
+  if (!r.ok) return head('Pago rechazado', 'No se realizó ningún cobro ni se generaron licencias.') + `<section class="panel" style="max-width:600px"><div class="notice bad"><b>${esc(r.reason)}</b></div><p class="muted">Referencia: <span class="mono">${t.id}</span></p><div class="row"><button class="btn btn-primary" data-act="payRetry">Reintentar con otro banco</button><button class="btn" data-act="payCancel">Cancelar</button></div></section>`;
   return head('¡Pago aprobado!', 'Guarda tu comprobante. Esta es una transacción simulada.') + `<section class="panel" style="max-width:600px"><div class="notice ok"><b>Transacción aprobada</b></div>
     <dl class="dl"><dt>Referencia</dt><dd class="mono">${t.id}</dd><dt>Concepto</dt><dd>${esc(p.desc)}</dd><dt>Método</dt><dd>${esc(PAY_METHODS[t.method])}${t.last4 ? ' ···· ' + t.last4 : ''}</dd><dt>Fecha</dt><dd>${fmtDT(t.at)}</dd><dt>Total pagado</dt><dd><b>${fmtMoney(p.amount, p.currency)}</b></dd></dl>
-    <div class="row" style="margin-top:16px"><button class="btn btn-primary" data-act="${p.kind === 'lote' ? 'payDoneLote' : 'payDoneIndep'}">${p.kind === 'lote' ? 'Ver mi lote de licencias' : 'Ver mis códigos'}</button></div></section>`;
+    <div class="row" style="margin-top:16px"><button class="btn btn-primary" data-act="payDoneIndep">Ver mis códigos</button></div></section>`;
 }
 // PURCHASE: toda adquisición pasa por una compra (de organización → lote; individual → licencia sin lote)
 function newPurchase(ctx, tx, ok, extra) {
@@ -1664,15 +1633,6 @@ function createIndepPurchase(ctx, tx, ok) {
       S.license_assignments.push({ id: uid('a'), license_id: l.id, user_id: c.id, assigned_at: tx.at, revoked_at: null });
     }
     U.lastPurchase = { codes, total: p.total, currency: p.currency, doc: c.docNum };
-  }
-  return p;
-}
-function createLotPurchase(ctx, tx, ok) {
-  const p = newPurchase(ctx, tx, ok, { type: 'organization', organization_id: ctx.orgId });
-  if (ok) {
-    const bt = { id: uid('b'), purchase_id: p.id, organization_id: ctx.orgId, exam_id: ctx.exam, code: 'L-' + String(S.batch_licenses.length + 1).padStart(4, '0'), quantity: ctx.qty, expires_at: addDays(tx.at, 365), status: 'active' };
-    S.batch_licenses.push(bt); const used = new Set(S.licenses.map(l => l.code));
-    for (let i = 0; i < ctx.qty; i++) S.licenses.push({ id: uid('l'), owner_user_id: null, batch_id: bt.id, purchase_id: null, exam_id: ctx.exam, code: genCode('ENG', used), consumed_at: null, expires_at: bt.expires_at, status: 'available' });
   }
   return p;
 }
@@ -2266,11 +2226,11 @@ function vVerificar() {
    ===================================================================== */
 const ROLES = {
   admin: { label: 'Administrador de la plataforma', nav: [['resumen', 'Resumen'], ['orgs', 'Organizaciones'], ['lotes', 'Lotes y licencias'], ['banco', 'Banco de preguntas'], ['config', 'Configuración del examen'], ['usuarios', 'Usuarios'], ['indep', 'Candidatos independientes'], ['resultados', 'Resultados y certificados']] },
-  org: { label: 'Administrador de organización', nav: [['resumen', 'Resumen'], ['lotes', 'Lotes y licencias'], ['comprarLote', 'Comprar licencias'], ['candidatos', 'Candidatos'], ['usuarios', 'Usuarios'], ['resultados', 'Resultados y certificados'], ['compras', 'Historial de compras']] },
+  org: { label: 'Administrador de organización', nav: [['resumen', 'Resumen'], ['lotes', 'Lotes y licencias'], ['candidatos', 'Candidatos'], ['usuarios', 'Usuarios'], ['resultados', 'Resultados y certificados'], ['compras', 'Historial de compras']] },
   cand: { label: 'Candidato', nav: [['examen', 'Realizar examen'], ['comprar', 'Comprar licencia'], ['compras', 'Historial de compras']] },
   pub: { label: 'Verificador público', nav: [['verificar', 'Verificar certificado']] }
 };
-const VIEWS = { resumen: vResumen, orgs: vOrgs, lotes: vLotes, banco: vBanco, config: vConfig, usuarios: vUsuarios, indep: vIndep, resultados: vResultados, candidatos: vCandidatos, examen: vExamen, comprar: vComprar, comprarLote: vComprarLote, compras: vCompras, verificar: vVerificar };
+const VIEWS = { resumen: vResumen, orgs: vOrgs, lotes: vLotes, banco: vBanco, config: vConfig, usuarios: vUsuarios, indep: vIndep, resultados: vResultados, candidatos: vCandidatos, examen: vExamen, comprar: vComprar, compras: vCompras, verificar: vVerificar };
 
 const ICONS = Object.fromEntries(Object.entries({
   resumen: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
@@ -2284,7 +2244,6 @@ const ICONS = Object.fromEntries(Object.entries({
   candidatos: '<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5M17 5a3.5 3.5 0 0 1 0 6M22 20c0-2.5-1.5-4-4-5"/>',
   examen: '<path d="M6 4l14 8-14 8z"/>',
   comprar: '<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.5 12h11L21 7H6"/>',
-  comprarLote: '<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.5 12h11L21 7H6M12 9v4M10 11h4"/>',
   compras: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
   verificar: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="m9 12 2 2 4-4"/>'
 }).map(([k, v]) => [k, '<svg viewBox="0 0 24 24" aria-hidden="true">' + v + '</svg>']));
@@ -2386,10 +2345,8 @@ const A = {
   forgot() { toast('Te enviaríamos un enlace para restablecer la contraseña (simulado).'); },
   guestExam() { login({ role: 'cand', name: 'Estudiante', guest: true }); },
   guestVerify() { login({ role: 'pub', name: 'Visitante', guest: true }); },
-  payMethod(d) { U.pay.method = d.m; render(); }, payFill(d) { U.pay.card.number = d.n; render(); },
   payRetry() { U.pay.stage = 'form'; U.pay.result = null; render(); }, payCancel() { U.pay = null; render(); },
   payDoneIndep() { U.pay = null; S.ui.view = 'comprar'; render(); },
-  payDoneLote() { const id = S.batch_licenses.find(b => b.purchase_id === U.pay.result.purchase.id)?.id; U.pay = null; U.lotSel = id; S.ui.view = 'lotes'; commit(); }
 };
 // Un solo escuchador de clics para todas las acciones
 document.addEventListener('click', e => {
@@ -2411,7 +2368,6 @@ document.addEventListener('submit', e => {
   if (kind === 'cfg') saveCfg(f);
   else if (kind === 'entry') submitEntry(f);
   else if (kind === 'buy') submitBuy(f);
-  else if (kind === 'lbuy') submitLote(f);
   else if (kind === 'pay') submitPay(f);
   else if (kind === 'login') submitLogin(f);
   else if (kind === 'reg') submitReg(f);
