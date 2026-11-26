@@ -286,9 +286,9 @@ const fmtD = s => s ? new Date(s).toLocaleDateString('es-CO', { day: '2-digit', 
 const fmtDT = s => s ? new Date(s).toLocaleString('es-CO', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 const fmtMoney = (n, cur) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: cur || 'COP', maximumFractionDigits: 0 }).format(n);
 const fmtSec = s => { s = Math.round(s); return Math.floor(s / 60) + ' min ' + String(s % 60).padStart(2, '0') + ' s'; };
-const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-const SKILLS = { grammar: 'Gramática', vocabulary: 'Vocabulario', reading: 'Lectura', listening: 'Comprensión auditiva' };
-const TF = ['Verdadero', 'Falso'];
+const LEVELS = ['Pre-A1', 'A1', 'A2', 'B1', 'B2', 'C1'];
+const SKILLS = { use: 'Use of English', reading: 'Reading', listening: 'Listening', writing: 'Writing' };
+const CAT_SKILLS = ['use', 'reading', 'listening'];   // habilidades con CAT; Writing se califica con rúbrica
 const DOC_TYPES = ['CC', 'TI', 'CE', 'PAS'];
 const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -308,91 +308,175 @@ function genCode(prefix, used, R = Math.random) {
 /* =====================================================================
    2. DATOS MOCK (semilla)
    ===================================================================== */
-// Banco de preguntas: [habilidad, nivel, enunciado, opciones, índice correcto, recurso]
-const P = {
+// ---------------------------------------------------------------------------------------------
+// Banco de ítems del English Placement Test (documento maestro, sección 7).
+// Cada fila: [habilidad, nivel, dominio, subhabilidad, tema, enunciado, opciones, correcta, recurso]
+// El subnivel (.1 / .2) y los parámetros TRI (a, b, c) se asignan al construir el banco (ver seed()).
+// ---------------------------------------------------------------------------------------------
+const BANK_ROWS = [];
+const U_ = (lv, dom, sub, topic, stem, opts, ok) => BANK_ROWS.push(['use', lv, dom, sub, topic, stem, opts, ok, '']);
+const R_ = (lv, dom, sub, topic, text, stem, opts, ok) => BANK_ROWS.push(['reading', lv, dom, sub, topic, stem, opts, ok, text]);
+const L_ = (lv, dom, sub, topic, text, stem, opts, ok) => BANK_ROWS.push(['listening', lv, dom, sub, topic, stem, opts, ok, text]);
+const W_ = (lv, topic, prompt) => BANK_ROWS.push(['writing', lv, 'writing', 'task', topic, prompt, [], -1, '']);
+const TXT = {
+  p0a: 'My name is Sam. I am seven. I have a red ball.',
+  p0b: 'This is my house. It is big. It has a green door.',
   a1: 'Tom is ten. He has a dog called Max. Max is brown and likes to play in the park.',
   a2: 'Last weekend Laura visited her grandparents. They live in a small village near the mountains. They had lunch together and walked by the river in the afternoon.',
   b1: 'Remote work has changed how many companies operate. Employees save commuting time and often report a better balance between work and personal life. However, some managers worry that teams communicate less and that new staff feel isolated.',
   b2: 'Urban gardens are spreading across large cities. Beyond providing fresh vegetables, they strengthen community ties and reduce local temperatures. Critics, however, argue that the land would be better used for affordable housing, a claim supporters consider a false dilemma.',
-  c1: 'The notion that technological progress inevitably yields social benefit has been increasingly contested. While automation boosts productivity, its gains tend to accrue disproportionately to capital owners, prompting scholars to call for redistributive mechanisms that temper emerging inequalities.',
-  c2: 'Notwithstanding the exhaustive empirical scrutiny it has undergone, the hypothesis remains, in the strictest sense, unfalsifiable; its proponents, ever resourceful, reinterpret each anomaly as corroboration, thereby insulating the theory from refutation.'
+  c1: 'The notion that technological progress inevitably yields social benefit has been increasingly contested. While automation boosts productivity, its gains tend to accrue disproportionately to capital owners, prompting scholars to call for redistributive mechanisms that temper emerging inequalities.'
 };
-const QBANK = [
-  // A1
-  ['g', 0, 'She ___ a student.', ['am', 'is', 'are', 'be'], 1],
-  ['g', 0, 'They ___ from Colombia.', ['is', 'am', 'are', 'be'], 2],
-  ['v', 0, 'Which word is a fruit?', ['table', 'apple', 'window', 'chair'], 1],
-  ['v', 0, 'What day comes after Tuesday?', ['Wednesday', 'Friday', 'Sunday', 'Thursday'], 0],
-  ['r', 0, 'What colour is Max?', ['Black', 'Brown', 'White', 'Yellow'], 1, P.a1],
-  ['r', 0, 'Tom has a cat.', TF, 1, P.a1],
-  ['l', 0, 'Where does Ana live?', ['Bogotá', 'Cali', 'Lima', 'Quito'], 1, 'Hello, my name is Ana. I live in Cali.'],
-  ['l', 0, 'What time does the shop open?', ['At eight', 'At nine', 'At ten', 'At seven'], 1, 'The shop opens at nine.'],
-  // A2
-  ['g', 1, 'Yesterday I ___ to the cinema.', ['go', 'went', 'gone', 'going'], 1],
-  ['g', 1, "There isn't ___ milk in the fridge.", ['some', 'any', 'a', 'many'], 1],
-  ['v', 1, 'A person who cooks in a restaurant is a ___.', ['driver', 'chef', 'nurse', 'pilot'], 1],
-  ['v', 1, "The opposite of 'cheap' is ___.", ['expensive', 'small', 'slow', 'early'], 0],
-  ['r', 1, "Where do Laura's grandparents live?", ['In a big city', 'In a village', 'By the sea', 'In another country'], 1, P.a2],
-  ['r', 1, 'Laura walked by the river in the morning.', TF, 1, P.a2],
-  ['l', 1, 'Which platform does the train leave from?', ['Platform two', 'Platform three', 'Platform four', 'Platform six'], 2, 'Excuse me, the train to Medellín leaves from platform four at ten past six.'],
-  ['l', 1, 'What does the speaker NOT want?', ['Milk', 'Coffee', 'Sugar', 'Water'], 2, "I'd like a coffee with milk, but no sugar, please."],
-  // B1
-  ['g', 2, 'If it rains tomorrow, we ___ at home.', ['stay', 'will stay', 'stayed', 'would stay'], 1],
-  ['g', 2, 'She has lived here ___ 2015.', ['for', 'since', 'from', 'during'], 1],
-  ['v', 2, 'I need to ___ a decision before Friday.', ['do', 'make', 'have', 'get'], 1],
-  ['v', 2, 'The meeting was ___ because the manager was ill.', ['called off', 'called up', 'called in', 'called for'], 0],
-  ['r', 2, 'What concern do some managers have?', ['Salaries are too high', 'Teams may communicate less', 'Offices are too expensive', 'Employees work too many hours'], 1, P.b1],
-  ['r', 2, 'Employees usually lose time commuting when working remotely.', TF, 1, P.b1],
-  ['l', 2, 'Why is the flight delayed?', ['A strike', 'Fog', 'A technical problem', 'A late crew'], 1, 'The flight has been delayed by two hours because of fog, so passengers should wait in the departure lounge.'],
-  ['l', 2, "Why didn't the speaker call?", ['No time', 'The phone battery died', 'Forgot the number', 'Was sleeping'], 1, 'I was going to call you, but my phone battery died.'],
-  // B2
-  ['g', 3, 'I wish I ___ more time to travel.', ['have', 'had', 'would have', 'having'], 1],
-  ['g', 3, 'By next year, she ___ her degree.', ['will finish', 'will have finished', 'finishes', 'is finishing'], 1],
-  ['v', 3, 'The company decided to ___ its operations to Asia.', ['expand', 'expend', 'expose', 'expect'], 0],
-  ['v', 3, 'His argument was so ___ that nobody could disagree.', ['compelling', 'compulsory', 'complex', 'compact'], 0],
-  ['r', 3, 'What do supporters think of the housing argument?', ['It is entirely correct', 'It presents a false choice', 'It is irrelevant to cities', 'It was proven by research'], 1, P.b2],
-  ['r', 3, 'Urban gardens may help lower temperatures locally.', TF, 0, P.b2],
-  ['l', 3, 'What did the researchers insist on?', ['The results were final', 'More trials were needed', 'The study had failed', 'Funding had ended'], 1, 'Although the results were promising, the researchers insisted that more trials were needed before drawing conclusions.'],
-  ['l', 3, 'Did the speaker go to the party?', ['Yes', 'No', 'Maybe', 'He organised it'], 1, "I'd have joined you had I known about the party."],
-  // C1
-  ['g', 4, 'Not only ___ late, but he also forgot the documents.', ['he arrived', 'did he arrive', 'he did arrive', 'arrived he'], 1],
-  ['g', 4, 'Were it not for your help, I ___ the deadline.', ['would miss', 'would have missed', 'will miss', 'missed'], 1],
-  ['v', 4, "The politician's remarks were deliberately ___, leaving room for interpretation.", ['ambiguous', 'ambitious', 'amiable', 'abundant'], 0],
-  ['v', 4, 'She has a ___ for languages; she learns them effortlessly.', ['knack', 'knock', 'knot', 'nick'], 0],
-  ['r', 4, 'What do scholars suggest?', ['Halting automation', 'Redistributive mechanisms', 'Lowering productivity', 'Increasing capital ownership'], 1, P.c1],
-  ['r', 4, 'The text claims that technological progress always benefits society equally.', TF, 1, P.c1],
-  ['l', 4, 'Why did the board reject the proposal?', ['Its merits were poor', 'The timing was untenable', 'It cost too much', 'It was illegal'], 1, 'Having weighed the proposal at length, the board concluded that, notwithstanding its merits, the timing was untenable.'],
-  ['l', 4, 'What happened?', ['The lecture ended', 'The projector failed just after the start', 'The lecture was cancelled', 'The projector was fixed'], 1, 'Hardly had the lecture begun when the projector failed.'],
-  // C2
-  ['g', 5, 'Rarely ___ such a compelling performance.', ['I have seen', 'have I seen', 'I seen', 'did I seen'], 1],
-  ['g', 5, 'So ___ was the evidence that the jury needed no deliberation.', ['overwhelming', 'overwhelmingly', 'overwhelm', 'an overwhelming'], 0],
-  ['v', 5, "The critic's review was ___, dismissing the entire work without nuance.", ['scathing', 'soothing', 'scanty', 'scrupulous'], 0],
-  ['v', 5, 'His ___ remarks caused laughter among the otherwise solemn audience.', ['facetious', 'fastidious', 'fallacious', 'fortuitous'], 0],
-  ['r', 5, 'What does the author imply?', ['The theory was tested and falsified', 'Proponents shield the theory from refutation', 'Anomalies refute the theory', 'Scrutiny has been lacking'], 1, P.c2],
-  ['r', 5, 'The author thinks the hypothesis can be easily disproved.', TF, 1, P.c2],
-  ['l', 5, 'What do the data do?', ['Confirm the policy', 'Undermine its core premise', 'Are inconclusive', 'Are missing'], 1, 'Far from vindicating the policy, the data, if anything, undermine its core premise.'],
-  ['l', 5, 'How did she feel?', ['Delighted', 'Quite upset', 'Indifferent', 'Relieved'], 1, 'She was, to put it mildly, less than thrilled by the outcome.']
-];
-const SK = { g: 'grammar', v: 'vocabulary', r: 'reading', l: 'listening' };
+// ---- Pre-A1 ----
+U_(0, 'grammar', 'verb_to_be', 'personal_info', 'I ___ Ana.', ['am', 'is', 'are', 'be'], 0);
+U_(0, 'grammar', 'articles', 'food', 'This is ___ apple.', ['a', 'an', 'the', 'two'], 1);
+U_(0, 'vocabulary', 'animals', 'daily_life', 'Which word is an animal?', ['dog', 'pen', 'car', 'red'], 0);
+U_(0, 'vocabulary', 'colours', 'daily_life', 'Which word is a colour?', ['red', 'run', 'read', 'rain'], 0);
+U_(0, 'vocabulary', 'greetings', 'personal_info', 'Hello! What is your ___?', ['name', 'age', 'car', 'dog'], 0);
+U_(0, 'vocabulary', 'numbers', 'daily_life', 'Two plus two is ___.', ['three', 'four', 'five', 'six'], 1);
+U_(0, 'grammar', 'verb_to_be', 'family', 'He ___ a boy.', ['is', 'am', 'are', 'have'], 0);
+U_(0, 'vocabulary', 'family', 'family', 'Which word is a family member?', ['mother', 'table', 'shirt', 'school'], 0);
+R_(0, 'detail', 'personal_info', 'personal_info', TXT.p0a, 'How old is Sam?', ['Five', 'Seven', 'Ten', 'Eight'], 1);
+R_(0, 'detail', 'colours', 'daily_life', TXT.p0a, 'What colour is the ball?', ['Blue', 'Green', 'Red', 'Black'], 2);
+R_(0, 'detail', 'colours', 'home', TXT.p0b, 'What colour is the door?', ['Green', 'Red', 'Blue', 'White'], 0);
+R_(0, 'detail', 'adjectives', 'home', TXT.p0b, 'The house is ___.', ['small', 'big', 'old', 'dirty'], 1);
+L_(0, 'detail', 'places', 'personal_info', 'Hi, I am Maria. I am from Mexico.', 'Where is Maria from?', ['Spain', 'Mexico', 'Peru', 'Chile'], 1);
+L_(0, 'detail', 'numbers', 'animals', 'I have two cats and one dog.', 'How many cats does the speaker have?', ['One', 'Two', 'Three', 'Four'], 1);
+L_(0, 'detail', 'days', 'daily_life', 'It is Monday. I go to school.', 'Where does the speaker go on Monday?', ['To work', 'To school', 'To the park', 'To a shop'], 1);
+L_(0, 'detail', 'numbers', 'personal_info', 'My phone number is five, five, one, two.', 'What is the last number?', ['One', 'Two', 'Five', 'Three'], 1);
+W_(0, 'personal_info', 'Write 2 or 3 short sentences about yourself: your name, your age and where you live.');
+W_(0, 'family', 'Write about your family. Use simple sentences, for example: "I have a sister."');
+// ---- A1 ----
+U_(1, 'grammar', 'verb_to_be', 'personal_info', 'She ___ a student.', ['am', 'is', 'are', 'be'], 1);
+U_(1, 'grammar', 'verb_to_be', 'personal_info', 'They ___ from Colombia.', ['is', 'am', 'are', 'be'], 2);
+U_(1, 'grammar', 'have_got', 'family', 'My sister ___ two brothers.', ['have', 'has', 'having', 'haves'], 1);
+U_(1, 'grammar', 'present_simple', 'daily_routines', 'I ___ breakfast at seven.', ['eat', 'eats', 'eating', 'am eat'], 0);
+U_(1, 'vocabulary', 'food', 'food', 'Which word is a fruit?', ['table', 'apple', 'window', 'chair'], 1);
+U_(1, 'vocabulary', 'days', 'daily_life', 'What day comes after Tuesday?', ['Wednesday', 'Friday', 'Sunday', 'Thursday'], 0);
+U_(1, 'vocabulary', 'opposites', 'daily_life', 'The opposite of "big" is ___.', ['small', 'tall', 'long', 'old'], 0);
+U_(1, 'vocabulary', 'clothes', 'clothes', 'You wear a ___ on your head.', ['hat', 'shoe', 'sock', 'belt'], 0);
+R_(1, 'detail', 'colours', 'animals', TXT.a1, 'What colour is Max?', ['Black', 'Brown', 'White', 'Yellow'], 1);
+R_(1, 'detail', 'animals', 'animals', TXT.a1, 'Tom has a ___.', ['cat', 'dog', 'bird', 'fish'], 1);
+R_(1, 'detail', 'places', 'animals', TXT.a1, 'Where does Max like to play?', ['In the park', 'At school', 'In the house', 'At the beach'], 0);
+R_(1, 'detail', 'numbers', 'personal_info', TXT.a1, 'How old is Tom?', ['Eight', 'Nine', 'Ten', 'Eleven'], 2);
+L_(1, 'detail', 'places', 'personal_info', 'Hello, my name is Ana. I live in Cali.', 'Where does Ana live?', ['Bogotá', 'Cali', 'Lima', 'Quito'], 1);
+L_(1, 'detail', 'times', 'shopping', 'The shop opens at nine.', 'What time does the shop open?', ['At eight', 'At nine', 'At ten', 'At seven'], 1);
+L_(1, 'detail', 'times', 'daily_routines', 'I get up at seven and I have breakfast at half past seven.', 'When does the speaker have breakfast?', ['At seven', 'At half past seven', 'At eight', 'At nine'], 1);
+L_(1, 'detail', 'places', 'city', 'The bank is next to the supermarket.', 'Where is the bank?', ['Next to the supermarket', 'Behind the school', 'Opposite the park', 'In the station'], 0);
+W_(1, 'daily_routines', 'Describe your daily routine. Write at least four sentences.');
+W_(1, 'invitations', 'Write a short message to a friend inviting them to your birthday party.');
+// ---- A2 ----
+U_(2, 'grammar', 'past_simple', 'leisure', 'Yesterday I ___ to the cinema.', ['go', 'went', 'gone', 'going'], 1);
+U_(2, 'grammar', 'quantifiers', 'food', "There isn't ___ milk in the fridge.", ['some', 'any', 'a', 'many'], 1);
+U_(2, 'grammar', 'comparatives', 'family', 'She is ___ than her brother.', ['tall', 'taller', 'tallest', 'more tall'], 1);
+U_(2, 'grammar', 'past_continuous', 'daily_life', 'We ___ TV when the phone rang.', ['watch', 'watched', 'were watching', 'are watching'], 2);
+U_(2, 'vocabulary', 'jobs', 'work', 'A person who cooks in a restaurant is a ___.', ['driver', 'chef', 'nurse', 'pilot'], 1);
+U_(2, 'vocabulary', 'opposites', 'shopping', "The opposite of 'cheap' is ___.", ['expensive', 'small', 'slow', 'early'], 0);
+U_(2, 'vocabulary', 'objects', 'school', 'You use a ___ to cut paper.', ['scissors', 'spoon', 'brush', 'fork'], 0);
+U_(2, 'vocabulary', 'health', 'health', 'I feel ___ because I have a headache.', ['ill', 'angry', 'hungry', 'cold'], 0);
+R_(2, 'detail', 'places', 'family', TXT.a2, "Where do Laura's grandparents live?", ['In a big city', 'In a village', 'By the sea', 'In another country'], 1);
+R_(2, 'detail', 'activities', 'leisure', TXT.a2, 'What did they do in the afternoon?', ['Cooked dinner', 'Walked by the river', 'Went shopping', 'Watched a film'], 1);
+R_(2, 'detail', 'people', 'family', TXT.a2, 'Who did Laura visit?', ['Her friends', 'Her grandparents', 'Her cousins', 'Her teachers'], 1);
+R_(2, 'detail', 'places', 'family', TXT.a2, 'The village is near the ___.', ['sea', 'mountains', 'airport', 'city centre'], 1);
+L_(2, 'detail', 'transport', 'travel', 'Excuse me, the train to Medellín leaves from platform four at ten past six.', 'Which platform does the train leave from?', ['Platform two', 'Platform three', 'Platform four', 'Platform six'], 2);
+L_(2, 'detail', 'preferences', 'food', "I'd like a coffee with milk, but no sugar, please.", 'What does the speaker NOT want?', ['Milk', 'Coffee', 'Sugar', 'Water'], 2);
+L_(2, 'detail', 'times', 'travel', 'Our flight leaves at nine, so we need to be at the airport by seven.', 'When should they arrive at the airport?', ['At seven', 'At nine', 'At eight', 'At six'], 0);
+L_(2, 'detail', 'shopping', 'leisure', 'Can I have two tickets for the afternoon show, please?', 'What does the speaker want?', ['Two morning tickets', 'Two afternoon tickets', 'One ticket', 'A refund'], 1);
+W_(2, 'past_events', 'Write about what you did last weekend. Say where you went and who you were with.');
+W_(2, 'travel', 'Write an email to a hotel to ask about prices and breakfast.');
+// ---- B1 ----
+U_(3, 'grammar', 'first_conditional', 'weather', 'If it rains tomorrow, we ___ at home.', ['stay', 'will stay', 'stayed', 'would stay'], 1);
+U_(3, 'grammar', 'present_perfect', 'daily_life', 'She has lived here ___ 2015.', ['for', 'since', 'from', 'during'], 1);
+U_(3, 'grammar', 'present_perfect', 'food', 'I have never ___ sushi.', ['eat', 'ate', 'eaten', 'eating'], 2);
+U_(3, 'grammar', 'reported_speech', 'daily_life', 'He asked me where I ___.', ['live', 'lived', 'am living', 'will live'], 1);
+U_(3, 'vocabulary', 'collocations', 'work', 'I need to ___ a decision before Friday.', ['do', 'make', 'have', 'get'], 1);
+U_(3, 'vocabulary', 'phrasal_verbs', 'work', 'The meeting was ___ because the manager was ill.', ['called off', 'called up', 'called in', 'called for'], 0);
+U_(3, 'vocabulary', 'personality', 'people', 'She is very ___; she never tells lies.', ['honest', 'curious', 'jealous', 'lazy'], 0);
+U_(3, 'vocabulary', 'collocations', 'daily_life', 'Could you ___ me a favour?', ['do', 'make', 'take', 'give'], 0);
+R_(3, 'detail', 'concerns', 'work', TXT.b1, 'What concern do some managers have?', ['Salaries are too high', 'Teams may communicate less', 'Offices are too expensive', 'Employees work too many hours'], 1);
+R_(3, 'detail', 'benefits', 'work', TXT.b1, 'What do employees save when they work remotely?', ['Money on food', 'Commuting time', 'Equipment costs', 'Holiday days'], 1);
+R_(3, 'detail', 'feelings', 'work', TXT.b1, 'How do some new staff feel?', ['Excited', 'Isolated', 'Overworked', 'Underpaid'], 1);
+R_(3, 'main_idea', 'topic', 'work', TXT.b1, 'The text mainly discusses ___.', ['holidays', 'remote work', 'salaries', 'office design'], 1);
+L_(3, 'detail', 'reasons', 'travel', 'The flight has been delayed by two hours because of fog, so passengers should wait in the departure lounge.', 'Why is the flight delayed?', ['A strike', 'Fog', 'A technical problem', 'A late crew'], 1);
+L_(3, 'detail', 'reasons', 'technology', 'I was going to call you, but my phone battery died.', "Why didn't the speaker call?", ['No time', 'The phone battery died', 'Forgot the number', 'Was sleeping'], 1);
+L_(3, 'detail', 'reasons', 'work', 'The meeting has been moved from Tuesday to Thursday because the director is travelling.', 'Why was the meeting moved?', ['The room was busy', 'The director is travelling', 'It was cancelled', 'Staff were ill'], 1);
+L_(3, 'detail', 'duration', 'transport', 'If you take the number ten bus, you will get to the museum in about twenty minutes.', 'How long does the bus take?', ['Ten minutes', 'Twenty minutes', 'Thirty minutes', 'Two hours'], 1);
+W_(3, 'memories', 'Write a short text about a trip you remember. Explain why it was special.');
+W_(3, 'opinion', 'Do you prefer studying alone or in a group? Give your opinion and two reasons.');
+// ---- B2 ----
+U_(4, 'grammar', 'wishes', 'leisure', 'I wish I ___ more time to travel.', ['have', 'had', 'would have', 'having'], 1);
+U_(4, 'grammar', 'future_perfect', 'education', 'By next year, she ___ her degree.', ['will finish', 'will have finished', 'finishes', 'is finishing'], 1);
+U_(4, 'grammar', 'second_conditional', 'advice', 'If I ___ you, I would apologise.', ['am', 'were', 'was being', 'will be'], 1);
+U_(4, 'grammar', 'past_perfect_passive', 'work', 'The report ___ by the time the manager arrived.', ['finished', 'had been finished', 'has finished', 'was finishing'], 1);
+U_(4, 'vocabulary', 'word_choice', 'business', 'The company decided to ___ its operations to Asia.', ['expand', 'expend', 'expose', 'expect'], 0);
+U_(4, 'vocabulary', 'adjectives', 'debate', 'His argument was so ___ that nobody could disagree.', ['compelling', 'compulsory', 'complex', 'compact'], 0);
+U_(4, 'vocabulary', 'phrasal_verbs', 'law', 'The new law will ___ into effect next month.', ['come', 'go', 'take', 'get'], 0);
+U_(4, 'vocabulary', 'verb_forms', 'economy', 'Prices have ___ sharply this year.', ['risen', 'raised', 'arisen', 'rose'], 0);
+R_(4, 'inference', 'attitude', 'cities', TXT.b2, 'What do supporters think of the housing argument?', ['It is entirely correct', 'It presents a false choice', 'It is irrelevant to cities', 'It was proven by research'], 1);
+R_(4, 'detail', 'benefits', 'cities', TXT.b2, 'Besides vegetables, what do urban gardens provide?', ['Cheaper housing', 'Stronger community ties', 'Higher temperatures', 'More traffic'], 1);
+R_(4, 'detail', 'arguments', 'cities', TXT.b2, 'What do critics argue?', ['Land should be used for housing', 'Gardens are too expensive', 'Gardens need more water', 'Cities are too hot'], 0);
+R_(4, 'vocabulary_in_context', 'meaning', 'cities', TXT.b2, 'The expression "false dilemma" suggests that ___.', ['only one option exists', 'there are more than two options', 'housing is unnecessary', 'gardens are illegal'], 1);
+L_(4, 'detail', 'reasons', 'research', 'Although the results were promising, the researchers insisted that more trials were needed before drawing conclusions.', 'What did the researchers insist on?', ['The results were final', 'More trials were needed', 'The study had failed', 'Funding had ended'], 1);
+L_(4, 'inference', 'hypothetical', 'leisure', "I'd have joined you had I known about the party.", 'Did the speaker go to the party?', ['Yes', 'No', 'Maybe', 'He organised it'], 1);
+L_(4, 'inference', 'reasons', 'work', 'I would have taken the job, but the salary was far too low.', "Why didn't the speaker take the job?", ['The location', 'The salary', 'The hours', 'The manager'], 1);
+L_(4, 'detail', 'contrast', 'sport', 'Despite the rain, the match went ahead as planned.', 'What happened to the match?', ['It was postponed', 'It took place', 'It was cancelled', 'It was moved indoors'], 1);
+W_(4, 'social_media', 'Some people say that social media does more harm than good. Write an essay giving your opinion.');
+W_(4, 'work', 'Write a formal email to your manager proposing a change in the working schedule and justify it.');
+// ---- C1 ----
+U_(5, 'grammar', 'inversion', 'work', 'Not only ___ late, but he also forgot the documents.', ['he arrived', 'did he arrive', 'he did arrive', 'arrived he'], 1);
+U_(5, 'grammar', 'mixed_conditionals', 'work', 'Were it not for your help, I ___ the deadline.', ['would miss', 'would have missed', 'will miss', 'missed'], 1);
+U_(5, 'grammar', 'inversion', 'research', 'Only after the results were published ___ the error.', ['they noticed', 'did they notice', 'they did notice', 'noticed they'], 1);
+U_(5, 'grammar', 'as_though', 'people', 'She talks as though she ___ everything.', ['knows', 'knew', 'has known', 'is knowing'], 1);
+U_(5, 'vocabulary', 'register', 'politics', "The politician's remarks were deliberately ___, leaving room for interpretation.", ['ambiguous', 'ambitious', 'amiable', 'abundant'], 0);
+U_(5, 'vocabulary', 'idioms', 'education', 'She has a ___ for languages; she learns them effortlessly.', ['knack', 'knock', 'knot', 'nick'], 0);
+U_(5, 'vocabulary', 'compound_adjectives', 'business', 'The new policy had far-___ consequences for small businesses.', ['reaching', 'going', 'spread', 'coming'], 0);
+U_(5, 'vocabulary', 'word_forms', 'committees', 'His proposal was met with ___ from the committee.', ['scepticism', 'sceptic', 'sceptically', 'sceptical'], 0);
+R_(5, 'inference', 'recommendations', 'economy', TXT.c1, 'What do scholars suggest?', ['Halting automation', 'Redistributive mechanisms', 'Lowering productivity', 'Increasing capital ownership'], 1);
+R_(5, 'detail', 'beneficiaries', 'economy', TXT.c1, 'According to the text, who benefits disproportionately from automation?', ['Workers', 'Capital owners', 'Consumers', 'Scholars'], 1);
+R_(5, 'vocabulary_in_context', 'meaning', 'economy', TXT.c1, 'What does "contested" mean in the first sentence?', ['Accepted', 'Challenged', 'Ignored', 'Proven'], 1);
+R_(5, 'inference', 'tone', 'economy', TXT.c1, "The author's tone is best described as ___.", ['critical and analytical', 'humorous', 'enthusiastic', 'indifferent'], 0);
+L_(5, 'inference', 'reasons', 'business', 'Having weighed the proposal at length, the board concluded that, notwithstanding its merits, the timing was untenable.', 'Why did the board reject the proposal?', ['Its merits were poor', 'The timing was untenable', 'It cost too much', 'It was illegal'], 1);
+L_(5, 'detail', 'sequence', 'education', 'Hardly had the lecture begun when the projector failed.', 'What happened?', ['The lecture ended', 'The projector failed just after the start', 'The lecture was cancelled', 'The projector was fixed'], 1);
+L_(5, 'inference', 'attitude', 'research', 'The findings, while intriguing, hardly warrant the sweeping conclusions the authors draw.', 'What does the speaker think of the conclusions?', ['They are justified', 'They go too far', 'They are modest', 'They are original'], 1);
+L_(5, 'detail', 'sequence', 'literature', "Not until the final chapter does the novel reveal its narrator's identity.", "When is the narrator's identity revealed?", ['At the start', 'In the middle', 'In the last chapter', 'It is never revealed'], 2);
+W_(5, 'technology', 'Discuss to what extent technology has changed the way we work. Support your argument with examples.');
+W_(5, 'education', 'Write a report evaluating the advantages and disadvantages of remote education and recommend measures.');
 
 /* Catálogos con identificadores fijos (LEVEL, SKILL, QUESTION_TYPE): el id se deduce de la posición */
 const EXAM_PRICE = { x1: 85000, x2: 55000 }, CURRENCY = 'COP';   // precio de lista (no forma parte del modelo: EXAM no tiene precio)
 const lvId = i => 'lv' + (i + 1), lvI = id => +String(id).slice(2) - 1;
 const SKILL_CODES = Object.keys(SKILLS);
 const skId = code => 'sk' + (SKILL_CODES.indexOf(code) + 1), skCode = id => SKILL_CODES[+String(id).slice(2) - 1];
-const QTYPES = { multiple_choice: 'Opción múltiple', true_false: 'Verdadero / Falso' };
-const qtId = code => code === 'true_false' ? 'qt2' : 'qt1';
-const CFG_FIELDS = ['initial_level_id', 'min_questions', 'max_questions', 'default_time_sec', 'fast_threshold_pct', 'slow_threshold_pct', 'gauge_up', 'gauge_down', 'advance_fast', 'advance_normal', 'advance_slow', 'quality_fast', 'quality_normal', 'quality_slow', 'pass_threshold', 'min_answers_per_level', 'certificate_valid_days'];
-
+const QTYPES = { multiple_choice: 'Opción múltiple (4 opciones)', cloze: 'Cloze (completar el espacio)', writing_prompt: 'Tarea de Writing' };
+const qtId = code => ({ multiple_choice: 'qt1', cloze: 'qt2', writing_prompt: 'qt3' })[code] || 'qt1';
+// Niveles MCER y rangos de θ (sección 6); descriptores "Can Do" por habilidad y nivel (sección 4)
+const LEVEL_NAMES = ['Acceso inicial', 'Acceso', 'Plataforma', 'Umbral', 'Avanzado', 'Dominio operativo eficaz'];
+const THETA_RANGE = [[-3, -2], [-2, -1], [-1, 0], [0, 1], [1, 2], [2, 3]];
+const COURSES = [['E00', 'Elementary 0'], ['E101', 'Elementary 1'], ['E201', 'Pre-Intermediate 1'], ['E301', 'Intermediate 1'], ['E401', 'Upper Intermediate 1'], ['E501', 'Advanced 1']];
+const RECO = [
+  ['Inscripción en Elementary 0 (E00)', 'Vocabulario básico y comprensión de frases muy simples.'],
+  ['Inscripción en Elementary 1 (E101)', 'Apoyo en pronunciación y vocabulario de uso cotidiano.'],
+  ['Inscripción en Pre-Intermediate 1 (E201)', 'Refuerzo en fluidez y precisión gramatical.'],
+  ['Inscripción en Intermediate 1 (E301)', 'Exposición intensiva a Listening diario.'],
+  ['Inscripción en Upper Intermediate 1 (E401)', 'Debates guiados, tareas argumentativas, lecturas extensas.'],
+  ['Inscripción en Advanced 1 (E501)', 'Énfasis en expresión académica y producción especializada.']
+];
+const CAN_DO = {
+  use: ['Can use isolated words and the verb "to be" in very simple sentences.', 'Can use basic grammar and everyday vocabulary in short, simple sentences.', 'Can use common past forms and comparisons in familiar situations.', 'Can use a range of tenses and common collocations in everyday contexts.', 'Can use complex structures and a wide vocabulary accurately.', 'Can use sophisticated structures, inversion and precise vocabulary flexibly.'],
+  reading: ['Can understand very short, simple texts with familiar words.', 'Can understand short, simple texts on familiar topics.', 'Can understand short texts about everyday life.', 'Can understand the main points of clear texts on familiar matters.', 'Can understand the main ideas of complex text on both concrete and abstract topics.', 'Can understand demanding, longer texts and recognise implicit meaning.'],
+  listening: ['Can recognise familiar words in slow, clear speech.', 'Can understand simple phrases about personal details and routines.', 'Can understand phrases and expressions related to everyday needs.', 'Can understand the main points of clear standard speech on familiar matters.', 'Can follow extended speech and infer meaning on concrete and abstract topics.', 'Can understand extended speech even when it is not clearly structured.'],
+  writing: ['Can write isolated words and very simple sentences about themselves.', 'Can write simple phrases and sentences about daily life.', 'Can write short, simple notes and messages on familiar topics.', 'Can write straightforward connected text on familiar topics.', 'Can write clear, detailed text and defend a point of view.', 'Can write well-structured, detailed text on complex subjects.']
+};
+// Límites globales del motor (sección 22.2) y parámetros por defecto de la configuración
+const MIN_ITEMS_GLOBAL = 10, MAX_ITEMS_GLOBAL = 50, MAX_MINUTES_GLOBAL = 35;
+const CFG_FIELDS = ['theta_initial', 'prior_mean', 'prior_sd', 'se_threshold', 'max_exposure', 'min_candidates', 'streak_up', 'streak_down', 'writing_minutes', 'certificate_valid_days'];
 function defaultCfg() {
-  const t = (a1, a2, b1, b2, c1, c2) => ({ A1: a1, A2: a2, B1: b1, B2: b2, C1: c1, C2: c2 });
   return {
-    initial_level_id: lvId(2), min_questions: 8, max_questions: 15, default_time_sec: 45,
-    // Escalera por niveles: el tiempo define la rapidez (% del límite) y con ella el avance y la calidad de cada acierto
-    fast_threshold_pct: 40, slow_threshold_pct: 85,
-    gauge_up: 2, gauge_down: 1, advance_fast: 2, advance_normal: 1, advance_slow: 0.5,
-    quality_fast: 1, quality_normal: 0.8, quality_slow: 0.5, pass_threshold: 0.6, min_answers_per_level: 2, certificate_valid_days: 730,
-    timeTable: { grammar: t(25, 25, 35, 40, 45, 50), vocabulary: t(25, 25, 30, 35, 40, 45), reading: t(50, 60, 75, 90, 110, 130), listening: t(40, 45, 55, 65, 75, 85) }
+    theta_initial: 0, prior_mean: 0, prior_sd: 1, se_threshold: 0.30,
+    max_exposure: 0.20, min_candidates: 5, streak_up: 3, streak_down: 2,
+    writing_minutes: 20, certificate_valid_days: 180,
+    // Ítems administrados y tiempo por habilidad (sección 5)
+    skillCfg: { use: { min_items: 15, max_items: 25, max_minutes: 20 }, reading: { min_items: 10, max_items: 20, max_minutes: 20 }, listening: { min_items: 10, max_items: 20, max_minutes: 20 } }
   };
 }
 
@@ -402,28 +486,28 @@ function seed() {
   const T = Date.now(), at = n => iso(T + n * DAY), day = n => at(n).slice(0, 10);
   const s = { seq: 1000, ui: { role: 'admin', orgId: 'o1', view: 'resumen' }, auth: null,
     roles: [], permissions: [], group_permissions: [], identification_types: [], organizations: [], organization_contacts: [], profiles: [], users: [],
-    exams: [], levels: [], skills: [], question_types: [], questions: [], answer_options: [], question_resources: [], exam_questions: [], exam_configs: [], question_time_configs: [],
+    exams: [], levels: [], skills: [], question_types: [], questions: [], answer_options: [], question_resources: [], exam_questions: [], exam_configs: [], exam_skill_configs: [],
     purchases: [], batch_licenses: [], licenses: [], license_assignments: [], exam_attempts: [], attempt_questions: [], exam_results: [], skill_results: [], certificate_templates: [], certificates: [] };
   const uid = p => p + (s.seq++);
   const usedCodes = new Set();
 
   // Catálogos
   s.exams = [
-    { id: 'x1', title: 'Clasificación MCER completa', description: 'Examen adaptativo de gramática, vocabulario, lectura y comprensión auditiva.', status: 'published' },
-    { id: 'x2', title: 'Clasificación MCER express', description: 'Versión corta del examen de clasificación.', status: 'published' }
+    { id: 'x1', title: 'Clasificación MCER completa', description: 'English Placement Test adaptativo (TRI 3PL): Use of English, Reading, Listening y Writing.', status: 'published' },
+    { id: 'x2', title: 'Clasificación MCER express', description: 'Misma prueba de ubicación en modalidad express.', status: 'published' }
   ];
-  s.levels = LEVELS.map((l, i) => ({ id: lvId(i), code: l, name: ['Acceso', 'Plataforma', 'Umbral', 'Avanzado', 'Dominio operativo eficaz', 'Maestría'][i], position: i + 1 }));
+  s.levels = LEVELS.map((l, i) => ({ id: lvId(i), code: l, name: LEVEL_NAMES[i], theta_min: THETA_RANGE[i][0], theta_max: THETA_RANGE[i][1], position: i + 1 }));
   s.skills = SKILL_CODES.map((c, i) => ({ id: 'sk' + (i + 1), code: c, name: SKILLS[c] }));
-  s.question_types = [{ id: 'qt1', code: 'multiple_choice', name: QTYPES.multiple_choice }, { id: 'qt2', code: 'true_false', name: QTYPES.true_false }];
+  s.question_types = Object.entries(QTYPES).map(([code, name], i) => ({ id: 'qt' + (i + 1), code, name }));
   s.identification_types = [{ id: 'it1', code: 'CC', name: 'Cédula de ciudadanía' }, { id: 'it2', code: 'TI', name: 'Tarjeta de identidad' }, { id: 'it3', code: 'CE', name: 'Cédula de extranjería' }, { id: 'it4', code: 'PAS', name: 'Pasaporte' }];
   const itId = code => s.identification_types.find(t => t.code === code).id;
   s.certificate_templates = [{ id: 'pc1', organization_id: null, name: 'Plantilla base Levexa', html_content: '', logo_url: '', is_active: true }];
 
   // Roles y permisos (ROLE, PERMISSION, GROUP_PERMISSION)
   s.roles = ['super_admin', 'org_admin', 'coordinator', 'candidate'].map((name, i) => ({ id: 'r' + (i + 1), name }));
-  const PERMS = [['manage_organizations', 'Gestionar organizaciones'], ['manage_batches', 'Crear lotes de licencias'], ['manage_licenses', 'Asignar y revocar licencias'], ['purchase_licenses', 'Comprar licencias'], ['manage_candidates', 'Gestionar candidatos'], ['manage_users', 'Gestionar usuarios'], ['manage_questions', 'Gestionar el banco de preguntas'], ['manage_exam_config', 'Configurar el examen'], ['view_results', 'Ver resultados y certificados'], ['take_exam', 'Realizar el examen'], ['view_purchases', 'Ver el historial de compras']];
+  const PERMS = [['manage_organizations', 'Gestionar organizaciones'], ['manage_batches', 'Crear lotes de licencias'], ['manage_licenses', 'Asignar y revocar licencias'], ['purchase_licenses', 'Comprar licencias'], ['manage_candidates', 'Gestionar candidatos'], ['manage_users', 'Gestionar usuarios'], ['manage_questions', 'Gestionar el banco de preguntas'], ['manage_exam_config', 'Configurar el examen'], ['view_results', 'Ver resultados y certificados'], ['take_exam', 'Realizar el examen'], ['view_purchases', 'Ver el historial de compras'], ['grade_writing', 'Calificar Writing']];
   s.permissions = PERMS.map(([code, name], i) => ({ id: 'pm' + (i + 1), code, name }));
-  const GRANTS = { super_admin: ['manage_organizations', 'manage_batches', 'manage_licenses', 'manage_candidates', 'manage_users', 'manage_questions', 'manage_exam_config', 'view_results'], org_admin: ['manage_licenses', 'purchase_licenses', 'manage_candidates', 'manage_users', 'view_results', 'view_purchases'], coordinator: ['manage_licenses', 'manage_candidates', 'view_results'], candidate: ['take_exam', 'purchase_licenses', 'view_purchases'] };
+  const GRANTS = { super_admin: ['manage_organizations', 'manage_batches', 'manage_licenses', 'manage_candidates', 'manage_users', 'manage_questions', 'manage_exam_config', 'view_results', 'grade_writing'], org_admin: ['manage_licenses', 'purchase_licenses', 'manage_candidates', 'manage_users', 'view_results', 'view_purchases', 'grade_writing'], coordinator: ['manage_licenses', 'manage_candidates', 'view_results', 'grade_writing'], candidate: ['take_exam', 'purchase_licenses', 'view_purchases'] };
   Object.entries(GRANTS).forEach(([rn, codes]) => codes.forEach(c => s.group_permissions.push({ id: uid('gp'), role_id: s.roles.find(r => r.name === rn).id, permission_id: s.permissions.find(p => p.code === c).id })));
 
   // Organizaciones y contactos
@@ -509,27 +593,40 @@ function seed() {
   ind(indep[0], 'C:45', 45); ind(indep[1], 'A:5', 5); ind(indep[2], 'A:1', 1);
   mkPurchase({ userId: indep[2].id, qty: 1, price: EXAM_PRICE.x2, date: at(-2), status: 'failed', gateway: 'card', examId: 'x2' });
 
-  // Banco de preguntas: cada pregunta tiene sus opciones (ANSWER_OPTION) y, si lo necesita, su recurso (QUESTION_RESOURCE)
-  QBANK.forEach((q, i) => {
-    const [sk, lv, stem, opts, correct, res] = q, qid = 'q' + (i + 1);
-    s.questions.push({ id: qid, level_id: lvId(lv), skill_id: skId(SK[sk]), question_type_id: qtId(opts === TF ? 'true_false' : 'multiple_choice'), statement: stem, time_limit_seconds: null, version: 1, status: [6, 38].includes(i) ? 'draft' : [22, 45].includes(i) ? 'retired' : 'active' });
+  // Banco de ítems: cada pregunta tiene subnivel (.1 / .2) y parámetros TRI (a, b, c) dentro del rango de θ de su nivel; opciones y recurso propios
+  const Rb = rng(77), grp = {};
+  BANK_ROWS.forEach(r => (grp[r[0] + r[1]] = grp[r[0] + r[1]] || []).push(r));
+  const AVG = { use: lv => 15 + 4 * lv, reading: lv => 35 + 10 * lv, listening: lv => 25 + 6 * lv, writing: lv => 480 + 60 * lv };
+  BANK_ROWS.forEach((row, i) => {
+    const [sk, lv, dom, sub, topic, stem, opts, correct, res] = row, qid = 'q' + (i + 1);
+    const g = grp[sk + lv], pos = g.indexOf(row), half = Math.ceil(g.length / 2), sublevel = pos < half ? 1 : 2;
+    const inHalf = sublevel === 1 ? pos : pos - half, cnt = sublevel === 1 ? half : g.length - half;
+    let lo = THETA_RANGE[lv][0], hi = THETA_RANGE[lv][1];
+    if (lv === 0) { lo = -2.5; hi = -2; } if (lv === 5) hi = 2.5;
+    const mid = (lo + hi) / 2, b0 = sublevel === 1 ? lo : mid, b1 = sublevel === 1 ? mid : hi, writing = sk === 'writing';
+    const q = { id: qid, skill_id: skId(sk), level_id: lvId(lv), sublevel, question_type_id: qtId(writing ? 'writing_prompt' : stem.includes('___') ? 'cloze' : 'multiple_choice'), statement: stem, model_type: writing ? 'rubric' : '3PL',
+      param_a: writing ? null : +(1.3 + Rb() * 1.2).toFixed(2), param_b: writing ? null : +(b0 + (b1 - b0) * (inHalf + 0.5) / cnt + (Rb() - 0.5) * 0.12).toFixed(2), param_c: writing ? null : +(0.15 + Rb() * 0.1).toFixed(2),
+      domain: dom, subskill: sub, topic, descriptor: CAN_DO[sk][lv], time_avg_sec: AVG[sk](lv) + (sublevel === 2 ? 5 : 0), source: 'Levexa_2026_ItemBank', reviewed_by: 'psychometrics_team', created_at: at(-120), version: 1,
+      status: [26, 75].includes(i) ? 'pilot' : [40, 90].includes(i) ? 'retired' : 'active' };
+    s.questions.push(q);
     opts.forEach((t, j) => s.answer_options.push({ id: 'ao' + (i + 1) + '_' + (j + 1), question_id: qid, text: t, is_correct: j === correct, sort_order: j + 1 }));
-    if (res) s.question_resources.push({ id: 'rc' + (i + 1), question_id: qid, type: sk === 'l' ? 'audio' : 'text', content: sk === 'l' ? '' : res, file_url: '', transcript: sk === 'l' ? res : '' });
+    if (res) s.question_resources.push({ id: 'rc' + (i + 1), question_id: qid, type: sk === 'listening' ? 'audio' : 'text', content: sk === 'listening' ? '' : res, file_url: '', transcript: sk === 'listening' ? res : '' });
     s.exams.forEach(e => s.exam_questions.push({ id: uid('eq'), question_id: qid, exam_id: e.id, is_active: true }));
   });
 
   // Configuración versionada: v1 histórica y v2 vigente (la vigente es la de mayor versión)
-  const v1 = defaultCfg(); v1.max_questions = 12; v1.gauge_up = 3; v1.pass_threshold = 0.65;
+  const v1 = defaultCfg(); v1.se_threshold = 0.35; v1.writing_minutes = 25; v1.max_exposure = 0.30;
   addCfgVersion(s, v1);
   const cfgV2 = addCfgVersion(s, defaultCfg()), cfgRT = cfgRuntime(s, cfgV2);
 
-  // Resultados históricos: se simulan con el mismo motor adaptativo y se guardan normalizados
-  const abilities = [0.8, 1.6, 2.3, 2.9, 3.4, 4.1, 4.8, 5.3, 1.2, 2.6, 3.7, 4.5];
+  // Resultados históricos: se simulan con el mismo motor CAT (θ real conocido) y se guardan normalizados; 2 Writing quedan pendientes de calificar
+  const thetas = [-2.4, -1.5, -0.8, -0.3, 0.2, 0.6, 1.1, 1.5, 2.3, -1.0, 0.8, 0.0], grader = s.users[0].id;
   s.licenses.filter(l => l.status === 'consumed').slice(0, 12).forEach((l, i) => {
-    const asg = s.license_assignments.find(a => a.license_id === l.id && !a.revoked_at);
+    const asg = s.license_assignments.find(a => a.license_id === l.id && !a.revoked_at), th = thetas[(i * 5) % 12];
     if (i === 11) l.consumed_at = at(-800);
-    const E = simulate(cfgRT, poolFor(s, 'x1'), abilities[(i * 5) % 12], R, s);
-    const { r } = persistAttempt(s, { license_assignment_id: asg.id, candidate_id: asg.user_id, exam_id: 'x1', exam_config_id: cfgV2.id, started_at: l.consumed_at, E });
+    const E = simulate(cfgRT, poolFor(s, 'x1'), th, R, s), wq = pickWriting(E), bandTrue = Math.max(0, Math.min(4, (th + 3) / 1.25));
+    const scores = i < 10 ? Object.fromEntries(RUBRIC.map(([k]) => [k, Math.max(0, Math.min(4, Math.round(bandTrue + (R() - 0.5) * 1.6)))])) : null;
+    const { r } = persistAttempt(s, { license_assignment_id: asg.id, candidate_id: asg.user_id, exam_id: 'x1', exam_config_id: cfgV2.id, started_at: l.consumed_at, E, rows: true, writing: { q: wq, text: WRITING_SAMPLE[levelOfTheta(th)], scores, by: grader } });
     const c = issueCert(s, r, cfgRT);
     if (i === 3 || i === 8) c.status = 'revoked';
   });
@@ -540,16 +637,16 @@ function seed() {
    3. ESTADO (persistencia en localStorage dentro de try/catch)
    Tablas (nombres del modelo): roles, permissions, group_permissions, identification_types, organizations,
    organization_contacts, profiles, users, exams, levels, skills, question_types, questions, answer_options,
-   question_resources, exam_questions, exam_configs, question_time_configs, purchases, batch_licenses, licenses,
+   question_resources, exam_questions, exam_configs, exam_skill_configs, purchases, batch_licenses, licenses,
    license_assignments, exam_attempts, attempt_questions, exam_results, skill_results, certificate_templates, certificates
    ===================================================================== */
-const KEY = 'levexa_proto_v4';
+const KEY = 'levexa_proto_v5';
 let S;
 function load() {
   try { const r = localStorage.getItem(KEY); if (r) { S = JSON.parse(r); } } catch (e) { S = null; }
-  if (!S || !S.exam_configs || !S.license_assignments || !S.profiles) S = seed();
-  // Un examen que quedó en curso al recargar se considera abandonado
-  S.exam_attempts.forEach(a => { if (a.status === 'in_progress') a.status = 'abandoned'; });
+  if (!S || !S.exam_configs || !S.exam_skill_configs || !S.license_assignments || !S.profiles) S = seed();
+  // Un examen que quedó en curso al recargar queda interrumpido y se puede reanudar (documento, sección 22.7)
+  S.exam_attempts.forEach(a => { if (a.status === 'in_progress') { a.status = 'interrupted'; a.interruptions = (a.interruptions || 0) + 1; } });
 }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* sin almacenamiento: la demo sigue en memoria */ } }
 const uid = p => p + (S.seq++);
@@ -588,21 +685,24 @@ function can(code) {
 /* =====================================================================
    3b. CONFIGURACIÓN DEL EXAMEN (EXAM_CONFIG, versionada) → objeto de trabajo para el motor
    ===================================================================== */
-// Crea una nueva versión (EXAM_CONFIG + QUESTION_TIME_CONFIG). La vigente es la de mayor versión.
+// Crea una nueva versión (EXAM_CONFIG + EXAM_SKILL_CONFIG). La vigente es la de mayor versión.
 function addCfgVersion(st, cfg, examId = 'x1') {
   const ver = Math.max(0, ...st.exam_configs.filter(c => c.exam_id === examId).map(c => c.version)) + 1;
   const c = { id: 'cf' + (st.seq++), exam_id: examId, version: ver };
   CFG_FIELDS.forEach(k => c[k] = cfg[k]);
   st.exam_configs.push(c);
-  Object.entries(cfg.timeTable || {}).forEach(([sk, m]) => Object.entries(m).forEach(([lv, sec]) => st.question_time_configs.push({ id: 'ct' + (st.seq++), config_id: c.id, skill_id: skId(sk), level_id: lvId(LEVELS.indexOf(lv)), seconds: sec })));
+  Object.entries(cfg.skillCfg || {}).forEach(([sk, m]) => st.exam_skill_configs.push({ id: 'cs' + (st.seq++), config_id: c.id, skill_id: skId(sk), min_items: m.min_items, max_items: m.max_items, max_minutes: m.max_minutes }));
   return c;
 }
 function cfgRuntime(st, c) {
-  const tt = {};
-  st.question_time_configs.filter(t => t.config_id === c.id).forEach(t => { (tt[skCode(t.skill_id)] = tt[skCode(t.skill_id)] || {})[LEVELS[lvI(t.level_id)]] = t.seconds; });
-  return { ...c, timeTable: tt };
+  const sc = {};
+  st.exam_skill_configs.filter(t => t.config_id === c.id).forEach(t => { sc[skCode(t.skill_id)] = { min_items: t.min_items, max_items: t.max_items, max_minutes: t.max_minutes }; });
+  return { ...c, skillCfg: sc };
 }
-const cfgCurrent = (st, examId = 'x1') => st.exam_configs.filter(c => c.exam_id === examId).sort((a, b) => b.version - a.version)[0];
+const cfgCurrent = (st, examId = 'x1') => {
+  const of = id => st.exam_configs.filter(c => c.exam_id === id).sort((a, b) => b.version - a.version)[0];
+  return of(examId) || of('x1');
+};
 const activeCfg = (examId = 'x1') => cfgRuntime(S, cfgCurrent(S, examId));
 // Preguntas del pool de un examen (EXAM_QUESTION)
 const poolFor = (st, examId) => st.questions.filter(q => st.exam_questions.some(p => p.exam_id === examId && p.question_id === q.id && p.is_active));
@@ -613,121 +713,170 @@ const qLvl = q => lvI(q.level_id), qSkill = q => skCode(q.skill_id);
 const qTypeCode = (q, st = S) => st.question_types.find(t => t.id === q.question_type_id)?.code || 'multiple_choice';
 
 /* =====================================================================
-   4. LÓGICA: motor de examen adaptativo
+   4. LÓGICA: motor adaptativo CAT con TRI 3PL (documento maestro, secciones 3, 12 y 22)
+   Use of English, Reading y Listening se miden con un CAT independiente por habilidad (θ + EAP, máxima información).
+   Writing es una tarea productiva calificada con rúbrica 0–4 por un docente y no entra en el θ global.
    ===================================================================== */
-// Tiempo límite de una pregunta: propio > tabla habilidad×nivel > por defecto
-function timeFor(q, cfg) { return q.time_limit_seconds || cfg.timeTable?.[qSkill(q)]?.[LEVELS[qLvl(q)]] || cfg.default_time_sec; }
+const levelOfTheta = t => Math.max(0, Math.min(5, Math.floor(t) + 3));          // rangos de θ de la sección 6
+const clampTheta = t => Math.max(-3, Math.min(3, t));
+const thetaToScore = t => Math.round((clampTheta(t) + 3) / 6 * 100);            // conversión θ → 0–100 (lineal en [−3, +3])
+const bandToTheta = b => -3 + 1.25 * b;                                         // rúbrica 0–4 → θ equivalente (para ubicar el nivel)
+const levelRangeLabel = (t, se) => { const a = levelOfTheta(t - se), b = levelOfTheta(t + se); return a === b ? LEVELS[a] : LEVELS[a] + '–' + LEVELS[b]; };
+const RUBRIC = [['fluency', 'Fluidez'], ['accuracy', 'Exactitud'], ['range', 'Rango'], ['coherence', 'Coherencia']];
+const RUBRIC_VERSION = 'WRI_MCER_V1_2026';
+const STOP_LABEL = { precision: 'Precisión alcanzada (SE)', max_items: 'Máximo de ítems', time: 'Tiempo agotado', no_items: 'Sin ítems disponibles' };
 
-// Escalera por niveles: el candidato está siempre en un nivel entero y un medidor decide cuándo sube o baja.
-// El tiempo entra de dos formas: la rapidez cambia el avance del medidor y la calidad de cada acierto.
-function newEngine(cfg, bank, rand, st = S) {
-  return { cfg, rand, st, lvl: lvI(cfg.initial_level_id), gauge: 0, used: new Set(), trace: [], pool: bank.filter(q => q.status === 'active') };
+// Modelo logístico de 3 parámetros: P(θ) = c + (1 − c) / (1 + e^(−a(θ − b))) e información de Fisher
+function p3pl(q, t) { return q.param_c + (1 - q.param_c) / (1 + Math.exp(-q.param_a * (t - q.param_b))); }
+function info3pl(q, t) {
+  const L = 1 / (1 + Math.exp(-q.param_a * (t - q.param_b))), P = q.param_c + (1 - q.param_c) * L, dP = (1 - q.param_c) * q.param_a * L * (1 - L);
+  return dP * dP / (P * (1 - P));
 }
-// Siguiente pregunta: al azar entre las no usadas del nivel actual (si no quedan, del nivel más cercano, primero hacia abajo)
-function nextQuestion(E) {
-  const free = E.pool.filter(q => !E.used.has(q.id));
-  for (let d = 0; d <= 5; d++) {
-    for (const lv of d ? [E.lvl - d, E.lvl + d] : [E.lvl]) {
-      const c = free.filter(q => qLvl(q) === lv);
-      if (c.length) return c[Math.floor(E.rand() * c.length)];
-    }
-  }
+// EAP (Expected A Posteriori) sobre una malla de −4 a +4 con paso 0.1; SE = desviación del posterior
+const GRID = Array.from({ length: 81 }, (_, i) => -4 + i * 0.1);
+function eap(resps, cfg) {
+  const lp = GRID.map(t => {
+    let s = -0.5 * ((t - cfg.prior_mean) / cfg.prior_sd) ** 2;
+    resps.forEach(r => { const p = Math.min(1 - 1e-9, Math.max(1e-9, p3pl(r.q, t))); s += Math.log(r.correct ? p : 1 - p); });
+    return s;
+  });
+  const mx = Math.max(...lp), w = lp.map(x => Math.exp(x - mx)), z = w.reduce((a, b) => a + b, 0);
+  const th = GRID.reduce((s, t, i) => s + t * w[i] / z, 0), v = GRID.reduce((s, t, i) => s + (t - th) ** 2 * w[i] / z, 0);
+  return { theta: th, se: Math.sqrt(v) };
+}
+const newSession = (cfg, skill) => ({ skill, theta: cfg.theta_initial, se: Infinity, resp: [], used: new Set(), reason: '', startedMs: Date.now() });
+const skillCfgOf = (cfg, k) => cfg.skillCfg[k];
+// Estado del motor para todo el examen. La tasa de exposición de un ítem = veces administrado / exámenes finalizados.
+function newEngine(cfg, bank, rand, st = S) {
+  const done = new Set(st.exam_attempts.filter(a => a.status === 'finished').map(a => a.id)), expo = {};
+  st.attempt_questions.forEach(a => { if (done.has(a.exam_attempt_id)) expo[a.question_id] = (expo[a.question_id] || 0) + 1; });
+  return { cfg, rand, st, pool: bank.filter(q => q.status === 'active'), expo, total: done.size, sess: Object.fromEntries(CAT_SKILLS.map(k => [k, newSession(cfg, k)])) };
+}
+const expoRate = (E, q) => (E.expo[q.id] || 0) / Math.max(1, E.total);
+// Cierre de una habilidad (pseudocódigo 22.6): precisión alcanzada con el mínimo de ítems, o máximo de ítems. El tiempo lo evalúa quien llama.
+function skillDone(E, k) {
+  const s = E.sess[k], sc = skillCfgOf(E.cfg, k), n = s.resp.length;
+  if (n >= sc.min_items && s.se <= E.cfg.se_threshold) return 'precision';
+  if (n >= sc.max_items) return 'max_items';
+  return '';
+}
+// Selección del siguiente ítem (pseudocódigo 22.4): activos, no aplicados, bajo el tope de exposición, reglas de contenido y máxima información
+function pickItem(E, k) {
+  const s = E.sess[k], cfg = E.cfg, rs = s.resp;
+  const unused = E.pool.filter(q => qSkill(q) === k && !s.used.has(q.id));
+  let c = unused.filter(q => expoRate(E, q) < cfg.max_exposure);
+  // Reglas de contenido: racha de aciertos en ítems más difíciles que θ → subir; racha de fallos en ítems más fáciles → bajar; y equilibrio de dominios
+  const up = rs.length >= cfg.streak_up && rs.slice(-cfg.streak_up).every(r => r.correct && r.q.param_b > r.theta_prev);
+  const down = rs.length >= cfg.streak_down && rs.slice(-cfg.streak_down).every(r => !r.correct && r.q.param_b < r.theta_prev);
+  const dom = {}; rs.forEach(r => dom[r.q.domain] = (dom[r.q.domain] || 0) + 1);
+  const content = list => {
+    let r = list;
+    const rule = up ? q => q.param_b > s.theta : down ? q => q.param_b < s.theta : null;
+    if (rule) { const f = r.filter(rule); if (f.length) r = f; }
+    const mn = Math.min(...r.map(q => dom[q.domain] || 0)), f2 = r.filter(q => (dom[q.domain] || 0) === mn);
+    return f2.length >= cfg.min_candidates ? f2 : r;
+  };
+  if (c.length >= cfg.min_candidates) c = content(c);
+  else c = unused;                                   // sin candidatos suficientes se relajan las reglas (contenido y exposición)
+  if (!c.length) return null;
+  let best = null, bi = -1;
+  c.forEach(q => { const i = info3pl(q, s.theta); if (i > bi) { bi = i; best = q; } });
+  return best;
+}
+// Registra una respuesta (optId = id de ANSWER_OPTION; null = omitida) y actualiza θ y SE con EAP
+function respond(E, k, q, optId, timeSec) {
+  const s = E.sess[k], omitted = optId === null, correct = !omitted && !!qOpts(q, E.st).find(o => o.id === optId)?.is_correct;
+  const r = { q, optId, correct, omitted, theta_prev: s.theta, time: +timeSec.toFixed(1) };
+  s.resp.push(r);
+  const e = eap(s.resp, E.cfg); s.theta = e.theta; s.se = e.se; r.theta_post = e.theta; r.se_post = e.se;
+  s.used.add(q.id); E.expo[q.id] = (E.expo[q.id] || 0);   // la exposición se actualiza al finalizar el examen
+  return r;
+}
+// Resumen del examen: θ por habilidad, θ global (promedio de las habilidades CAT), nivel, puntaje, curso y banderas
+function summarize(E) {
+  const skills = {}; let totalTime = 0, n = 0, fast = 0, omit = 0;
+  CAT_SKILLS.forEach(k => {
+    const s = E.sess[k], ok = s.resp.filter(r => r.correct).length;
+    skills[k] = { theta: s.theta, se: Number.isFinite(s.se) ? s.se : E.cfg.prior_sd, level: levelOfTheta(s.theta), n: s.resp.length, ok, reason: s.reason || 'precision' };
+    s.resp.forEach(r => { totalTime += r.time; n++; if (r.omitted) omit++; if (r.time < 0.25 * r.q.time_avg_sec) fast++; });
+  });
+  const theta = CAT_SKILLS.reduce((a, k) => a + skills[k].theta, 0) / CAT_SKILLS.length;
+  const se = Math.sqrt(CAT_SKILLS.reduce((a, k) => a + skills[k].se ** 2, 0)) / CAT_SKILLS.length;
+  const levelIdx = levelOfTheta(theta);
+  return { skills, theta, se, levelIdx, level: LEVELS[levelIdx], score: thetaToScore(theta), course: COURSES[levelIdx], n, totalTime: Math.round(totalTime), flags: { fast: n > 0 && fast / n >= 0.3, omissions: n > 0 && omit / n >= 0.2 } };
+}
+// Prompt de Writing: el del nivel estimado en los CAT (o el más cercano con prompts activos)
+function pickWriting(E) {
+  const th = CAT_SKILLS.reduce((a, k) => a + E.sess[k].theta, 0) / CAT_SKILLS.length, lv = levelOfTheta(th);
+  const all = E.st.questions.filter(q => qSkill(q) === 'writing' && q.status === 'active');
+  for (let d = 0; d <= 5; d++) for (const l of d ? [lv - d, lv + d] : [lv]) { const c = all.filter(q => qLvl(q) === l); if (c.length) return c[Math.floor(E.rand() * c.length)]; }
   return null;
 }
-// Rapidez de una respuesta según el % del tiempo límite usado
-function speedOf(c, used, limit, expired) {
-  const r = expired ? 1 : used / limit;
-  return r <= c.fast_threshold_pct / 100 ? 'fast' : r >= c.slow_threshold_pct / 100 ? 'slow' : 'normal';
-}
-// Aplica una respuesta (optId = id de ANSWER_OPTION, o null si expiró): calcula calidad y avance, mueve el medidor y, si lo alcanza, cambia de nivel
-function applyAnswer(E, q, optId, usedSec, limit) {
-  const c = E.cfg, expired = optId === null, correct = !expired && !!qOpts(q, E.st).find(o => o.id === optId)?.is_correct;
-  const speed = speedOf(c, usedSec, limit, expired);
-  const quality = correct ? { fast: c.quality_fast, normal: c.quality_normal, slow: c.quality_slow }[speed] : 0;
-  const advance = correct ? { fast: c.advance_fast, normal: c.advance_normal, slow: c.advance_slow }[speed] : -1;
-  const before = E.lvl;
-  E.gauge += advance;
-  if (E.gauge >= c.gauge_up) { if (E.lvl < 5) E.lvl++; E.gauge = 0; }
-  else if (E.gauge <= -c.gauge_down) { if (E.lvl > 0) E.lvl--; E.gauge = 0; }
-  E.used.add(q.id);
-  E.trace.push({ qId: q.id, stem: q.statement.slice(0, 80), skill: qSkill(q), level: qLvl(q), correct, expired, used: +usedSec.toFixed(1), limit, speed, quality, advance, gauge: +E.gauge.toFixed(2), before: LEVELS[before], after: LEVELS[E.lvl], optId });
-  return correct;
-}
-// Calidad media por nivel (solo cuentan las respuestas a preguntas de ese nivel) y nivel más alto aprobado
-function levelStats(trace, c) {
-  const ev = LEVELS.map(() => ({ n: 0, sum: 0, avg: 0, ok: false }));
-  trace.forEach(t => { ev[t.level].n++; ev[t.level].sum += t.quality; });
-  ev.forEach(e => { e.avg = e.n ? e.sum / e.n : 0; e.ok = e.n >= c.min_answers_per_level && e.avg >= c.pass_threshold; });
-  let top = -1; ev.forEach((e, i) => { if (e.ok) top = i; });
-  return { ev, top };
-}
-// Techo confirmado: el nivel siguiente al más alto aprobado ya tiene respuestas suficientes y no se aprobó
-function ceilingConfirmed(E) {
-  const { ev, top } = levelStats(E.trace, E.cfg);
-  return top === 5 || ev[top + 1].n >= E.cfg.min_answers_per_level;
-}
-// Termina al llegar al máximo, sin preguntas, o desde el mínimo si ya se confirmó el techo
-function isDone(E) {
-  const n = E.trace.length, c = E.cfg;
-  if (n >= c.max_questions || !nextQuestion(E)) return true;
-  return n >= c.min_questions && ceilingConfirmed(E);
-}
-function summarize(E) {
-  const bySkill = {}; let totalTime = 0;
-  SKILL_CODES.forEach(k => bySkill[k] = { ok: 0, n: 0 });
-  E.trace.forEach(t => { bySkill[t.skill].n++; if (t.correct) bySkill[t.skill].ok++; totalTime += t.used; });
-  const { ev, top } = levelStats(E.trace, E.cfg), idx = Math.max(0, top), quality = +ev[idx].avg.toFixed(2);
-  return { level: LEVELS[idx], levelIdx: idx, quality, score: Math.round((idx + quality) / 6 * 100), confidence: ceilingConfirmed(E) ? 'high' : 'medium', bySkill, totalTime: Math.round(totalTime) };
-}
-// Simula un examen completo con una habilidad real conocida (0 a 6) para los datos históricos
-function simulate(cfg, bank, ability, R, st = S) {
-  const E = newEngine(cfg, bank, R, st);
-  while (!isDone(E)) {
-    const q = nextQuestion(E), lim = timeFor(q, cfg), opts = qOpts(q, st), right = opts.findIndex(o => o.is_correct);
-    const guess = opts.length === 2 ? 0.5 : 0.25;
-    const p = guess + (1 - guess) / (1 + Math.exp(-(ability - qLvl(q)) * 1.6));
-    if (R() < 0.05) { applyAnswer(E, q, null, lim, lim); continue; }
-    const ok = R() < p;
-    applyAnswer(E, q, opts[ok ? right : (right + 1) % opts.length].id, lim * (0.15 + R() * 0.75), lim);
-  }
+const WRITING_SAMPLE = ['My name is Pablo. I am twenty. I live in Cali.', 'I get up at seven. I have breakfast and I go to work. In the evening I watch TV.', 'Last weekend I went to the beach with my family. We swam and we ate fish. It was a very nice day.', 'I remember a trip to Cartagena. It was special because I travelled with my best friends and we visited many old places.', 'In my opinion, social media has both advantages and disadvantages. Although it connects people, it can also waste time and spread false information.', 'To a considerable extent, technology has reshaped the workplace; nevertheless, its benefits are unevenly distributed, which calls for deliberate policy measures.'];
+// Simula un examen completo con un θ real conocido (para los datos históricos y las pruebas)
+function simulate(cfg, bank, thTrue, R, st = S) {
+  const E = newEngine(cfg, bank, R, st); E.rand = R;
+  CAT_SKILLS.forEach(k => {
+    const thk = thTrue + (R() - 0.5) * 0.5;
+    for (;;) {
+      const reason = skillDone(E, k); if (reason) { E.sess[k].reason = reason; break; }
+      const q = pickItem(E, k); if (!q) { E.sess[k].reason = 'no_items'; break; }
+      const opts = qOpts(q, st), right = opts.find(o => o.is_correct), wrong = opts.filter(o => !o.is_correct);
+      const omit = R() < 0.02, ok = !omit && R() < p3pl(q, thk);
+      respond(E, k, q, omit ? null : (ok ? right : wrong[Math.floor(R() * wrong.length)]).id, q.time_avg_sec * (0.4 + R() * 0.9));
+    }
+  });
   return E;
 }
 
 /* =====================================================================
    4b. INTENTOS: se guardan normalizados (EXAM_ATTEMPT, ATTEMPT_QUESTION, EXAM_RESULT, SKILL_RESULT)
    ===================================================================== */
-// Persiste el intento ya terminado en sus tablas y devuelve {a, r, sum}
+// Fila de ATTEMPT_QUESTION de una respuesta CAT
+function aqRow(st, att, k, r, pos, shownMs) {
+  return { id: 'aq' + (st.seq++), exam_attempt_id: att.id, question_id: r.q.id, skill_id: skId(k), position: pos, answer_option_id: r.optId, answer_text: '', is_correct: r.correct, is_omitted: r.omitted, shown_at: iso(shownMs), answered_at: iso(shownMs + r.time * 1000), response_time_ms: Math.round(r.time * 1000), theta_before: +r.theta_prev.toFixed(3), theta_after: +r.theta_post.toFixed(3), se_after: +r.se_post.toFixed(3) };
+}
+// Califica el Writing con la rúbrica 0–4 (la banda es el promedio de los criterios)
+function gradeWriting(sr, scores, by) {
+  RUBRIC.forEach(([k]) => sr[k] = scores[k]);
+  sr.band = +(RUBRIC.reduce((a, [k]) => a + scores[k], 0) / RUBRIC.length).toFixed(2);
+  Object.assign(sr, { level_id: lvId(levelOfTheta(bandToTheta(sr.band))), status: 'graded', graded_by: by || null, graded_at: new Date().toISOString() });
+}
+// Cierra el intento: crea EXAM_RESULT y los SKILL_RESULT (3 CAT + Writing). o: { att, E, writing: { q, text, scores? }, rows, started_at, finished_at }
 function persistAttempt(st, o) {
-  const E = o.E, sum = summarize(E), n = E.trace.length;
-  const t0 = ts(o.started_at), finished = o.finished_at || iso(t0 + sum.totalTime * 1000 + 30000);
-  const a = o.att || { id: 't' + (st.seq++), license_assignment_id: o.license_assignment_id, candidate_id: o.candidate_id, exam_id: o.exam_id, exam_config_id: o.exam_config_id, started_at: o.started_at, ip: '', user_agent: 'demo' };
-  Object.assign(a, { status: 'finished', finished_at: finished, current_level_id: lvId(sum.levelIdx) });
+  const E = o.E, sum = summarize(E), t0 = ts(o.started_at), finished = o.finished_at || iso(t0 + sum.totalTime * 1000 + 600000);
+  const a = o.att || { id: 't' + (st.seq++), license_assignment_id: o.license_assignment_id, candidate_id: o.candidate_id, exam_id: o.exam_id, exam_config_id: o.exam_config_id, started_at: o.started_at, ip: '', user_agent: 'demo', interruptions: 0 };
+  Object.assign(a, { status: 'finished', finished_at: finished, current_skill_id: skId('writing') });
   if (!o.att) st.exam_attempts.push(a);
-  let cum = 0;
-  E.trace.forEach((t, i) => {
-    st.attempt_questions.push({ id: 'aq' + (st.seq++), exam_attempt_id: a.id, question_id: t.qId, answer_option_id: t.optId, position: i + 1, time_limit_seconds: t.limit, shown_at: iso(t0 + cum * 1000), answered_at: iso(t0 + (cum + t.used) * 1000), response_time_ms: Math.round(t.used * 1000), answer_text: '', is_correct: t.correct, is_expired: t.expired, speed: t.speed, quality: t.quality, advance: t.advance, gauge: t.gauge, level_before_id: lvId(LEVELS.indexOf(t.before)), level_after_id: lvId(LEVELS.indexOf(t.after)) });
-    cum += t.used;
-  });
-  const r = { id: 'rs' + (st.seq++), exam_attempt_id: a.id, level_id: lvId(sum.levelIdx), overall_score: sum.score, level_quality: sum.quality, confidence: sum.confidence, answered_questions: n, total_time_seconds: sum.totalTime, calculated_at: finished };
+  let pos = 0, cum = 0;
+  if (o.rows) CAT_SKILLS.forEach(k => E.sess[k].resp.forEach(r => { st.attempt_questions.push(aqRow(st, a, k, r, ++pos, t0 + cum * 1000)); cum += r.time; }));
+  if (o.writing && o.writing.q) {
+    const w = o.writing, wpos = st.attempt_questions.filter(x => x.exam_attempt_id === a.id).length + 1;
+    st.attempt_questions.push({ id: 'aq' + (st.seq++), exam_attempt_id: a.id, question_id: w.q.id, skill_id: skId('writing'), position: wpos, answer_option_id: null, answer_text: w.text, is_correct: null, is_omitted: !w.text.trim(), shown_at: iso(t0 + cum * 1000), answered_at: finished, response_time_ms: 0, theta_before: null, theta_after: null, se_after: null });
+  }
+  const r = { id: 'rs' + (st.seq++), exam_attempt_id: a.id, level_id: lvId(sum.levelIdx), global_theta: +sum.theta.toFixed(3), global_se: +sum.se.toFixed(3), overall_score: sum.score, assigned_course: sum.course[0], answered_questions: sum.n, total_time_seconds: sum.totalTime, flag_fast_responses: sum.flags.fast, flag_high_omissions: sum.flags.omissions, flag_interrupted_session: (a.interruptions || 0) > 0, calculated_at: finished };
   st.exam_results.push(r);
-  Object.entries(sum.bySkill).forEach(([sk, v]) => {
-    const lv = Math.max(0, ...E.trace.filter(t => t.skill === sk && t.correct).map(t => t.level));
-    st.skill_results.push({ id: 'sr' + (st.seq++), exam_result_id: r.id, level_id: lvId(lv), skill_id: skId(sk), score: v.n ? Math.round(v.ok / v.n * 100) : 0 });
-  });
+  CAT_SKILLS.forEach(k => { const x = sum.skills[k]; st.skill_results.push({ id: 'sr' + (st.seq++), exam_result_id: r.id, skill_id: skId(k), theta: +x.theta.toFixed(3), se: +x.se.toFixed(3), level_id: lvId(x.level), items_administered: x.n, correct_count: x.ok, stop_reason: x.reason, status: 'graded' }); });
+  const wsr = { id: 'sr' + (st.seq++), exam_result_id: r.id, skill_id: skId('writing'), theta: null, se: null, level_id: null, items_administered: o.writing && o.writing.q ? 1 : 0, correct_count: null, stop_reason: 'submitted', band: null, fluency: null, accuracy: null, range: null, coherence: null, rubric_version: RUBRIC_VERSION, status: 'pending', graded_by: null, graded_at: null };
+  if (o.writing && o.writing.scores) gradeWriting(wsr, o.writing.scores, o.writing.by);
+  st.skill_results.push(wsr);
   return { a, r, sum };
 }
-// Vista plana de un intento finalizado (une intento + resultado + preguntas) para tablas y gráficas
+// Vista plana de un intento finalizado (une intento + resultado + respuestas) para tablas y gráficas
 function attemptView(a) {
   const r = S.exam_results.find(x => x.exam_attempt_id === a.id); if (!r) return null;
   const asg = byId(S.license_assignments, a.license_assignment_id), lic = asg && byId(S.licenses, asg.license_id), p = profileOf(a.candidate_id);
-  const trace = S.attempt_questions.filter(x => x.exam_attempt_id === a.id).sort((x, y) => x.position - y.position).map(x => {
+  const rows = S.attempt_questions.filter(x => x.exam_attempt_id === a.id).sort((x, y) => x.position - y.position);
+  const trace = rows.filter(x => skCode(x.skill_id) !== 'writing').map(x => {
     const q = byId(S.questions, x.question_id);
-    return { qId: x.question_id, stem: (q?.statement || '').slice(0, 80), skill: q ? qSkill(q) : '', level: q ? qLvl(q) : 0, correct: x.is_correct, expired: x.is_expired, used: +(x.response_time_ms / 1000).toFixed(1), limit: x.time_limit_seconds, speed: x.speed, quality: x.quality, advance: x.advance, gauge: x.gauge, before: LEVELS[lvI(x.level_before_id)], after: LEVELS[lvI(x.level_after_id)], optId: x.answer_option_id };
+    return { qId: x.question_id, order: x.position, skill: skCode(x.skill_id), stem: q?.statement || '', domain: q?.domain || '', itemLevel: q ? qLvl(q) : 0, sublevel: q?.sublevel, a: q?.param_a, b: q?.param_b, c: q?.param_c, correct: x.is_correct, omitted: x.is_omitted, time: +(x.response_time_ms / 1000).toFixed(1), thetaBefore: x.theta_before, thetaAfter: x.theta_after, se: x.se_after, optId: x.answer_option_id };
   });
-  const bySkill = {}; SKILL_CODES.forEach(k => bySkill[k] = { ok: 0, n: 0 });
-  trace.forEach(t => { if (bySkill[t.skill]) { bySkill[t.skill].n++; if (t.correct) bySkill[t.skill].ok++; } });
+  const srs = S.skill_results.filter(x => x.exam_result_id === r.id), skills = {};
+  CAT_SKILLS.forEach(k => { const sr = srs.find(x => skCode(x.skill_id) === k); skills[k] = sr ? { theta: sr.theta, se: sr.se, level: lvI(sr.level_id), n: sr.items_administered, ok: sr.correct_count, reason: sr.stop_reason } : null; });
+  const wsr = srs.find(x => skCode(x.skill_id) === 'writing'), wrow = rows.find(x => skCode(x.skill_id) === 'writing'), wq = wrow && byId(S.questions, wrow.question_id);
+  const writing = wsr ? { id: wsr.id, status: wsr.status, band: wsr.band, level: wsr.level_id ? lvI(wsr.level_id) : null, scores: { fluency: wsr.fluency, accuracy: wsr.accuracy, range: wsr.range, coherence: wsr.coherence }, text: wrow?.answer_text || '', prompt: wq?.statement || '', gradedAt: wsr.graded_at, gradedBy: wsr.graded_by } : null;
   const cf = byId(S.exam_configs, a.exam_config_id);
-  return { id: a.id, candId: a.candidate_id, orgId: p?.organization_id || null, examId: a.exam_id, status: a.status, licCode: lic?.code, startedAt: a.started_at, finishedAt: a.finished_at, quality: r.level_quality, confidence: r.confidence, level: LEVELS[lvI(r.level_id)], score: r.overall_score, totalTime: r.total_time_seconds, bySkill, trace, resultId: r.id, cfgVersion: cf?.version, startLevel: LEVELS[lvI(cf?.initial_level_id || lvId(2))] };
+  return { id: a.id, candId: a.candidate_id, orgId: p?.organization_id || null, examId: a.exam_id, status: a.status, licCode: lic?.code, startedAt: a.started_at, finishedAt: a.finished_at, level: LEVELS[lvI(r.level_id)], levelIdx: lvI(r.level_id), score: r.overall_score, theta: r.global_theta, se: r.global_se, course: r.assigned_course, flags: { fast: r.flag_fast_responses, omissions: r.flag_high_omissions, interrupted: r.flag_interrupted_session }, totalTime: r.total_time_seconds, skills, writing, trace, resultId: r.id, cfgVersion: cf?.version, interruptions: a.interruptions || 0 };
 }
 const attemptViewById = id => { const a = byId(S.exam_attempts, id); return a ? attemptView(a) : null; };
 
@@ -770,7 +919,11 @@ function validateEntry(code, doc) {
   code = code.trim().toUpperCase(); doc = doc.trim();
   const l = licOf(code);
   if (!l) return { msg: 'El código no existe. Revisa que esté escrito como ENG-XXXX-XXXX.' };
-  if (l.status === 'consumed') return { msg: 'Esta licencia ya fue consumida: solo permite un examen.' };
+  let resume = null;
+  if (l.status === 'consumed') {
+    const a0 = currentAsg(l); resume = a0 && S.exam_attempts.find(t => t.license_assignment_id === a0.id && t.status === 'interrupted');
+    if (!resume) return { msg: 'Esta licencia ya fue consumida: solo permite un examen.' };
+  }
   if (l.status === 'revoked') return { msg: 'Esta licencia fue revocada. Comunícate con tu organización.' };
   if (licState(l) === 'expired') return { msg: `Esta licencia venció el ${fmtD(l.expires_at)}. Ya no puede usarse.` };
   if (l.status === 'available') return { msg: 'Esta licencia aún no ha sido asignada a un estudiante. Pide a tu organización que te la asigne.' };
@@ -778,7 +931,7 @@ function validateEntry(code, doc) {
   if (!doc) return { msg: 'Ingresa tu número de documento para confirmar que la licencia es tuya.' };
   if (!c || c.docNum !== doc) return { msg: 'Esta licencia está asignada a otra persona. Verifica el número de documento.' };
   if (!c.active) return { msg: 'Tu cuenta está inactiva. Comunícate con tu organización.' };
-  return { ok: true, lic: l, cand: c, asg: inf.asg };
+  return { ok: true, lic: l, cand: c, asg: inf.asg, resume };
 }
 
 /* =====================================================================
@@ -1210,7 +1363,7 @@ function login(a) {
   S.ui.view = navOf(a.role)[0][0];
   U.f = {}; U.orgDetail = null; U.lotSel = null; U.ex = { stage: 'entry' }; U.pay = null; U.lastPurchase = null; U.entry = { code: '', doc: '' };
   if (a.userId && a.role === 'cand') {
-    const c = candOf(a.userId), l = c && S.licenses.find(x => licInfo(x).userId === c.id && x.status === 'assigned' && licState(x) === 'assigned');
+    const c = candOf(a.userId), l = c && S.licenses.find(x => licInfo(x).userId === c.id && ((x.status === 'assigned' && licState(x) === 'assigned') || (x.status === 'consumed' && S.exam_attempts.some(t => t.status === 'interrupted' && t.license_assignment_id === licInfo(x).asg?.id))));
     if (l) U.entry = { code: l.code, doc: c.docNum };
   }
   commit(); $('#main').focus();
@@ -1224,8 +1377,8 @@ function vAuth() {
   const demo = [['Admin de plataforma', firstBy('super_admin')], ['Admin de organización', firstBy('org_admin')], ['Coordinador', firstBy('coordinator')], ['Candidato independiente', firstBy('candidate', 'individual_candidate')], ['Candidato de organización', orgCand]].filter(x => x[1]);
   const hero = `<section class="hero"><div class="brand" style="color:#fff"><svg width="38" height="38" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="38" width="14" height="20" rx="5" fill="#fff"/><rect x="25" y="24" width="14" height="34" rx="5" fill="#b8f08a"/><rect x="44" y="8" width="14" height="50" rx="5" fill="#ffd166"/></svg><span style="color:#fff">Levexa</span></div>
     <h1 style="color:#fff;font-size:2.2rem;margin-top:26px">Descubre tu nivel de inglés en minutos</h1>
-    <p style="opacity:.92;font-size:1.05rem">Un examen adaptativo que ajusta cada pregunta a tu nivel y te entrega un certificado verificable con el estándar MCER, de A1 a C2.</p>
-    <ul class="hero-list"><li>Examen adaptativo con temporizador por pregunta</li><li>Certificado con código de verificación público</li><li>Licencias para universidades, colegios e institutos</li></ul></section>`;
+    <p style="opacity:.92;font-size:1.05rem">Un examen adaptativo que ajusta cada pregunta a tu nivel y te entrega un certificado verificable con el estándar MCER, de Pre-A1 a C1.</p>
+    <ul class="hero-list"><li>Examen adaptativo (TRI) con Use of English, Reading, Listening y Writing</li><li>Certificado con código de verificación público</li><li>Licencias para universidades, colegios e institutos</li></ul></section>`;
   let body;
   if (t === 'login') {
     body = `<h2 style="font-size:1.5rem">Ingresa a tu cuenta</h2><p class="muted">Usa tu correo y contraseña.</p>
@@ -1595,120 +1748,153 @@ function openImport(oid) {
 /* =====================================================================
    12. VISTAS: banco de preguntas (QUESTION, ANSWER_OPTION, QUESTION_RESOURCE) y configuración del examen (EXAM_CONFIG)
    ===================================================================== */
-const STATUS_Q = { active: 'ok', draft: 'warn', retired: 'gray' }, Q_LABEL = { active: 'Activa', draft: 'Borrador', retired: 'Retirada' };
+const STATUS_Q = { active: 'ok', pilot: 'info', retired: 'gray' }, Q_LABEL = { active: 'Activa', pilot: 'Piloto', retired: 'Retirada' };
+// Tasa de exposición de cada ítem = veces administrado / exámenes finalizados
+function exposureMap() {
+  const done = new Set(S.exam_attempts.filter(a => a.status === 'finished').map(a => a.id)), m = {};
+  S.attempt_questions.forEach(x => { if (done.has(x.exam_attempt_id)) m[x.question_id] = (m[x.question_id] || 0) + 1; });
+  return { m, total: done.size };
+}
+const fmtP = q => q.param_a == null ? '—' : `a ${q.param_a} · b ${q.param_b} · c ${q.param_c}`;
 function vBanco() {
-  const qs = fv('bQ').toLowerCase();
-  const rows = S.questions.filter(q => (!fv('bSk') || qSkill(q) === fv('bSk')) && (fv('bLv') === '' || qLvl(q) === +fv('bLv')) && (!fv('bTy') || qTypeCode(q) === fv('bTy')) && (!fv('bSt') || q.status === fv('bSt')) && (!qs || q.statement.toLowerCase().includes(qs))).map(q => `<tr>
-    <td class="mono">${q.id}</td><td style="min-width:260px">${esc(q.statement)}</td><td>${esc(SKILLS[qSkill(q)])}</td><td>${lvlTag(qLvl(q))}</td><td>${QTYPES[qTypeCode(q)]}</td><td>${q.time_limit_seconds ? q.time_limit_seconds + ' s' : 'Por defecto'}</td><td>${badge(Q_LABEL[q.status], STATUS_Q[q.status])}</td>
-    <td class="act"><div class="row"><button class="btn btn-sm" data-act="qPrev" data-id="${q.id}">Vista previa</button><button class="btn btn-sm" data-act="qEdit" data-id="${q.id}">Editar</button><button class="btn btn-sm" data-act="qStatus" data-id="${q.id}">${q.status === 'active' ? 'Retirar' : 'Activar'}</button></div></td></tr>`);
-  return head('Banco de preguntas', `${S.questions.length} preguntas, ${S.questions.filter(q => q.status === 'active').length} activas. Solo las activas entran al examen.`, '<button class="btn btn-primary" data-act="qNew">Nueva pregunta</button>') +
+  const qs = fv('bQ').toLowerCase(), ex = exposureMap();
+  const rows = S.questions.filter(q => (!fv('bSk') || qSkill(q) === fv('bSk')) && (fv('bLv') === '' || qLvl(q) === +fv('bLv')) && (!fv('bTy') || qTypeCode(q) === fv('bTy')) && (!fv('bSt') || q.status === fv('bSt')) && (!qs || q.statement.toLowerCase().includes(qs))).map(q => {
+    const ep = ex.total ? (ex.m[q.id] || 0) / ex.total : 0;
+    return `<tr><td class="mono">${q.id}</td><td style="min-width:260px">${esc(q.statement)}<br><span class="muted">${esc(q.domain)} · ${esc(q.subskill)} · ${esc(q.topic)}</span></td><td>${esc(SKILLS[qSkill(q)])}</td><td>${lvlTag(qLvl(q))}<span class="muted"> .${q.sublevel}</span></td><td>${esc(QTYPES[qTypeCode(q)])}</td><td class="mono">${fmtP(q)}</td><td>${q.param_a == null ? '—' : Math.round(ep * 100) + '%'}</td><td>${badge(Q_LABEL[q.status], STATUS_Q[q.status])}</td>
+    <td class="act"><div class="row"><button class="btn btn-sm" data-act="qPrev" data-id="${q.id}">Vista previa</button><button class="btn btn-sm" data-act="qEdit" data-id="${q.id}">Editar</button><button class="btn btn-sm" data-act="qStatus" data-id="${q.id}">${q.status === 'active' ? 'Retirar' : 'Activar'}</button></div></td></tr>`;
+  });
+  const act = k => S.questions.filter(q => q.status === 'active' && qSkill(q) === k).length;
+  return head('Banco de ítems', `${S.questions.length} ítems (${Object.keys(SKILLS).map(k => SKILLS[k] + ': ' + act(k)).join(' · ')} activos). Solo los ítems activos entran al examen; los pilotos esperan calibración.`, '<button class="btn btn-primary" data-act="qNew">Nuevo ítem</button>') +
     `<div class="toolbar">${bindIn('bQ', 'Buscar enunciado', 'Texto…')}${bindSel('bSk', 'Habilidad', [['', 'Todas'], ...Object.entries(SKILLS)])}${bindSel('bLv', 'Nivel', [['', 'Todos'], ...LEVELS.map((l, i) => [i, l])])}${bindSel('bTy', 'Tipo', [['', 'Todos'], ...Object.entries(QTYPES)])}${bindSel('bSt', 'Estado', [['', 'Todos'], ...Object.entries(Q_LABEL)])}</div>` +
-    tbl(['ID', 'Enunciado', 'Habilidad', 'Nivel', 'Tipo', 'Tiempo', 'Estado', 'Acciones'], rows, 'Ninguna pregunta coincide con los filtros.');
+    tbl(['ID', 'Enunciado / metadatos', 'Habilidad', 'Nivel', 'Tipo', 'Parámetros TRI', 'Exposición', 'Estado', 'Acciones'], rows, 'Ningún ítem coincide con los filtros.');
 }
 // HTML de una pregunta tal como la ve el estudiante (compartido por examen y vista previa).
 // Un borrador del editor puede traer _opts (opciones) y _res (recurso) sin haberse guardado aún.
 function questionHTML(q, interactive) {
-  const rr = qRes(q), rtxt = q._res !== undefined ? q._res : (rr ? (rr.content || rr.transcript) : ''), opts = q._opts || qOpts(q);
-  const res = rtxt ? `<div class="resource"><small>${qSkill(q) === 'listening' ? 'Transcripción del audio (simulada)' : 'Texto de lectura'}</small>${esc(rtxt)}</div>` : '';
+  const rr = qRes(q), rtxt = q._res !== undefined ? q._res : (rr ? (rr.content || rr.transcript) : ''), opts = q._opts || qOpts(q), sk = qSkill(q);
+  const res = rtxt ? `<div class="resource"><small>${sk === 'listening' ? 'Transcripción del audio (simulada)' : 'Texto de lectura'}</small>${esc(rtxt)}</div>` : '';
+  if (sk === 'writing') return `<fieldset style="border:0;padding:0;margin:0"><legend style="font:900 1.25rem 'Nunito';margin-bottom:12px;padding:0">${esc(q.statement)}</legend><textarea rows="6" disabled placeholder="El candidato escribe aquí su respuesta."></textarea></fieldset>`;
   return `${res}<fieldset style="border:0;padding:0;margin:0"><legend style="font:900 1.25rem 'Nunito';margin-bottom:12px;padding:0">${esc(q.statement)}</legend>
-    ${opts.map((o, i) => `<label class="opt"><input type="radio" name="ans" value="${esc(o.id)}"${interactive ? (i === 0 ? ' checked' : '') : ' disabled'}> <span>${esc(o.text)}</span></label>`).join('')}</fieldset>`;
+    ${opts.map(o => `<label class="opt"><input type="radio" name="ans" value="${esc(o.id)}"${interactive ? '' : ' disabled'}> <span>${esc(o.text)}</span></label>`).join('')}</fieldset>`;
 }
 function openQuestion(id) {
-  const q = id ? byId(S.questions, id) : { skill_id: 'sk1', level_id: lvId(2), question_type_id: 'qt1', statement: 'My brother ___ football every Saturday.', time_limit_seconds: '', status: 'active' };
+  const q = id ? byId(S.questions, id) : { skill_id: skId('use'), level_id: lvId(3), sublevel: 1, question_type_id: 'qt2', statement: 'My brother ___ football every Saturday.', model_type: '3PL', param_a: 1.5, param_b: 0.4, param_c: 0.2, domain: 'grammar', subskill: 'present_simple', topic: 'leisure', descriptor: CAN_DO.use[3], time_avg_sec: 20, status: 'pilot' };
   const cur = id ? qOpts(q) : [{ text: 'plays', is_correct: true }, { text: 'play' }, { text: 'playing' }, { text: 'played' }];
-  const type = qTypeCode(q), o4 = [...cur.map(o => o.text), '', '', '', ''].slice(0, 4), corr = cur.findIndex(o => o.is_correct);
+  const o4 = [...cur.map(o => o.text), '', '', '', ''].slice(0, 4), corr = cur.findIndex(o => o.is_correct);
   const rtxt0 = id ? (qRes(q)?.content || qRes(q)?.transcript || '') : '';
+  const num = (label, name, v, attrs, hint) => fld(label, name, v ?? '', { type: 'number', attrs, hint });
   openModal({
-    title: id ? 'Editar pregunta ' + id : 'Nueva pregunta', wide: true,
-    body: `${fld('Enunciado', 'statement', q.statement, { type: 'textarea', rows: 2, req: 1 })}
-      <div class="fgrid">${fld('Habilidad', 'skill', qSkill(q), { type: 'select', opts: Object.entries(SKILLS) })}${fld('Nivel MCER', 'level', qLvl(q), { type: 'select', opts: LEVELS.map((l, i) => [i, l]) })}
-      ${fld('Tipo', 'type', type, { type: 'select', opts: Object.entries(QTYPES) })}${fld('Estado', 'status', q.status, { type: 'select', opts: Object.entries(Q_LABEL).map(([k, t]) => [k, t]) })}
-      ${fld('Tiempo límite (s), opcional', 'time_limit_seconds', q.time_limit_seconds || '', { type: 'number', attrs: 'min="5"', hint: 'Vacío = usa la configuración del examen.' })}</div>
-      ${fld('Recurso (texto de lectura o transcripción del audio)', 'resource', rtxt0, { type: 'textarea', rows: 3, hint: 'Opcional. El recurso pertenece solo a esta pregunta.' })}
-      <div id="q-mc"><label>Opciones (marca la correcta)</label>${o4.map((t, i) => `<div class="row" style="margin-bottom:6px;flex-wrap:nowrap"><input type="radio" name="correct" value="${i}" aria-label="Opción ${i + 1} correcta"${type === 'multiple_choice' && corr === i ? ' checked' : ''}><input type="text" name="opt${i}" value="${esc(t)}" aria-label="Texto de la opción ${i + 1}" placeholder="Opción ${i + 1}"></div>`).join('')}<small class="hint">Deja vacías las opciones que no uses (mínimo 2).</small><small class="err" id="e-opts" role="alert"></small></div>
-      <div id="q-tf" hidden><label>Respuesta correcta</label>${TF.map((t, i) => `<label class="opt"><input type="radio" name="correctTf" value="${i}"${type === 'true_false' && corr === i ? ' checked' : !id && i === 0 ? ' checked' : ''}> ${t}</label>`).join('')}</div>`,
+    title: id ? 'Editar ítem ' + id : 'Nuevo ítem', wide: true,
+    body: `${fld('Enunciado (o prompt de Writing)', 'statement', q.statement, { type: 'textarea', rows: 2, req: 1 })}
+      <div class="fgrid">${fld('Habilidad', 'skill', qSkill(q), { type: 'select', opts: Object.entries(SKILLS) })}${fld('Nivel MCER', 'level', qLvl(q), { type: 'select', opts: LEVELS.map((l, i) => [i, l]) })}${fld('Subnivel', 'sublevel', q.sublevel, { type: 'select', opts: [[1, '.1 (banda baja)'], [2, '.2 (banda alta)']] })}
+      ${fld('Tipo de ítem', 'type', qTypeCode(q), { type: 'select', opts: Object.entries(QTYPES) })}${fld('Estado', 'status', q.status, { type: 'select', opts: Object.entries(Q_LABEL) })}${num('Tiempo promedio (s)', 'time_avg_sec', q.time_avg_sec, 'min="1"')}
+      ${fld('Dominio', 'domain', q.domain, { req: 1, hint: 'grammar, vocabulary, detail, inference…' })}${fld('Subhabilidad', 'subskill', q.subskill, { req: 1 })}${fld('Tema', 'topic', q.topic, { req: 1 })}</div>
+      ${fld('Descriptor "Can Do" del MCER', 'descriptor', q.descriptor, { req: 1 })}
+      <div id="q-irt"><div class="fgrid">${num('Discriminación (a)', 'param_a', q.param_a, 'step="0.01" min="0"', 'Se retira si a < 0.25.')}${num('Dificultad (b)', 'param_b', q.param_b, 'step="0.01"', 'Rango sugerido del nivel: ' + (qLvl(q) < 5 ? THETA_RANGE[qLvl(q)].join(' a ') : '2 a 2.5') + '.')}${num('Pseudoazar (c)', 'param_c', q.param_c, 'step="0.01" min="0"', 'Se retira si c > 0.35.')}</div></div>
+      <div id="q-res">${fld('Recurso (texto de lectura o transcripción del audio)', 'resource', rtxt0, { type: 'textarea', rows: 3, hint: 'Opcional. El recurso pertenece solo a este ítem.' })}</div>
+      <div id="q-mc"><label>Opciones (marca la correcta)</label>${o4.map((t, i) => `<div class="row" style="margin-bottom:6px;flex-wrap:nowrap"><input type="radio" name="correct" value="${i}" aria-label="Opción ${i + 1} correcta"${corr === i ? ' checked' : ''}><input type="text" name="opt${i}" value="${esc(t)}" aria-label="Texto de la opción ${i + 1}" placeholder="Opción ${i + 1}"></div>`).join('')}<small class="hint">Los ítems objetivos llevan 4 opciones.</small><small class="err" id="e-opts" role="alert"></small></div>`,
     extra: '<button type="button" class="btn" data-act="qPrevForm">Vista previa</button>',
     afterOpen(h) {
-      const sel = $('[name=type]', h.el), sync = () => { $('#q-mc', h.el).hidden = sel.value === 'true_false'; $('#q-tf', h.el).hidden = sel.value !== 'true_false'; };
-      sel.addEventListener('change', sync); sync();
+      const sk = $('[name=skill]', h.el), ty = $('[name=type]', h.el), sync = () => {
+        const w = sk.value === 'writing'; if (w) ty.value = 'writing_prompt'; else if (ty.value === 'writing_prompt') ty.value = 'multiple_choice';
+        $('#q-irt', h.el).hidden = w; $('#q-mc', h.el).hidden = w; $('#q-res', h.el).hidden = w;
+      };
+      sk.addEventListener('change', sync); ty.addEventListener('change', sync); sync();
     },
     onSubmit(v, fd, form) {
       const r = readQuestion(form, true);
       if (r.errs) return r.errs;
-      const d = r.q, qd = { level_id: lvId(d.level), skill_id: skId(d.skill), question_type_id: qtId(d.type), statement: d.statement, time_limit_seconds: d.time_limit_seconds, status: d.status };
+      const d = r.q, w = d.skill === 'writing';
+      const qd = { level_id: lvId(d.level), skill_id: skId(d.skill), sublevel: d.sublevel, question_type_id: qtId(d.type), statement: d.statement, model_type: w ? 'rubric' : '3PL', param_a: w ? null : d.a, param_b: w ? null : d.b, param_c: w ? null : d.c, domain: d.domain, subskill: d.subskill, topic: d.topic, descriptor: d.descriptor, time_avg_sec: d.time_avg_sec, status: d.status };
       let t = q;
       if (id) { Object.assign(q, qd); q.version = (q.version || 1) + 1; S.answer_options = S.answer_options.filter(o => o.question_id !== id); }
-      else { t = { id: 'q' + (S.questions.length + 1 + Math.floor(Math.random() * 1000)), version: 1, ...qd }; S.questions.push(t); S.exams.forEach(e => S.exam_questions.push({ id: uid('eq'), question_id: t.id, exam_id: e.id, is_active: true })); }
-      d.opts.forEach((txt, i) => S.answer_options.push({ id: uid('ao'), question_id: t.id, text: txt, is_correct: i === d.correct, sort_order: i + 1 }));
+      else { t = { id: 'q' + (S.questions.length + 1 + Math.floor(Math.random() * 1000)), version: 1, source: 'Levexa_2026_ItemBank', reviewed_by: 'psychometrics_team', created_at: new Date().toISOString(), ...qd }; S.questions.push(t); S.exams.forEach(e => S.exam_questions.push({ id: uid('eq'), question_id: t.id, exam_id: e.id, is_active: true })); }
+      if (!w) d.opts.forEach((txt, i) => S.answer_options.push({ id: uid('ao'), question_id: t.id, text: txt, is_correct: i === d.correct, sort_order: i + 1 }));
       const rec = qRes(t), listening = d.skill === 'listening';
-      if (d.resource) {
+      if (!w && d.resource) {
         const rv = { type: listening ? 'audio' : 'text', content: listening ? '' : d.resource, transcript: listening ? d.resource : '' };
         if (rec) Object.assign(rec, rv); else S.question_resources.push({ id: uid('rc'), question_id: t.id, file_url: '', ...rv });
       } else if (rec) S.question_resources = S.question_resources.filter(x => x.id !== rec.id);
-      commit(); toast('Pregunta guardada.');
+      commit(); toast('Ítem guardado.');
     }
   });
 }
-// Lee y valida el formulario del editor de preguntas (devuelve también un borrador para la vista previa)
+// Lee y valida el formulario del editor de ítems (devuelve también un borrador para la vista previa)
 function readQuestion(form, validate) {
   const g = n => (form.querySelector(`[name="${n}"]`) || {}).value || '', e = {};
-  const type = g('type'), statement = g('statement').trim();
-  let opts, correct;
-  if (type === 'true_false') { opts = [...TF]; correct = +(form.querySelector('[name=correctTf]:checked')?.value ?? 0); }
-  else {
+  const skill = g('skill'), w = skill === 'writing', type = w ? 'writing_prompt' : (g('type') === 'writing_prompt' ? 'multiple_choice' : g('type')), statement = g('statement').trim();
+  let opts = [], correct = -1;
+  if (!w) {
     const sel = form.querySelector('[name=correct]:checked'), pick = sel ? +sel.value : -1;
-    opts = []; correct = -1;
     [0, 1, 2, 3].forEach(i => { const t = g('opt' + i).trim(); if (t) { if (i === pick) correct = opts.length; opts.push(t); } });
-    if (opts.length < 2) e.opts = 'Ingresa al menos 2 opciones.'; else if (correct < 0) e.opts = 'Marca cuál opción es la correcta (y que no esté vacía).';
+    if (opts.length !== 4) e.opts = 'Los ítems objetivos llevan exactamente 4 opciones.'; else if (correct < 0) e.opts = 'Marca cuál opción es la correcta.';
   }
   if (!statement) e.statement = 'El enunciado es obligatorio.';
-  const tl = g('time_limit_seconds'); if (tl && +tl < 5) e.time_limit_seconds = 'Mínimo 5 segundos.';
-  const q = { statement, skill: g('skill'), level: +g('level'), type, status: g('status'), time_limit_seconds: tl ? +tl : null, resource: g('resource').trim(), opts, correct };
+  ['domain', 'subskill', 'topic', 'descriptor'].forEach(k => { if (!g(k).trim()) e[k] = 'Este campo es obligatorio.'; });
+  const a = parseFloat(g('param_a')), b = parseFloat(g('param_b')), c = parseFloat(g('param_c')), tm = parseInt(g('time_avg_sec'), 10);
+  if (!w) {
+    if (!(a >= 0.25)) e.param_a = 'La discriminación debe ser al menos 0.25.';
+    if (!(b >= -3.5 && b <= 3.5)) e.param_b = 'La dificultad debe estar entre −3.5 y +3.5.';
+    if (!(c >= 0 && c <= 0.35)) e.param_c = 'El pseudoazar debe estar entre 0 y 0.35.';
+  }
+  if (!(tm >= 1)) e.time_avg_sec = 'Ingresa el tiempo promedio en segundos.';
+  const q = { statement, skill, level: +g('level'), sublevel: +g('sublevel') || 1, type, status: g('status'), a, b, c, domain: g('domain').trim(), subskill: g('subskill').trim(), topic: g('topic').trim(), descriptor: g('descriptor').trim(), time_avg_sec: tm, resource: g('resource').trim(), opts, correct };
   return Object.keys(e).length && validate ? { errs: e } : { q };
 }
-// Borrador de pregunta (sin guardar) para la vista previa del editor
-const draftQuestion = d => ({ id: '_draft', statement: d.statement, skill_id: skId(d.skill), level_id: lvId(d.level), question_type_id: qtId(d.type), time_limit_seconds: d.time_limit_seconds, _res: d.resource, _opts: d.opts.map((t, i) => ({ id: 'd' + i, text: t })) });
+// Borrador de ítem (sin guardar) para la vista previa del editor
+const draftQuestion = d => ({ id: '_draft', statement: d.statement, skill_id: skId(d.skill), level_id: lvId(d.level), question_type_id: qtId(d.type), _res: d.resource, _opts: d.opts.map((t, i) => ({ id: 'd' + i, text: t })) });
 function openQPreview(q) {
-  openModal({ title: 'Vista previa para el estudiante', noFooter: true, body: `<p class="muted">${esc(SKILLS[qSkill(q)])} · ${LEVELS[qLvl(q)]} · tiempo: ${q.time_limit_seconds || timeFor(q, activeCfg())} s</p>${questionHTML(q, false)}` });
+  openModal({ title: 'Vista previa para el estudiante', noFooter: true, body: `<p class="muted">${esc(SKILLS[qSkill(q)])} · ${LEVELS[qLvl(q)]}${q.param_b != null ? ' · b = ' + q.param_b : ''}</p>${questionHTML(q, false)}` });
 }
 
 function vConfig() {
-  const c = activeCfg(), num = (k, label, o = {}) => fld(label, k, c[k], { type: 'number', req: 1, attrs: `step="${o.step || 1}" min="${o.min ?? 0}"`, hint: o.hint });
+  const c = activeCfg(), sc = c.skillCfg, num = (k, label, o = {}) => fld(label, k, c[k], { type: 'number', req: 1, attrs: `step="${o.step || 1}" min="${o.min ?? 0}"${o.max != null ? ` max="${o.max}"` : ''}`, hint: o.hint });
+  const skRow = k => `<tr><th scope="row">${SKILLS[k]}</th><td><input type="number" name="min_${k}" min="${MIN_ITEMS_GLOBAL}" max="${MAX_ITEMS_GLOBAL}" value="${sc[k].min_items}" aria-label="Mínimo de ítems de ${SKILLS[k]}" style="min-width:72px"></td><td><input type="number" name="max_${k}" min="${MIN_ITEMS_GLOBAL}" max="${MAX_ITEMS_GLOBAL}" value="${sc[k].max_items}" aria-label="Máximo de ítems de ${SKILLS[k]}" style="min-width:72px"></td><td><input type="number" name="min_t_${k}" min="1" max="${MAX_MINUTES_GLOBAL}" value="${sc[k].max_minutes}" aria-label="Minutos máximos de ${SKILLS[k]}" style="min-width:72px"></td></tr>`;
   return head('Configuración del examen', `Los cambios se aplican al siguiente examen. Cada guardado crea una nueva versión (vigente: v${c.version}).`) +
     `<form data-form="cfg" novalidate><div class="notice bad" id="e-form" role="alert" hidden></div>
-    <section class="panel"><h2>Estructura</h2><div class="grid g4">${fld('Nivel inicial', 'initial_level_id', c.initial_level_id, { type: 'select', opts: LEVELS.map((l, i) => [lvId(i), l]) })}${num('min_questions', 'Mínimo de preguntas', { min: 3 })}${num('max_questions', 'Máximo de preguntas', { min: 3 })}${num('default_time_sec', 'Tiempo por defecto (s)', { min: 5 })}</div></section>
-    <section class="panel"><h2>Rapidez de respuesta</h2><p class="muted">Se mide como el porcentaje del tiempo límite que usó el candidato.</p><div class="grid g4">${num('fast_threshold_pct', 'Respuesta rápida (% del tiempo)', { min: 1, hint: 'Hasta este % se considera rápida.' })}${num('slow_threshold_pct', 'Respuesta lenta (% del tiempo)', { min: 1, hint: 'Desde este % se considera lenta.' })}</div></section>
-    <section class="panel"><h2>Escalera de niveles</h2><p class="muted">Cada nivel tiene un medidor que parte en 0. Cada acierto suma su avance y cada error o tiempo agotado resta 1. Al llegar al límite, el candidato sube o baja un nivel y el medidor vuelve a 0.</p><div class="grid g4">${num('gauge_up', 'Medidor para subir', { step: 0.5, min: 0.5, hint: 'Avance acumulado que sube un nivel.' })}${num('gauge_down', 'Medidor para bajar', { step: 0.5, min: 0.5, hint: 'Errores acumulados que bajan un nivel.' })}${num('advance_fast', 'Avance: acierto rápido', { step: 0.5, min: 0, hint: 'Puntos que suma en el medidor.' })}${num('advance_normal', 'Avance: acierto normal', { step: 0.5, min: 0 })}${num('advance_slow', 'Avance: acierto lento', { step: 0.5, min: 0 })}</div></section>
-    <section class="panel"><h2>Resultado</h2><p class="muted">Cada respuesta vale una calidad. El nivel final es el más alto cuyo promedio de calidad alcanza el umbral. El puntaje suma ese promedio como subnivel.</p><div class="grid g4">${num('quality_fast', 'Calidad: acierto rápido (0 a 1)', { step: 0.05 })}${num('quality_normal', 'Calidad: acierto normal (0 a 1)', { step: 0.05 })}${num('quality_slow', 'Calidad: acierto lento (0 a 1)', { step: 0.05 })}${num('pass_threshold', 'Umbral de aprobación (0 a 1)', { step: 0.05, hint: 'Calidad media mínima para aprobar un nivel.' })}
-      ${num('min_answers_per_level', 'Mínimo de respuestas por nivel', { min: 1, hint: 'Para aprobar un nivel y confirmar el techo.' })}${num('certificate_valid_days', 'Vigencia del certificado (días)', { min: 1 })}</div></section>
-    <section class="panel"><h2>Tiempo por habilidad y nivel (segundos)</h2><p class="muted">Vacío = usa el tiempo por defecto. Una pregunta con tiempo propio tiene prioridad.</p>
-      <div class="tbl-wrap"><table><thead><tr><th scope="col">Habilidad</th>${LEVELS.map(l => `<th scope="col">${l}</th>`).join('')}</tr></thead><tbody>${Object.entries(SKILLS).map(([k, n]) => `<tr><th scope="row">${n}</th>${LEVELS.map(l => `<td><input type="number" min="5" name="t_${k}_${l}" value="${c.timeTable[k]?.[l] ?? ''}" aria-label="${n} ${l}" style="min-width:64px"></td>`).join('')}</tr>`).join('')}</tbody></table></div></section>
+    <section class="panel"><h2>Motor adaptativo (TRI 3PL + EAP)</h2><p class="muted">Cada habilidad se mide con un CAT independiente: θ se actualiza con EAP tras cada respuesta y el siguiente ítem es el de máxima información. El examen de la habilidad cierra cuando el error estándar (SE) baja del umbral con el mínimo de ítems, o al llegar al máximo de ítems o de tiempo.</p>
+      <div class="grid g4">${num('theta_initial', 'θ inicial', { step: 0.1, min: -3, max: 3, hint: '0.0 equivale a B1.' })}${num('prior_mean', 'Prior: media', { step: 0.1, min: -3, max: 3 })}${num('prior_sd', 'Prior: desviación', { step: 0.1, min: 0.1, max: 3 })}${num('se_threshold', 'SE de cierre', { step: 0.01, min: 0.05, max: 1, hint: 'Documento: SE ≤ 0.30.' })}
+      ${num('max_exposure', 'Tope de exposición (Sympson–Hetter)', { step: 0.01, min: 0.01, max: 1, hint: 'Un ítem no se usa si supera esta tasa. Documento: 0.20.' })}${num('min_candidates', 'Mínimo de candidatos', { min: 1, max: 30, hint: 'Con menos ítems elegibles se relajan las reglas de contenido y exposición.' })}${num('streak_up', 'Racha para subir', { min: 1, max: 10, hint: 'Aciertos seguidos en ítems con b > θ.' })}${num('streak_down', 'Racha para bajar', { min: 1, max: 10, hint: 'Fallos seguidos en ítems con b < θ.' })}</div></section>
+    <section class="panel"><h2>Ítems y tiempo por habilidad</h2><p class="muted">Mínimo y máximo de ítems administrados (entre ${MIN_ITEMS_GLOBAL} y ${MAX_ITEMS_GLOBAL}) y minutos máximos por habilidad (hasta ${MAX_MINUTES_GLOBAL}). Writing es una tarea única con rúbrica.</p>
+      <div class="tbl-wrap"><table><thead><tr><th scope="col">Habilidad</th><th scope="col">Mínimo de ítems</th><th scope="col">Máximo de ítems</th><th scope="col">Minutos máximos</th></tr></thead><tbody>${CAT_SKILLS.map(skRow).join('')}</tbody></table></div>
+      <div class="grid g4" style="margin-top:14px">${num('writing_minutes', 'Writing: minutos máximos', { min: 1, max: 60 })}${num('certificate_valid_days', 'Vigencia del resultado y certificado (días)', { min: 1, hint: 'Documento: 1 periodo académico.' })}</div></section>
+    <section class="panel"><h2>Niveles, rangos de θ y cursos</h2><p class="muted">Tabla fija del documento (sección 6): el nivel global sale del θ promedio de Use of English, Reading y Listening.</p>
+      <div class="tbl-wrap"><table><thead><tr><th scope="col">Nivel MCER</th><th scope="col">Rango de θ</th><th scope="col">Curso asignado</th></tr></thead><tbody>${LEVELS.map((l, i) => `<tr><td>${lvlTag(i)} ${esc(LEVEL_NAMES[i])}</td><td class="mono">${THETA_RANGE[i][0] > 0 ? '+' : ''}${THETA_RANGE[i][0]} a ${THETA_RANGE[i][1] > 0 ? '+' : ''}${THETA_RANGE[i][1]}</td><td>${esc(COURSES[i][0])} · ${esc(COURSES[i][1])}</td></tr>`).join('')}</tbody></table></div></section>
     <div class="row"><button class="btn btn-primary" type="submit">Guardar configuración</button><button class="btn" type="button" data-act="cfgReset">Restablecer valores</button></div></form>` + cfgVersions();
 }
 function cfgVersions() {
   const cur = cfgCurrent(S, 'x1');
-  const rows = S.exam_configs.filter(c => c.exam_id === 'x1').sort((a, b) => b.version - a.version).map(c => `<tr><td><b>v${c.version}</b> ${c.id === cur.id ? badge('Vigente', 'ok') : ''}</td><td>${LEVELS[lvI(c.initial_level_id)]}</td><td>${c.min_questions}–${c.max_questions}</td><td>+${c.gauge_up} / −${c.gauge_down}</td><td>${Math.round(c.pass_threshold * 100)}%</td><td>${S.exam_attempts.filter(a => a.exam_config_id === c.id).length}</td></tr>`);
-  return '<h2 style="margin-top:24px">Versiones de la configuración</h2><p class="muted">Cada intento queda ligado a la versión que lo rigió. La vigente es la de mayor versión.</p>' + tbl(['Versión', 'Nivel inicial', 'Preguntas', 'Medidor subir / bajar', 'Aprobación', 'Intentos'], rows);
+  const rows = S.exam_configs.filter(c => c.exam_id === 'x1').sort((a, b) => b.version - a.version).map(c => {
+    const r = cfgRuntime(S, c), s = r.skillCfg;
+    return `<tr><td><b>v${c.version}</b> ${c.id === cur.id ? badge('Vigente', 'ok') : ''}</td><td>${c.theta_initial}</td><td>${c.se_threshold}</td><td>${c.max_exposure}</td><td>${CAT_SKILLS.map(k => `${SKILLS[k].split(' ')[0]} ${s[k].min_items}–${s[k].max_items}`).join(' · ')}</td><td>${c.certificate_valid_days} d</td><td>${S.exam_attempts.filter(a => a.exam_config_id === c.id).length}</td></tr>`;
+  });
+  return '<h2 style="margin-top:24px">Versiones de la configuración</h2><p class="muted">Cada intento queda ligado a la versión que lo rigió. La vigente es la de mayor versión.</p>' + tbl(['Versión', 'θ inicial', 'SE de cierre', 'Exposición', 'Ítems por habilidad', 'Vigencia', 'Intentos'], rows);
 }
-const CFG_NUM = ['min_questions', 'max_questions', 'default_time_sec', 'fast_threshold_pct', 'slow_threshold_pct', 'gauge_up', 'gauge_down', 'advance_fast', 'advance_normal', 'advance_slow', 'quality_fast', 'quality_normal', 'quality_slow', 'pass_threshold', 'min_answers_per_level', 'certificate_valid_days'];
+const CFG_NUM = ['theta_initial', 'prior_mean', 'prior_sd', 'se_threshold', 'max_exposure', 'min_candidates', 'streak_up', 'streak_down', 'writing_minutes', 'certificate_valid_days'];
 function saveCfg(form) {
   const v = Object.fromEntries(new FormData(form)), e = [], c = {};
   CFG_NUM.forEach(k => c[k] = parseFloat(v[k]));
-  if ([...Object.values(c)].some(isNaN)) e.push('Completa todos los campos numéricos.');
-  if (c.min_questions < 3 || c.max_questions < c.min_questions) e.push('El máximo de preguntas debe ser mayor o igual al mínimo (mínimo 3).');
-  if (c.max_questions > S.questions.filter(q => q.status === 'active').length) e.push('El máximo supera las preguntas activas del banco.');
-  if (!(c.fast_threshold_pct >= 1 && c.slow_threshold_pct <= 100 && c.fast_threshold_pct < c.slow_threshold_pct)) e.push('El umbral rápido debe ser menor que el lento, entre 1 y 100.');
-  if (c.gauge_up < 0.5 || c.gauge_down < 0.5 || c.gauge_up > 10 || c.gauge_down > 10) e.push('Los medidores para subir y bajar deben estar entre 0.5 y 10.');
-  if ([c.advance_fast, c.advance_normal, c.advance_slow].some(x => x < 0 || x > 10)) e.push('Los avances por acierto deben estar entre 0 y 10.');
-  if (!(c.advance_fast >= c.advance_normal && c.advance_normal >= c.advance_slow)) e.push('El avance debe ser mayor o igual para respuestas más rápidas (rápido ≥ normal ≥ lento).');
-  if (![c.quality_fast, c.quality_normal, c.quality_slow, c.pass_threshold].every(x => x >= 0 && x <= 1)) e.push('Las calidades y el umbral de aprobación deben estar entre 0 y 1.');
-  if (!(c.quality_fast >= c.quality_normal && c.quality_normal >= c.quality_slow)) e.push('La calidad debe ser mayor o igual para respuestas más rápidas (rápido ≥ normal ≥ lento).');
-  if (c.min_answers_per_level < 1 || c.min_answers_per_level > c.min_questions) e.push('El mínimo de respuestas por nivel debe estar entre 1 y el mínimo de preguntas.');
-  const tt = {};
-  Object.keys(SKILLS).forEach(k => { tt[k] = {}; LEVELS.forEach(l => { const x = v[`t_${k}_${l}`]; if (x !== '' && x != null) { if (+x < 5) e.push(`Tiempo inválido en ${SKILLS[k]} ${l} (mínimo 5 s).`); else tt[k][l] = +x; } }); });
+  if (CFG_NUM.some(k => isNaN(c[k]))) e.push('Completa todos los campos numéricos.');
+  if (!(c.theta_initial >= -3 && c.theta_initial <= 3 && c.prior_mean >= -3 && c.prior_mean <= 3)) e.push('El θ inicial y la media del prior deben estar entre −3 y +3.');
+  if (!(c.prior_sd >= 0.1 && c.prior_sd <= 3)) e.push('La desviación del prior debe estar entre 0.1 y 3.');
+  if (!(c.se_threshold >= 0.05 && c.se_threshold <= 1)) e.push('El SE de cierre debe estar entre 0.05 y 1.');
+  if (!(c.max_exposure >= 0.01 && c.max_exposure <= 1)) e.push('El tope de exposición debe estar entre 0.01 y 1.');
+  if (!(c.min_candidates >= 1 && c.min_candidates <= 30)) e.push('El mínimo de candidatos debe estar entre 1 y 30.');
+  if (!(c.streak_up >= 1 && c.streak_up <= 10 && c.streak_down >= 1 && c.streak_down <= 10)) e.push('Las rachas para subir y bajar deben estar entre 1 y 10.');
+  if (!(c.writing_minutes >= 1 && c.writing_minutes <= 60)) e.push('Los minutos de Writing deben estar entre 1 y 60.');
+  if (!(c.certificate_valid_days >= 1)) e.push('La vigencia debe ser de al menos 1 día.');
+  const skillCfg = {};
+  CAT_SKILLS.forEach(k => {
+    const m = { min_items: parseInt(v['min_' + k], 10), max_items: parseInt(v['max_' + k], 10), max_minutes: parseInt(v['min_t_' + k], 10) }; skillCfg[k] = m;
+    if (Object.values(m).some(isNaN)) { e.push(`Completa los valores de ${SKILLS[k]}.`); return; }
+    if (m.min_items < MIN_ITEMS_GLOBAL || m.max_items > MAX_ITEMS_GLOBAL || m.max_items < m.min_items) e.push(`${SKILLS[k]}: el mínimo debe ser al menos ${MIN_ITEMS_GLOBAL}, el máximo a lo sumo ${MAX_ITEMS_GLOBAL} y el máximo no puede ser menor que el mínimo.`);
+    const act = S.questions.filter(q => q.status === 'active' && qSkill(q) === k).length;
+    if (m.max_items > act) e.push(`${SKILLS[k]}: el máximo (${m.max_items}) supera los ítems activos del banco (${act}).`);
+    if (m.max_minutes < 1 || m.max_minutes > MAX_MINUTES_GLOBAL) e.push(`${SKILLS[k]}: los minutos deben estar entre 1 y ${MAX_MINUTES_GLOBAL}.`);
+  });
   const g = $('#e-form', form);
   if (e.length) { g.innerHTML = e.map(esc).join('<br>'); g.hidden = false; g.scrollIntoView({ block: 'center' }); return; }
-  const nc = addCfgVersion(S, { ...c, initial_level_id: v.initial_level_id, timeTable: tt });
+  const nc = addCfgVersion(S, { ...c, skillCfg });
   commit(); toast('Configuración guardada como versión ' + nc.version + '. Se aplicará al siguiente examen.');
 }
 
@@ -1719,45 +1905,70 @@ function filteredAttempts() {
   const oid = scopeOrg(), q = fv('rQ').toLowerCase(), lv = fv('rLvl'), f = fv('rFrom'), t = fv('rTo'), og = fv('rOrg');
   return attemptsScope(oid).filter(a => (!lv || a.level === lv) && (!f || ts(a.finishedAt) >= ts(f + 'T00:00:00')) && (!t || ts(a.finishedAt) <= ts(t + 'T23:59:59')) && (!og || (og === '_i' ? !a.orgId : a.orgId === og)) && (!q || (candOf(a.candId)?.name || '').toLowerCase().includes(q))).sort((a, b) => ts(b.finishedAt) - ts(a.finishedAt));
 }
+const fmtTheta = t => (t > 0 ? '+' : '') + (+t).toFixed(2).replace('-', '−');
+const writingBadge = w => !w ? badge('—') : w.status === 'graded' ? badge(`${LEVELS[w.level]} · banda ${w.band}`, 'ok') : badge('Pendiente', 'warn');
 function vResultados() {
   const list = filteredAttempts(), oid = scopeOrg();
   const rows = list.map(a => {
     const c = certOf(a.id), cs = c ? certState(c) : null;
-    return `<tr><td><b>${esc(candOf(a.candId)?.name)}</b>${oid ? '' : `<br><span class="muted">${esc(orgName(a.orgId))}</span>`}</td><td>${esc(examOf(a.examId)?.title)}</td><td>${lvlTag(LEVELS.indexOf(a.level))}</td><td>${a.score}/100</td><td>${fmtD(a.finishedAt)}</td><td>${cs ? badge(CERT_LABEL[cs], CERT_BADGE[cs]) : badge('Sin certificado')}</td>
+    return `<tr><td><b>${esc(candOf(a.candId)?.name)}</b>${oid ? '' : `<br><span class="muted">${esc(orgName(a.orgId))}</span>`}</td><td>${esc(examOf(a.examId)?.title)}</td><td>${lvlTag(a.levelIdx)}</td><td class="mono">${fmtTheta(a.theta)} ± ${a.se.toFixed(2)}</td><td>${a.score}/100</td><td>${writingBadge(a.writing)}</td><td>${fmtD(a.finishedAt)}</td><td>${cs ? badge(CERT_LABEL[cs], CERT_BADGE[cs]) : badge('Sin certificado')}</td>
       <td class="act"><button class="btn btn-sm" data-act="attOpen" data-id="${a.id}">Detalle</button></td></tr>`;
   });
-  return head('Resultados y certificación', 'Exámenes finalizados, su evolución pregunta a pregunta y el estado de sus certificados.', '<button class="btn" data-act="csv">Exportar CSV</button>') +
+  return head('Resultados y certificación', 'Exámenes finalizados, su evolución de θ habilidad por habilidad, la calificación de Writing y el estado de sus certificados.', '<button class="btn" data-act="csv">Exportar CSV</button>') +
     `<div class="toolbar">${bindIn('rQ', 'Candidato', 'Nombre…')}${bindSel('rLvl', 'Nivel', [['', 'Todos'], ...LEVELS.map(l => [l, l])])}${bindIn('rFrom', 'Desde', '', 'date')}${bindIn('rTo', 'Hasta', '', 'date')}${oid ? '' : bindSel('rOrg', 'Organización', [['', 'Todas'], ...S.organizations.map(o => [o.id, o.name]), ['_i', 'Independientes']])}</div>` +
-    tbl(['Candidato', 'Examen', 'Nivel', 'Puntaje', 'Fecha', 'Certificado', 'Acciones'], rows, 'No hay resultados con esos filtros.');
+    tbl(['Candidato', 'Examen', 'Nivel', 'θ ± SE', 'Puntaje', 'Writing', 'Fecha', 'Certificado', 'Acciones'], rows, 'No hay resultados con esos filtros.');
 }
 function exportCSV() {
-  const rows = [['Candidato', 'Documento', 'Organización', 'Examen', 'Nivel', 'Puntaje', 'Fecha', 'Certificado', 'Estado certificado']];
-  filteredAttempts().forEach(a => { const c = certOf(a.id), p = candOf(a.candId); rows.push([p?.name, p ? p.docType + ' ' + p.docNum : '', orgName(a.orgId), examOf(a.examId)?.title, a.level, a.score, fmtD(a.finishedAt), c?.number || '', c ? CERT_LABEL[certState(c)] : '']); });
+  const rows = [['Candidato', 'Documento', 'Organización', 'Examen', 'Nivel', 'θ global', 'SE', 'Puntaje', 'Curso', 'Use θ', 'Reading θ', 'Listening θ', 'Writing', 'Fecha', 'Certificado', 'Estado certificado']];
+  filteredAttempts().forEach(a => { const c = certOf(a.id), p = candOf(a.candId), th = k => a.skills[k] ? a.skills[k].theta : ''; rows.push([p?.name, p ? p.docType + ' ' + p.docNum : '', orgName(a.orgId), examOf(a.examId)?.title, a.level, a.theta, a.se, a.score, a.course, th('use'), th('reading'), th('listening'), a.writing?.status === 'graded' ? LEVELS[a.writing.level] + ' (banda ' + a.writing.band + ')' : 'Pendiente', fmtD(a.finishedAt), c?.number || '', c ? CERT_LABEL[certState(c)] : '']); });
   downloadCSV('resultados-levexa.csv', rows); toast('CSV exportado con ' + (rows.length - 1) + ' filas.');
 }
-// Gráfica SVG del nivel del candidato (escalera) pregunta a pregunta
-const RAPIDEZ = { fast: 'rápida', normal: 'normal', slow: 'lenta' }, CONF_LABEL = { high: 'alta', medium: 'media' };
-function levelChart(trace, start) {
-  const W = 640, H = 250, L = 38, Rr = 12, T = 12, Bm = 28, n = trace.length;
-  const x = i => L + (W - L - Rr) * i / Math.max(1, n), y = v => T + (H - T - Bm) * (1 - v / 6);
-  const pts = [LEVELS.indexOf(start) + 0.5, ...trace.map(t => LEVELS.indexOf(t.after) + 0.5)];
-  const grid = LEVELS.map((l, i) => `<line x1="${L}" x2="${W - Rr}" y1="${y(i)}" y2="${y(i)}" stroke="var(--border)"/><text x="${L - 6}" y="${y(i + 0.5) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${l}</text>`).join('') + `<line x1="${L}" x2="${W - Rr}" y1="${y(6)}" y2="${y(6)}" stroke="var(--border)"/>`;
-  const xl = pts.map((_, i) => (n < 16 || i % 2 === 0) ? `<text x="${x(i)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="var(--muted)">${i === 0 ? 'Ini' : i}</text>` : '').join('');
-  const dots = pts.map((v, i) => { const t = trace[i - 1], col = i === 0 ? 'var(--muted)' : t.correct ? 'var(--ok)' : 'var(--bad)'; return `<circle cx="${x(i)}" cy="${y(v)}" r="5" fill="${col}"><title>${i === 0 ? 'Nivel inicial' : 'Pregunta ' + i + (t.expired ? ' (expirada)' : t.correct ? ' (correcta)' : ' (incorrecta)')}: nivel ${LEVELS[Math.floor(v)]}</title></circle>`; }).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolución del nivel a lo largo de ${n} preguntas">${grid}<polyline fill="none" stroke="var(--primary)" stroke-width="2.5" points="${pts.map((v, i) => x(i) + ',' + y(v)).join(' ')}"/>${dots}${xl}</svg>
-  <div class="legend"><span><i style="background:var(--ok)"></i>Correcta</span><span><i style="background:var(--bad)"></i>Incorrecta o expirada</span><span>El punto muestra el nivel en el que quedó el candidato tras cada pregunta</span></div>`;
+// Gráfica SVG de la evolución de θ (con su banda de ±SE) en una habilidad CAT
+function thetaChart(trace, k, prior) {
+  const pts = trace.filter(t => t.skill === k), n = pts.length, W = 320, H = 190, L = 36, Rr = 8, T = 8, Bm = 22;
+  const x = i => L + (W - L - Rr) * i / Math.max(1, n), y = v => T + (H - T - Bm) * (1 - (clampTheta(v) + 3) / 6);
+  const vals = [{ t: 0, se: prior || 1 }, ...pts.map(p => ({ t: p.thetaAfter, se: p.se }))];
+  const grid = LEVELS.map((l, i) => `<line x1="${L}" x2="${W - Rr}" y1="${y(-3 + i)}" y2="${y(-3 + i)}" stroke="var(--border)"/><text x="${L - 5}" y="${y(-2.5 + i) + 4}" text-anchor="end" font-size="10" fill="var(--muted)">${l}</text>`).join('') + `<line x1="${L}" x2="${W - Rr}" y1="${y(3)}" y2="${y(3)}" stroke="var(--border)"/>`;
+  const band = `<polygon fill="var(--primary)" opacity=".13" points="${vals.map((v, i) => x(i) + ',' + y(v.t + v.se)).join(' ')} ${vals.map((v, i) => [x(i), y(v.t - v.se)]).reverse().map(p => p.join(',')).join(' ')}"/>`;
+  const line = `<polyline fill="none" stroke="var(--primary)" stroke-width="2" points="${vals.map((v, i) => x(i) + ',' + y(v.t)).join(' ')}"/>`;
+  const dots = pts.map((p, i) => `<circle cx="${x(i + 1)}" cy="${y(p.thetaAfter)}" r="3.5" fill="${p.omitted ? 'var(--warn)' : p.correct ? 'var(--ok)' : 'var(--bad)'}"><title>Ítem ${i + 1} (${p.omitted ? 'omitido' : p.correct ? 'correcto' : 'incorrecto'}): θ = ${fmtTheta(p.thetaAfter)} ± ${p.se.toFixed(2)}</title></circle>`).join('');
+  return `<figure style="margin:0"><figcaption style="font-weight:800;margin-bottom:4px">${esc(SKILLS[k])}</figcaption><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolución de θ en ${esc(SKILLS[k])} a lo largo de ${n} ítems">${grid}${band}${line}${dots}</svg></figure>`;
 }
 function openAttempt(id) {
-  const a = attemptViewById(id), p = candOf(a.candId), c = certOf(a.id), cs = c ? certState(c) : null;
-  const trs = a.trace.map((t, i) => `<tr><td>${i + 1}</td><td>${esc(SKILLS[t.skill])} · ${lvlTag(t.level)}</td><td>${esc(t.stem)}${t.stem.length >= 80 ? '…' : ''}</td><td>${t.expired ? badge('Expirada', 'warn') : t.correct ? badge('Correcta', 'ok') : badge('Incorrecta', 'bad')}</td><td>${t.used} s / ${t.limit} s <span class="muted">(${RAPIDEZ[t.speed]})</span></td><td>${t.quality}</td><td>${t.advance > 0 ? '+' : ''}${t.advance} → ${t.gauge}</td><td>${lvlTag(LEVELS.indexOf(t.after))}</td></tr>`);
+  const a = attemptViewById(id), p = candOf(a.candId), c = certOf(a.id), cs = c ? certState(c) : null, cfg = byId(S.exam_configs, byId(S.exam_attempts, id).exam_config_id);
+  const sk = CAT_SKILLS.map(k => { const x = a.skills[k]; return x ? `<tr><td><b>${esc(SKILLS[k])}</b></td><td class="mono">${fmtTheta(x.theta)}</td><td class="mono">${x.se.toFixed(2)}</td><td>${lvlTag(x.level)} <span class="muted">${esc(levelRangeLabel(x.theta, x.se))}</span></td><td>${x.ok}/${x.n}</td><td>${esc(STOP_LABEL[x.reason] || x.reason)}</td></tr>` : ''; });
+  const trs = a.trace.map((t, i) => `<tr><td>${i + 1}</td><td>${esc(SKILLS[t.skill])}</td><td>${esc(t.stem.slice(0, 70))}${t.stem.length > 70 ? '…' : ''}<br><span class="muted">${esc(t.domain)}</span></td><td>${lvlTag(t.itemLevel)}<span class="muted"> .${t.sublevel}</span></td><td class="mono">${t.b}</td><td>${t.omitted ? badge('Omitida', 'warn') : t.correct ? badge('Correcta', 'ok') : badge('Incorrecta', 'bad')}</td><td>${t.time} s</td><td class="mono">${fmtTheta(t.thetaBefore)} → ${fmtTheta(t.thetaAfter)}</td><td class="mono">${t.se.toFixed(2)}</td></tr>`);
+  const w = a.writing, canGrade = can('grade_writing');
+  const wBlock = !w ? '' : `<h3>Writing</h3><div class="panel" style="margin:0 0 14px"><p class="muted" style="margin-bottom:6px">${esc(w.prompt)}</p><div style="white-space:pre-wrap;border:1px solid var(--border);border-radius:10px;padding:10px;background:var(--surface-2)">${esc(w.text) || '<span class="muted">Sin respuesta.</span>'}</div>
+    <div class="row" style="margin-top:10px">${w.status === 'graded' ? `${badge('Calificado', 'ok')} <span>Nivel ${lvlTag(w.level)} · banda ${w.band}/4 · ${RUBRIC.map(([k, n]) => `${n} ${w.scores[k]}`).join(' · ')}</span>` : badge('Pendiente de calificación', 'warn')}
+    ${canGrade ? `<button type="button" class="btn btn-sm btn-primary" data-act="wrGrade" data-att="${a.id}">${w.status === 'graded' ? 'Recalificar' : 'Calificar con la rúbrica'}</button>` : ''}</div>${w.status === 'graded' ? `<p class="muted" style="margin-top:6px">Rúbrica ${RUBRIC_VERSION}. Writing se reporta aparte y no cambia el nivel global (θ de las tres habilidades con CAT).</p>` : ''}</div>`;
+  const flags = [a.flags.fast && 'Respuestas muy rápidas', a.flags.omissions && 'Muchas omisiones', a.flags.interrupted && `Sesión interrumpida (${a.interruptions})`].filter(Boolean);
   openModal({
     title: `Intento de ${p?.name}`, wide: true, noFooter: true,
-    body: `<dl class="dl"><dt>Examen</dt><dd>${esc(examOf(a.examId)?.title)}</dd><dt>Nivel / puntaje</dt><dd>${lvlTag(LEVELS.indexOf(a.level))} · ${a.score}/100 · calidad ${Math.round(a.quality * 100)}% en el nivel · confianza ${CONF_LABEL[a.confidence]}</dd><dt>Fecha</dt><dd>${fmtDT(a.finishedAt)} · tiempo total ${fmtSec(a.totalTime)}</dd><dt>Licencia</dt><dd class="mono">${a.licCode}</dd></dl>
-      <h3 style="margin-top:16px">Evolución del nivel</h3><div class="chart">${levelChart(a.trace, a.startLevel)}</div>
+    body: `<dl class="dl"><dt>Examen</dt><dd>${esc(examOf(a.examId)?.title)} · configuración v${a.cfgVersion}</dd><dt>Nivel global</dt><dd>${lvlTag(a.levelIdx)} · puntaje ${a.score}/100 · θ = ${fmtTheta(a.theta)} ± ${a.se.toFixed(2)}</dd><dt>Curso asignado</dt><dd>${esc(a.course)} · ${esc(COURSES[a.levelIdx][1])}</dd><dt>Recomendaciones</dt><dd>${RECO[a.levelIdx].map(esc).join(' · ')}</dd><dt>Fecha</dt><dd>${fmtDT(a.finishedAt)} · tiempo total ${fmtSec(a.totalTime)}</dd><dt>Banderas</dt><dd>${flags.length ? flags.map(f => badge(f, 'warn')).join(' ') : badge('Sin banderas', 'ok')}</dd><dt>Licencia</dt><dd class="mono">${a.licCode}</dd></dl>
+      <h3 style="margin-top:16px">Resultado por habilidad</h3>${tbl(['Habilidad', 'θ', 'SE', 'Nivel', 'Aciertos', 'Cierre'], sk)}
+      <h3>Evolución de θ</h3><div class="chart" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px">${CAT_SKILLS.map(k => thetaChart(a.trace, k, cfg?.prior_sd)).join('')}</div>
+      <div class="legend"><span><i style="background:var(--ok)"></i>Correcto</span><span><i style="background:var(--bad)"></i>Incorrecto</span><span><i style="background:var(--warn)"></i>Omitido</span><span>La banda sombreada es θ ± SE</span></div>
+      ${wBlock}
       <h3>Certificado</h3><div class="row" style="margin-bottom:14px">${c ? `${badge(CERT_LABEL[cs], CERT_BADGE[cs])} <span class="mono">${c.number}</span> <button type="button" class="btn btn-sm" data-act="certView" data-id="${c.id}">Ver / imprimir</button>` : badge('Sin certificado')}
         ${c && cs === 'valid' ? `<button type="button" class="btn btn-sm btn-danger" data-act="certRevoke" data-id="${c.id}" data-att="${a.id}">Revocar</button>` : ''}${!c ? `<button type="button" class="btn btn-sm btn-primary" data-act="certIssue" data-att="${a.id}">Emitir certificado</button>` : ''}${c && cs === 'expired' ? `<button type="button" class="btn btn-sm btn-primary" data-act="certRenew" data-id="${c.id}" data-att="${a.id}">Renovar vigencia</button>` : ''}</div>
       ${c && cs === 'revoked' ? '<div class="notice bad">Este certificado fue revocado y ya no es válido en el verificador público.</div>' : ''}
-      <h3>Preguntas</h3>${tbl(['#', 'Habilidad y nivel', 'Pregunta', 'Resultado', 'Tiempo usado / límite', 'Calidad', 'Medidor', 'Nivel después'], trs)}`
+      <h3>Ítems administrados</h3>${tbl(['#', 'Habilidad', 'Ítem', 'Nivel', 'b', 'Resultado', 'Tiempo', 'θ antes → después', 'SE'], trs)}`
+  });
+}
+// Calificación de Writing con la rúbrica 0–4 (moderación humana, sección 12 del documento)
+function openWritingGrade(attId) {
+  const a = attemptViewById(attId), w = a.writing, sr = byId(S.skill_results, w.id);
+  const opts = [0, 1, 2, 3, 4].map(n => [n, String(n)]);
+  openModal({
+    title: 'Calificar Writing', wide: true,
+    body: `<p class="muted">${esc(w.prompt)}</p><div style="white-space:pre-wrap;border:1px solid var(--border);border-radius:10px;padding:10px;background:var(--surface-2);margin-bottom:12px">${esc(w.text) || '<span class="muted">Sin respuesta.</span>'}</div>
+      <div class="fgrid">${RUBRIC.map(([k, n]) => fld(n + ' (0 a 4)', k, w.scores[k] ?? 2, { type: 'select', opts })).join('')}</div><p class="hint">La banda es el promedio de los cuatro criterios y se convierte a nivel MCER.</p>`,
+    onSubmit(v) {
+      const sc = {}; RUBRIC.forEach(([k]) => sc[k] = +v[k]);
+      gradeWriting(sr, sc, S.auth?.userId); commit(); toast('Writing calificado: nivel ' + LEVELS[lvI(sr.level_id)] + ' (banda ' + sr.band + ').');
+      setTimeout(() => openAttempt(attId), 0);
+    }
   });
 }
 function certHTML(c) {
@@ -1775,11 +1986,12 @@ function openCert(id) {
 /* =====================================================================
    14. VISTAS: candidato (examen, compra) y verificador público
    ===================================================================== */
-const examLocked = () => S.ui.role === 'cand' && U.ex.stage === 'run';
+const examLocked = () => S.ui.role === 'cand' && ['run', 'between'].includes(U.ex.stage);
 function vExamen() {
   const ex = U.ex;
   if (ex.stage === 'instr') return vInstr();
   if (ex.stage === 'run') return vRun();
+  if (ex.stage === 'between') return vBetween();
   if (ex.stage === 'final') return vFinal();
   return vEntry();
 }
@@ -1792,7 +2004,9 @@ function sampleCodes() {
   if (ok) { out.push(['Válido', ok.code, doc(ok)]); const other = candidates().find(c => c.id !== licInfo(ok).userId && c.orgId === licOrgId(ok)); if (other) out.push(['Asignada a otra persona', ok.code, other.docNum]); }
   const v = pick(l => licState(l) === 'expired'); if (v) out.push(['Vencido', v.code, doc(v)]);
   const r = pick(l => l.status === 'revoked'); if (r) out.push(['Revocado', r.code, '']);
-  const c = pick(l => l.status === 'consumed'); if (c) out.push(['Consumido', c.code, doc(c)]);
+  const inter = S.exam_attempts.find(a => a.status === 'interrupted'), il = inter && S.licenses.find(l => S.license_assignments.some(x => x.id === inter.license_assignment_id && x.license_id === l.id));
+  if (il) out.push(['Examen interrumpido (reanudar)', il.code, licInfo(il).cand?.docNum || '']);
+  const c = pick(l => l.status === 'consumed' && l !== il); if (c) out.push(['Consumido', c.code, doc(c)]);
   const d = pick(l => l.status === 'available' && licState(l) === 'available'); if (d) out.push(['Sin asignar', d.code, '']);
   out.push(['No existe', 'ENG-ZZZZ-0000', '']);
   return out;
@@ -1807,65 +2021,127 @@ function vEntry() {
       <div class="chips">${sampleCodes().map(([t, c, d]) => `<button class="chip" type="button" data-act="fill" data-code="${c}" data-doc="${d}">${esc(t)}</button>`).join('')}</div></section>`;
 }
 function vInstr() {
-  const { lic, cand } = U.ex, c = activeCfg(lic.exam_id);
-  return head('Instrucciones del examen', `Hola, ${cand.name}.`) +
-    `<section class="panel" style="max-width:700px"><ul><li>Es un examen <b>adaptativo</b>: el nivel de las preguntas sube cuando aciertas y baja cuando fallas. Acertar con rapidez te hace avanzar más y vale más en tu resultado.</li>
-      <li>Responderás entre <b>${c.min_questions}</b> y <b>${c.max_questions}</b> preguntas, una por pantalla.</li><li>Cada pregunta tiene un <b>temporizador</b>. Al agotarse se marca como expirada y se avanza.</li><li>No puedes volver a una pregunta anterior ni pausar el examen.</li></ul>
-      <div class="notice warn"><b>Atención:</b> al iniciar se consume tu licencia <span class="mono">${lic.code}</span>. Solo permite un examen y <b>no hay vuelta atrás</b>, aunque cierres la ventana.</div>
-      <form data-form="start" novalidate><div class="field"><label><input type="checkbox" name="ok" value="1" checked> Entiendo que iniciar consume mi licencia y no se puede deshacer.</label><small class="err" id="e-ok" role="alert"></small></div>
-      <div class="row"><button type="button" class="btn" data-act="exCancel">Volver</button><button class="btn btn-primary" type="submit">Iniciar examen</button></div></form></section>`;
+  const { lic, cand, resume } = U.ex, c = resume ? cfgRuntime(S, byId(S.exam_configs, resume.exam_config_id)) : activeCfg(lic.exam_id), sc = c.skillCfg;
+  return head(resume ? 'Reanudar examen' : 'Instrucciones del examen', `Hola, ${cand.name}.`) +
+    `<section class="panel" style="max-width:700px"><ul><li>Es un examen <b>adaptativo</b> por partes: en Use of English, Reading y Listening la dificultad de cada pregunta se ajusta a tu nivel según tus respuestas anteriores.</li>
+      ${CAT_SKILLS.map(k => `<li><b>${SKILLS[k]}</b>: entre ${sc[k].min_items} y ${sc[k].max_items} preguntas, hasta ${sc[k].max_minutes} minutos.</li>`).join('')}
+      <li><b>Writing</b>: una tarea escrita de hasta ${c.writing_minutes} minutos que califica un docente.</li>
+      <li>Cada parte tiene su propio reloj. Puedes omitir una pregunta, pero no volver a una anterior ni pausar.</li></ul>
+      ${resume ? `<div class="notice warn"><b>Examen interrumpido:</b> tus respuestas anteriores están guardadas y continuarás desde la parte en curso. El reloj de esa parte se reinicia.</div>`
+        : `<div class="notice warn"><b>Atención:</b> al iniciar se consume tu licencia <span class="mono">${lic.code}</span>. Solo permite un examen. Si se interrumpe (conexión, energía), podrás reanudarlo con el mismo código.</div>`}
+      <form data-form="start" novalidate><div class="field"><label><input type="checkbox" name="ok" value="1" checked> ${resume ? 'Entiendo que continúo el examen en curso.' : 'Entiendo que iniciar consume mi licencia.'}</label><small class="err" id="e-ok" role="alert"></small></div>
+      <div class="row"><button type="button" class="btn" data-act="exCancel">Volver</button><button class="btn btn-primary" type="submit">${resume ? 'Reanudar examen' : 'Iniciar examen'}</button></div></form></section>`;
 }
+const fmtClock = s => { s = Math.max(0, Math.ceil(s)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+const skillLeft = ex => skillCfgOf(ex.E.cfg, ex.k).max_minutes * 60 - (Date.now() - ex.E.sess[ex.k].startedMs) / 1000;
+const writingLeft = ex => ex.E.cfg.writing_minutes * 60 - (Date.now() - ex.wStart) / 1000;
 function vRun() {
-  const ex = U.ex, q = ex.q, n = ex.E.trace.length + 1, max = ex.E.cfg.max_questions;
-  return `<div class="exam"><div class="row" style="justify-content:space-between;margin-bottom:6px"><b>Pregunta ${n}</b><span class="muted">máximo ${max}</span></div>
-    <div class="tbar" style="margin-bottom:16px" role="progressbar" aria-label="Progreso del examen" aria-valuemin="0" aria-valuemax="${max}" aria-valuenow="${n - 1}"><i style="width:${(n - 1) / max * 100}%;background:var(--ok)"></i></div>
-    <section class="panel"><div class="row" style="justify-content:space-between"><span class="muted">${esc(SKILLS[qSkill(q)])}</span><b id="tsec" role="timer" aria-live="off">${ex.limit} s</b></div><div class="tbar" id="tbar" style="margin:6px 0 16px"><i style="width:100%"></i></div>
-    <form data-form="answer" novalidate>${questionHTML(q, true)}<div class="row" style="margin-top:14px"><button class="btn btn-primary" type="submit" id="ans-btn">Responder</button></div></form></section></div>`;
+  const ex = U.ex;
+  if (ex.phase === 'writing') return vWriting();
+  const q = ex.q, k = ex.k, s = ex.E.sess[k], sc = skillCfgOf(ex.E.cfg, k), n = s.resp.length + 1, i = CAT_SKILLS.indexOf(k);
+  return `<div class="exam"><div class="row" style="justify-content:space-between;margin-bottom:6px"><b>Parte ${i + 1} de 4 · ${esc(SKILLS[k])}</b><span class="muted">Pregunta ${n} · máximo ${sc.max_items}</span></div>
+    <div class="tbar" style="margin-bottom:16px" role="progressbar" aria-label="Progreso de la parte" aria-valuemin="0" aria-valuemax="${sc.max_items}" aria-valuenow="${n - 1}"><i style="width:${(n - 1) / sc.max_items * 100}%;background:var(--ok)"></i></div>
+    <section class="panel"><div class="row" style="justify-content:flex-end"><span class="muted">Tiempo de esta parte: <b id="tsec" role="timer" aria-live="off">${fmtClock(skillLeft(ex))}</b></span></div>
+    <form data-form="answer" novalidate>${questionHTML(q, true)}<div class="row" style="margin-top:14px"><button class="btn btn-primary" type="submit" id="ans-btn">Responder</button><button type="button" class="btn" data-act="exOmit">Omitir pregunta</button></div></form></section></div>`;
+}
+function vWriting() {
+  const ex = U.ex, q = ex.wq;
+  return `<div class="exam"><div class="row" style="justify-content:space-between;margin-bottom:6px"><b>Parte 4 de 4 · Writing</b><span class="muted">Tarea del nivel estimado</span></div>
+    <section class="panel"><div class="row" style="justify-content:flex-end"><span class="muted">Tiempo de esta parte: <b id="tsec" role="timer" aria-live="off">${fmtClock(writingLeft(ex))}</b></span></div>
+    <form data-form="writing" novalidate><fieldset style="border:0;padding:0;margin:0"><legend style="font:900 1.25rem 'Nunito';margin-bottom:12px;padding:0">${esc(q.statement)}</legend>
+      <textarea name="text" rows="10" aria-label="Tu respuesta" placeholder="Escribe aquí tu respuesta en inglés." oninput="document.getElementById('wc').textContent=this.value.trim().split(/\\s+/).filter(Boolean).length"></textarea></fieldset>
+    <div class="row" style="margin-top:10px;justify-content:space-between"><span class="muted"><span id="wc">0</span> palabras</span><button class="btn btn-primary" type="submit">Enviar y finalizar</button></div></form></section></div>`;
+}
+function vBetween() {
+  const ex = U.ex, k = ex.nextK, sc = skillCfgOf(ex.E.cfg, k), done = CAT_SKILLS.indexOf(k);
+  return head('Parte completada', 'Tus respuestas quedaron guardadas.') +
+    `<section class="panel" style="max-width:640px"><p>Sigue la parte <b>${done + 1} de 4: ${esc(SKILLS[k])}</b>, con entre ${sc.min_items} y ${sc.max_items} preguntas y hasta ${sc.max_minutes} minutos. El reloj arranca cuando continúes.</p><div class="row"><button class="btn btn-primary" data-act="exNext">Continuar con ${esc(SKILLS[k])}</button></div></section>`;
 }
 function vFinal() {
-  const { sum, cert, cand } = U.ex;
+  const { v, cert, cand } = U.ex, w = v.writing;
   return head('Examen finalizado', `Gracias, ${cand.name}.`) +
-    `<div class="grid g2"><section class="panel" style="text-align:center"><p class="muted">Tu nivel MCER</p><div class="bignum">${sum.level}</div><p>Puntaje <b>${sum.score}/100</b> · tiempo total <b>${fmtSec(sum.totalTime)}</b></p>
+    `<div class="grid g2"><section class="panel" style="text-align:center"><p class="muted">Tu nivel MCER</p><div class="bignum">${v.level}</div><p>Puntaje <b>${v.score}/100</b> · θ = <b>${fmtTheta(v.theta)}</b> ± ${v.se.toFixed(2)} · tiempo total <b>${fmtSec(v.totalTime)}</b></p>
+      <p>Curso asignado: <b>${esc(v.course)}</b> · ${esc(COURSES[v.levelIdx][1])}</p>
       <p class="muted">Certificado <span class="mono">${cert.number}</span><br>Código de verificación: <b class="mono">${cert.verification_code}</b></p><div class="row" style="justify-content:center"><button class="btn btn-primary" data-act="certView" data-id="${cert.id}">Ver certificado</button><button class="btn" data-act="exDone">Salir</button></div></section>
-    <section class="panel"><h2>Desglose por habilidad</h2><div class="bars">${Object.entries(sum.bySkill).map(([k, v]) => `<div class="bar" style="grid-template-columns:130px 1fr 44px"><span>${SKILLS[k]}</span><div><i style="width:${v.n ? v.ok / v.n * 100 : 0}%"></i></div><b>${v.ok}/${v.n}</b></div>`).join('')}</div></section></div>`;
+    <section class="panel"><h2>Resultado por habilidad</h2><div class="tbl-wrap"><table><thead><tr><th scope="col">Habilidad</th><th scope="col">Nivel</th><th scope="col">θ ± SE</th><th scope="col">Aciertos</th></tr></thead><tbody>${CAT_SKILLS.map(k => { const x = v.skills[k]; return `<tr><td>${esc(SKILLS[k])}</td><td>${lvlTag(x.level)} <span class="muted">${esc(levelRangeLabel(x.theta, x.se))}</span></td><td class="mono">${fmtTheta(x.theta)} ± ${x.se.toFixed(2)}</td><td>${x.ok}/${x.n}</td></tr>`; }).join('')}<tr><td>Writing</td><td colspan="3">${w && w.status === 'graded' ? `${lvlTag(w.level)} · banda ${w.band}/4` : 'Pendiente de calificación docente. No cambia tu nivel global.'}</td></tr></tbody></table></div>
+      <h3 style="margin-top:14px">Recomendaciones</h3><ul>${RECO[v.levelIdx].map(r => `<li>${esc(r)}</li>`).join('')}</ul></section></div>`;
 }
-// Flujo del examen: validar código, iniciar, responder, finalizar
+// Flujo del examen: validar código, iniciar o reanudar, responder cada parte (CAT), escribir y finalizar
 function submitEntry(form) {
   const v = Object.fromEntries(new FormData(form)); U.entry = { code: v.code, doc: v.doc };
   const r = validateEntry(v.code, v.doc), g = $('#e-form', form);
   if (!r.ok) { g.textContent = r.msg; g.hidden = false; g.focus?.(); return; }
-  U.ex = { stage: 'instr', lic: r.lic, cand: r.cand, asg: r.asg }; render();
+  U.ex = { stage: 'instr', lic: r.lic, cand: r.cand, asg: r.asg, resume: r.resume || null }; render();
 }
 function startExam() {
   const ex = U.ex, l = ex.lic, nowS = new Date().toISOString();
+  if (ex.resume) return resumeExam();
   l.status = 'consumed'; l.consumed_at = nowS;
   const cfg = activeCfg(l.exam_id);
   ex.E = newEngine(cfg, poolFor(S, l.exam_id), Math.random);
-  ex.att = { id: uid('t'), license_assignment_id: ex.asg.id, candidate_id: ex.cand.id, exam_id: l.exam_id, exam_config_id: cfg.id, current_level_id: cfg.initial_level_id, status: 'in_progress', started_at: nowS, finished_at: null, ip: '', user_agent: (navigator.userAgent || '').slice(0, 80) };
+  ex.att = { id: uid('t'), license_assignment_id: ex.asg.id, candidate_id: ex.cand.id, exam_id: l.exam_id, exam_config_id: cfg.id, current_skill_id: skId(CAT_SKILLS[0]), status: 'in_progress', started_at: nowS, finished_at: null, ip: '', user_agent: (navigator.userAgent || '').slice(0, 80), interruptions: 0 };
   S.exam_attempts.push(ex.att); save();
-  ex.stage = 'run'; nextStep();
+  beginSkill(CAT_SKILLS[0]);
 }
+// Reanuda un intento interrumpido (22.7): reconstruye θ y respuestas de cada habilidad desde ATTEMPT_QUESTION
+function resumeExam() {
+  const ex = U.ex, att = ex.resume, cfg = cfgRuntime(S, byId(S.exam_configs, att.exam_config_id)), l = ex.lic;
+  ex.E = newEngine(cfg, poolFor(S, att.exam_id), Math.random); ex.att = att;
+  S.attempt_questions.filter(x => x.exam_attempt_id === att.id).sort((a, b) => a.position - b.position).forEach(x => {
+    const k = skCode(x.skill_id); if (k === 'writing') return;
+    const q = byId(S.questions, x.question_id), s = ex.E.sess[k];
+    s.resp.push({ q, optId: x.answer_option_id, correct: x.is_correct, omitted: x.is_omitted, theta_prev: x.theta_before, theta_post: x.theta_after, se_post: x.se_after, time: x.response_time_ms / 1000 });
+    s.used.add(q.id); s.theta = x.theta_after; s.se = x.se_after;
+  });
+  const cur = skCode(att.current_skill_id);
+  CAT_SKILLS.forEach(k => { if (CAT_SKILLS.indexOf(k) < CAT_SKILLS.indexOf(cur) || cur === 'writing') ex.E.sess[k].reason = skillDone(ex.E, k) || 'time'; });
+  att.status = 'in_progress'; save();
+  if (cur === 'writing') startWriting(); else beginSkill(cur);
+}
+function beginSkill(k) {
+  const ex = U.ex; ex.k = k; ex.phase = 'cat'; ex.stage = 'run';
+  ex.E.sess[k].startedMs = Date.now(); ex.att.current_skill_id = skId(k); save();
+  nextStep();
+}
+// Bucle del CAT (22.6): tiempo → precisión → máximo de ítems → siguiente ítem
 function nextStep() {
-  const ex = U.ex;
-  if (isDone(ex.E)) return finishExam();
-  ex.q = nextQuestion(ex.E); ex.limit = timeFor(ex.q, ex.E.cfg); ex.t0 = Date.now(); render();
-  clearInterval(ex.tm); ex.tm = setInterval(tick, 150);
+  const ex = U.ex, E = ex.E, k = ex.k, s = E.sess[k];
+  let reason = skillLeft(ex) <= 0 ? 'time' : skillDone(E, k);
+  if (!reason) { ex.q = pickItem(E, k); if (!ex.q) reason = 'no_items'; }
+  if (reason) { s.reason = reason; return endSkill(); }
+  ex.t0 = Date.now(); render(); startTimer();
 }
+function startTimer() { const ex = U.ex; clearInterval(ex.tm); ex.tm = setInterval(tick, 500); }
 function tick() {
   const ex = U.ex; if (ex.stage !== 'run') return clearInterval(ex.tm);
-  const el = (Date.now() - ex.t0) / 1000, left = Math.max(0, ex.limit - el), bar = $('#tbar');
-  if (bar) { bar.firstElementChild.style.width = (left / ex.limit * 100) + '%'; bar.classList.toggle('low', left / ex.limit < 0.2); $('#tsec').textContent = Math.ceil(left) + ' s'; }
-  if (left <= 0) answer(null);
+  const left = ex.phase === 'writing' ? writingLeft(ex) : skillLeft(ex), t = $('#tsec');
+  if (t) { t.textContent = fmtClock(left); t.style.color = left < 60 ? 'var(--bad)' : ''; }
+  if (left <= 0) { if (ex.phase === 'writing') submitWriting(); else { clearInterval(ex.tm); ex.E.sess[ex.k].reason = 'time'; endSkill(); } }
 }
 function answer(optId) {
   const ex = U.ex; clearInterval(ex.tm);
-  const used = Math.min(ex.limit, (Date.now() - ex.t0) / 1000);
-  applyAnswer(ex.E, ex.q, optId, used, ex.limit); nextStep();
+  const time = (Date.now() - ex.t0) / 1000, r = respond(ex.E, ex.k, ex.q, optId, time);
+  S.attempt_questions.push(aqRow(S, ex.att, ex.k, r, S.attempt_questions.filter(x => x.exam_attempt_id === ex.att.id).length + 1, ex.t0)); save();
+  nextStep();
 }
-function finishExam() {
+function endSkill() {
+  const ex = U.ex, i = CAT_SKILLS.indexOf(ex.k); clearInterval(ex.tm);
+  if (i < CAT_SKILLS.length - 1) { ex.nextK = CAT_SKILLS[i + 1]; ex.att.current_skill_id = skId(ex.nextK); ex.stage = 'between'; save(); render(); }
+  else startWriting();
+}
+function startWriting() {
+  const ex = U.ex; ex.wq = pickWriting(ex.E);
+  if (!ex.wq) return finishExam({ q: null, text: '' });
+  ex.phase = 'writing'; ex.stage = 'run'; ex.wStart = Date.now(); ex.att.current_skill_id = skId('writing'); save(); render(); startTimer();
+}
+function submitWriting() {
+  const ex = U.ex; clearInterval(ex.tm);
+  finishExam({ q: ex.wq, text: ($('[name=text]')?.value || '').trim() });
+}
+function finishExam(w) {
   const ex = U.ex, cfg = ex.E.cfg;
-  const { r, sum } = persistAttempt(S, { att: ex.att, E: ex.E, started_at: ex.att.started_at, finished_at: new Date().toISOString() });
-  ex.cert = issueCert(S, r, cfg); ex.sum = sum; ex.stage = 'final'; commit();
+  const { r } = persistAttempt(S, { att: ex.att, E: ex.E, started_at: ex.att.started_at, finished_at: new Date().toISOString(), writing: w });
+  ex.cert = issueCert(S, r, cfg); ex.v = attemptView(ex.att); ex.stage = 'final'; commit();
 }
 
 function vVerificar() {
@@ -1985,7 +2261,8 @@ const A = {
     }
   },
   fill(d) { U.entry = { code: d.code, doc: d.doc }; render(); },
-  exCancel() { U.ex = { stage: 'entry' }; render(); }, exDone() { U.ex = { stage: 'entry' }; U.entry = { code: '', doc: '' }; render(); },
+  exCancel() { U.ex = { stage: 'entry' }; render(); },
+  exOmit() { answer(null); }, exNext() { beginSkill(U.ex.nextK); }, wrGrade(d) { openWritingGrade(d.att); }, exDone() { U.ex = { stage: 'entry' }; U.entry = { code: '', doc: '' }; render(); },
   buyExam() { const c = candOf(S.auth.userId); U.entry = { code: U.lastPurchase.codes[0], doc: c ? c.docNum : '' }; U.lastPurchase = null; S.ui.view = 'examen'; U.ex = { stage: 'entry' }; commit(); },
   buyAgain() { U.lastPurchase = null; render(); },
   fillVer(d) { U.ver = d.code; U.verRes = null; render(); },
@@ -2024,6 +2301,7 @@ document.addEventListener('submit', e => {
   else if (kind === 'pay') submitPay(f);
   else if (kind === 'login') submitLogin(f);
   else if (kind === 'reg') submitReg(f);
+  else if (kind === 'writing') submitWriting();
   else if (kind === 'start') { if (!f.ok.checked) { $('#e-ok').textContent = 'Debes confirmar para iniciar.'; f.ok.focus(); } else startExam(); }
   else if (kind === 'answer') { const r = f.querySelector('[name=ans]:checked'); if (!r) { toast('Selecciona una opción antes de responder.', 'warn'); return; } answer(r.value); }
   else if (kind === 'verify') { const code = new FormData(f).get('code').trim().toUpperCase(); U.ver = code; if (!code) { $('#e-code').textContent = 'Ingresa el código.'; return; } U.verRes = { c: S.certificates.find(c => c.verification_code === code) }; render(); }
