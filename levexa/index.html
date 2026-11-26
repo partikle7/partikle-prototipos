@@ -285,6 +285,48 @@ body.auth #side,body.auth .top .menu-btn{display:none !important;}
   .modal header,.modal footer,.no-print{display:none !important;}
   .modal .mbody{padding:0;}
 }
+/* ===== Adaptación a cualquier ancho: rejillas que se acomodan solas, listas de datos y tablas en tarjetas ===== */
+.panel,.kpi,.grid>*,.page-head>*{min-width:0;}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));}
+.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));}
+.split{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);}
+@media (max-width:1100px){.split{grid-template-columns:1fr;}}
+.panel,.modal .mbody{container-type:inline-size;}
+.dl{grid-template-columns:minmax(110px,170px) minmax(0,1fr);}
+.dl dd{min-width:0;overflow-wrap:anywhere;}
+@container (max-width:470px){.dl{grid-template-columns:minmax(0,1fr) !important;}.dl dt{margin-top:8px;}}
+.page-head h1,.panel h2,.panel h3{overflow-wrap:anywhere;}
+@media (max-width:1000px){
+  .layout{grid-template-columns:1fr;}
+  #side{position:static;height:auto;display:none;padding:12px 14px 4px;}
+  #side.open{display:block;}
+  .top .menu-btn{display:inline-flex;}
+  .top-ctrl{margin-left:0;width:100%;}
+}
+@media (max-width:900px){.inline{flex:1 1 220px;}.inline .cs{min-width:0;max-width:none;flex:1;}.inline select{max-width:none;}}
+@media (max-width:560px){
+  .modal header,.modal .mbody,.modal footer{padding-left:16px;padding-right:16px;}
+  .modal-bg{padding:2vh 8px;}
+  .panel{padding:16px;}
+  .cert{padding:24px 16px;}.cert .meta{grid-template-columns:1fr;}
+  .row .btn{flex:1 1 auto;}
+  .toolbar>*{flex:1 1 100%;}
+  .tabs{width:100%;}.tabs button{flex:1 1 auto;padding:8px 12px;}
+}
+/* Tablas: en contenedores angostos cada fila pasa a ser una tarjeta con sus etiquetas */
+.tbl-wrap{container:tw / inline-size;}
+@container tw (max-width:720px){
+  table,tbody,tr,td{display:block;width:100%;}
+  thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}
+  tr{padding:10px 14px;border-bottom:1px solid var(--border);}
+  tr:last-child{border-bottom:0;}
+  td{display:grid;grid-template-columns:minmax(88px,36%) minmax(0,1fr);gap:4px 10px;border:0;padding:5px 0;white-space:normal !important;overflow-wrap:anywhere;}
+  td[data-label]::before{content:attr(data-label);font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding-top:3px;}
+  td.act,td:not([data-label]){display:block;}
+  td .row{flex-wrap:wrap;}
+  tbody tr:hover td{background:none;}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important;}}
 </style>
 </head>
@@ -1554,7 +1596,7 @@ function vPago() {
     <div class="field"><label for="b-pay.pse.persona">Tipo de persona</label><select id="b-pay.pse.persona" data-bind="pay.pse.persona"><option value="natural"${p.pse.persona === 'natural' ? ' selected' : ''}>Natural</option><option value="juridica"${p.pse.persona === 'juridica' ? ' selected' : ''}>Jurídica</option></select></div>${inp('pay.pse.doc', 'Documento o NIT del titular')}`;
   else form = `${inp('pay.wallet.phone', 'Celular asociado a la billetera', { attrs: 'inputmode="tel" placeholder="3000000000"' })}<p class="hint">Se enviaría una notificación de aprobación a tu celular (simulado).</p>`;
   return `<div class="row" style="margin-bottom:10px"><button class="btn btn-sm" data-act="payCancel">← Volver</button></div>` + head('Pasarela de pago', 'Pago seguro simulado. No ingreses datos reales: usa las tarjetas de prueba.') +
-    `<div class="grid g2" style="grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)"><form class="panel" data-form="pay" novalidate><div class="notice warn">Entorno de pruebas: ninguna tarjeta real se procesa ni se almacena.</div>
+    `<div class="grid split"><form class="panel" data-form="pay" novalidate><div class="notice warn">Entorno de pruebas: ninguna tarjeta real se procesa ni se almacena.</div>
       <div class="tabs" role="tablist" aria-label="Método de pago">${Object.entries(PAY_METHODS).map(([k, t]) => `<button type="button" role="tab" aria-selected="${m === k}" data-act="payMethod" data-m="${k}">${t}</button>`).join('')}</div>
       <div class="notice bad" id="e-form" role="alert" hidden></div>${form}<button class="btn btn-primary" type="submit" style="width:100%">Pagar ${fmtMoney(p.amount, p.currency)}</button></form>
     <section class="panel"><h2>Resumen del pedido</h2><dl class="dl" style="grid-template-columns:1fr auto">${p.lines.map(([a, b]) => `<dt style="text-transform:none;letter-spacing:0;font-size:.9rem">${esc(a)}</dt><dd>${esc(b)}</dd>`).join('')}</dl>
@@ -2357,6 +2399,14 @@ document.addEventListener('submit', e => {
   else if (kind === 'verify') { const code = new FormData(f).get('code').trim().toUpperCase(); U.ver = code; if (!code) { $('#e-code').textContent = 'Ingresa el código.'; return; } U.verRes = { c: S.certificates.find(c => c.verification_code === code) }; render(); }
 });
 
+// Etiqueta cada celda con el encabezado de su columna (para mostrar las filas como tarjetas en pantallas angostas)
+function labelTables() {
+  document.querySelectorAll('table').forEach(t => {
+    const hs = [...t.querySelectorAll('thead th')].map(h => h.textContent.trim());
+    t.querySelectorAll('tbody tr').forEach(tr => [...tr.children].forEach((td, i) => { if (td.tagName === 'TD' && !td.dataset.label && hs[i]) td.dataset.label = hs[i]; }));
+  });
+}
+new MutationObserver(labelTables).observe(document.body, { childList: true, subtree: true });
 (function boot() {
 
   load();
